@@ -2,7 +2,8 @@
 
 var groundControl = null;
 var groundControlChannel = null;
-var pcs = {}
+var videoPeers = {};
+var messagePromises = [];
 
 class VideoPeer {
     constructor() {
@@ -10,15 +11,60 @@ class VideoPeer {
     }
 }
 
-class MessagePromise {
+class MessagePromise extends Promise {
     constructor(responseParams) {
+        super();
         this.responseParams = responseParams;
+    }
+
+    checkParams(message) {
+        for (const key in this.responseParams) {
+            if (!(key in message) || this.responseParams[key] !== message[key]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
-async function send(data, responseParams) {
-    promise = MessagePromise(responseParams);
-    groundControlChannel.send(JSON.stringify(data));
+async function sendReceiveMessage(data, responseParams) {
+    //let responsePromise = new Promise(message => message);
+    //const responsePromise = new Promise((resolve, reject) => {
+    //    console.log('Resolving promise for message:', message);
+    //    resolve(message);
+    //});
+    return new Promise((resolve, reject) => {
+        function matchResponse(message) {
+            for (const key in responseParams) {
+                if (!(message.hasOwnProperty(key) && message.key === responseParams.key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function onMessage(evt) {
+            let message = JSON.parse(evt.data);
+            console.log('Received message:', message);
+            if (matchResponse(message)) {
+                console.log('Received valid response message:', message);
+                //Promise.resolve(responsePromise);
+                groundControlChannel.removeEventListener('message', onMessage);
+                resolve(message);
+            }
+        }
+
+        groundControlChannel.addEventListener('message', onMessage);
+        console.log('Added event listener');
+
+        groundControlChannel.send(JSON.stringify(data));
+        console.log('Sent message to Ground Control');
+    });
+
+    //let r = await responsePromise;
+    //console.log('Response:', r);
+    //return r;
 }
 
 async function ping() {
@@ -41,10 +87,16 @@ async function get_room_info() {
         return;
     }
 
-    const data = {"receiver": "ground control",
-                  "type": "get-room-info"}
-    console.log('get-room-info: ', data);
-    groundControlChannel.send(JSON.stringify(data));
+    let data = {"receiver": "ground control",
+                "type": "get-room-info"};
+    let responseParams = {"sender": "ground control",
+                          "type": "get-room-info"};
+    //console.log('get-room-info: ', data);
+    //groundControlChannel.send(JSON.stringify(data));
+    //let r = await sendReceiveMessage(data, responseParams);
+    ////console.log("In get_room_info():", r);
+    ////return r;
+    return sendReceiveMessage(data, responseParams);
     
 }
 
@@ -97,12 +149,20 @@ function createGroundControlConnection() {
     };
     groundControlChannel.onmessage = function(evt) {
         console.log('Received message:', evt.data);
+        handleMessage(JSON.parse(evt.data));
     };
 
 
     console.log('Connection for Ground Control created');
 
     return pc;
+}
+
+function handleMessage(message) {
+    messagePromises.forEach(function(promise) {
+        if (promise.checkParams(message)) {
+        }
+    });
 }
 
 async function createVideoPeerConnection() {
@@ -213,10 +273,11 @@ async function establishVideoPeer(peer_id) {
 }
 
 async function findPeers() {
-    room_info = get_room_info();
-    for (client_id in room_info) {
-        peer = new VideoPeer();
-    }
+    let room_info = await get_room_info();
+    console.log('Got room info:', room_info);
+    //for (client_id in room_info) {
+    //    peer = new VideoPeer();
+    //}
 }
 
 async function start() {
@@ -249,7 +310,11 @@ async function start() {
     const videoElement = document.querySelector('video#localVideo');
     //videoElement.srcObject = stream;
 
-    //peers = await findPeers();
+    // Wait for data channel to open
+    while (groundControlChannel.readyState != 'open') {
+        await new Promise(r => setTimeout(r, 100));
+    }
+    let peers = await findPeers();
 }
 
 start()
