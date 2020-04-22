@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.room_id.label }}<br>
+        {{ form.room_id(size=32) }}<br>
+        {% for error in form.room_id.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>
+
+{% endblock %}
