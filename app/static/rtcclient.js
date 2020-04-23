@@ -3,41 +3,115 @@
 var groundControl = null;
 var groundControlChannel = null;
 var videoPeers = {};
-var messagePromises = [];
+var localstream = null;
 
 class VideoPeer {
-    constructor() {
+    constructor(client_id) {
+        this.client_id = client_id;
         this.peerconnection = null;
+    }
+
+    async createPeerConnection() {
+        let config = {
+            sdpSemantics: 'unified-plan'
+        };
+        config.iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
+        let pc = new RTCPeerConnection(config);
+
+        pc.addEventListener('icegatheringstatechange', function() {
+            console.log("Ice gathering state:", pc.iceGatheringState);
+        });
+
+        pc.addEventListener('iceconnectionstatechange', function() {
+            console.log("Ice connection state:", pc.iceConnectionState);
+        });
+
+        pc.addEventListener('signalingstatechange', function() {
+            console.log("Signaling state:", pc.signalingState);
+        });
+
+        pc.addEventListener('track', function(evt) {
+            if (evt.track.kind == 'video') {
+                console.log('Video track received:', evt.track.id)
+                document.getElementById('remoteVideo').srcObject = evt.streams[0];
+
+            }
+            else {
+                console.log('Audio track received:', evt.track.id)
+                document.getElementById('remoteAudio').srcObject = evt.streams[0];
+            }
+        });
+
+        pc.createDataChannel('data');
+
+        console.log('Video peer connection created for peer:', this.client_id);
+        this.peerconnection = pc;
+    }
+
+    async respondToOffer(offer) {
+        await this.peerconnection.setRemoteDescription(offer);
+        let answer = await this.peerconnection.createAnswer();
+        await this.peerconnection.setLocalDescription(answer);
+
+        const data = {"receiver": this.client_id,
+                      "type": "answer",
+                      "data": this.peerconnection.localDescription.sdp};
+        await sendMessage(data);
+
+        console.log('Answer sent to video peer:', data);
+    }
+
+    async negotiateConnection(peeroffer=null) {
+        if (peeroffer !== null) {
+            return this.respondToOffer(peeroffer);
+        }
+
+        console.log('Creating offer to video peer')
+        const offer = await this.peerconnection.createOffer();
+        await this.peerconnection.setLocalDescription(offer);
+
+        // Wait for ice gathering to complete
+        while (this.peerconnection.iceGatheringState != 'complete') {
+            await new Promise(r => setTimeout(r, 2000));
+            console.log('Ice gathering:', this.peerconnection.iceGatheringState);
+        }
+
+        // Make an offer and wait for the answer
+        const data = {"receiver": this.client_id,
+                      "type": "offer",
+                      "data": this.peerconnection.localDescription.sdp};
+        let responseParams = {"sender": this.client_id,
+                              "type": "answer"};
+        console.log('Sending offer to video peer')
+        let response = await sendReceiveMessage(data, responseParams);
+        let answer = {'type': 'answer', 'sdp': response.data};
+        return await this.peerconnection.setRemoteDescription(answer);
+
+        console.log('Answer received from video peer:', response);
+    }
+
+    addTrack(track, stream) {
+        console.log('Add track:', track);
+        this.peerconnection.addTrack(track, stream);
     }
 }
 
-class MessagePromise extends Promise {
-    constructor(responseParams) {
-        super();
-        this.responseParams = responseParams;
-    }
-
-    checkParams(message) {
-        for (const key in this.responseParams) {
-            if (!(key in message) || this.responseParams[key] !== message[key]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
+async function sendMessage(data) {
+    groundControlChannel.send(JSON.stringify(data));
+    console.log('Sent message to Ground Control:', data);
 }
 
 async function sendReceiveMessage(data, responseParams) {
-    //let responsePromise = new Promise(message => message);
-    //const responsePromise = new Promise((resolve, reject) => {
-    //    console.log('Resolving promise for message:', message);
-    //    resolve(message);
-    //});
     return new Promise((resolve, reject) => {
         function matchResponse(message) {
             for (const key in responseParams) {
-                if (!(message.hasOwnProperty(key) && message.key === responseParams.key)) {
+                //console.log('Matching key: ' + key + ' -> ' + responseParams[key]);
+                //console.log('\tMessage has key? ' + message.hasOwnProperty(key));
+                //if (message.hasOwnProperty(key)) {
+                //    console.log('\tIn message: ' + key + ' -> ' + message[key]);
+                //    console.log('\tIn params:  ' + key + ' -> ' + responseParams[key]);
+                //}
+                if (!(message.hasOwnProperty(key) && message[key] === responseParams[key])) {
                     return false;
                 }
             }
@@ -46,25 +120,17 @@ async function sendReceiveMessage(data, responseParams) {
 
         function onMessage(evt) {
             let message = JSON.parse(evt.data);
-            console.log('Received message:', message);
             if (matchResponse(message)) {
                 console.log('Received valid response message:', message);
-                //Promise.resolve(responsePromise);
                 groundControlChannel.removeEventListener('message', onMessage);
                 resolve(message);
             }
         }
 
         groundControlChannel.addEventListener('message', onMessage);
-        console.log('Added event listener');
-
         groundControlChannel.send(JSON.stringify(data));
-        console.log('Sent message to Ground Control');
+        console.log('Sent message to Ground Control:', data);
     });
-
-    //let r = await responsePromise;
-    //console.log('Response:', r);
-    //return r;
 }
 
 async function ping() {
@@ -81,6 +147,24 @@ async function ping() {
     groundControlChannel.send(JSON.stringify(data));
 }
 
+async function get_self_id() {
+    if (groundControlChannel == null) {
+        console.log('Cannot get room info -- data channel isn\'t established!');
+        return;
+    }
+
+    const time = new Date().getTime();
+    let data = {"receiver": "ground control",
+                "type": "ping",
+                "data": time};
+    let responseParams = {"sender": "ground control",
+                          "type": "pong",
+                          "data": time};
+    let response = await sendReceiveMessage(data, responseParams);
+    return response.receiver;
+
+}
+
 async function get_room_info() {
     if (groundControlChannel == null) {
         console.log('Cannot get room info -- data channel isn\'t established!');
@@ -91,13 +175,8 @@ async function get_room_info() {
                 "type": "get-room-info"};
     let responseParams = {"sender": "ground control",
                           "type": "get-room-info"};
-    //console.log('get-room-info: ', data);
-    //groundControlChannel.send(JSON.stringify(data));
-    //let r = await sendReceiveMessage(data, responseParams);
-    ////console.log("In get_room_info():", r);
-    ////return r;
-    return sendReceiveMessage(data, responseParams);
-    
+    let response = await sendReceiveMessage(data, responseParams);
+    return response.data;
 }
 
 async function greeting() {
@@ -149,7 +228,6 @@ function createGroundControlConnection() {
     };
     groundControlChannel.onmessage = function(evt) {
         console.log('Received message:', evt.data);
-        handleMessage(JSON.parse(evt.data));
     };
 
 
@@ -158,35 +236,6 @@ function createGroundControlConnection() {
     return pc;
 }
 
-function handleMessage(message) {
-    messagePromises.forEach(function(promise) {
-        if (promise.checkParams(message)) {
-        }
-    });
-}
-
-async function createVideoPeerConnection() {
-    var config = {
-        sdpSemantics: 'unified-plan'
-    };
-    config.iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
-    var pc = new RTCPeerConnection(config);
-
-    pc.addEventListener('track', function(evt) {
-        if (evt.track.kind == 'video') {
-            console.log('Video track received:', evt.track.id)
-            document.getElementById('localVideo').srcObject = evt.streams[0];
-        }
-        else {
-            console.log('Audio track received:', evt.track.id)
-            document.getElementById('localAudio').srcObject = evt.streams[0];
-        }
-    });
-
-    console.log('Video peer connection created');
-
-    return pc;
-}
 
 async function postJson(url, body) {
     request = {
@@ -195,28 +244,6 @@ async function postJson(url, body) {
         method: 'POST'
     }
     return fetch(request)
-}
-
-async function _offerGroundControl(pc) {
-    console.log('Creating offer to Ground Control')
-    await pc.createOffer()
-        .then(offer => pc.setLocalDescription(offer))
-
-    // Wait for ice gathering to complete
-    while (pc.iceGatheringState != 'complete') {
-        await new Promise(r => setTimeout(r, 100));
-    }
-
-    // Make an offer and wait for the answer
-    request = {
-        body: JSON.stringify({sdp: pc.localDescription.sdp, type: pc.localDescription.type}),
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST'
-    }
-    fetch(document.URL, request) // postJson(document.URL, body)
-        .then(response => response.json())
-        .then(answer => pc.setRemoteDescription(answer));
-    console.log('Answer received from Ground Control', pc);
 }
 
 async function offerGroundControl(pc) {
@@ -241,43 +268,57 @@ async function offerGroundControl(pc) {
     console.log('Answer received from Ground Control', pc);
 }
 
-async function offerVideoPeer(peer_id, pc) {
-    console.log('Creating offer to video peer')
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    // Wait for ice gathering to complete
-    while (pc.iceGatheringState != 'complete') {
-        await new Promise(r => setTimeout(r, 200));
-    }
-
-    // Make an offer and wait for the answer
-    const data = {"receiver": peer_id,
-                  "type": "offer",
-                  "data": pc.localDescription.sdp};
-    groundControlChannel.send(JSON.stringify(data));
-
-    console.log('Answer received from video peer', pc);
-}
-
 async function establishGroundControl() {
     const groundControl = createGroundControlConnection();
     offerGroundControl(groundControl);
     return groundControl;
 }
 
-async function establishVideoPeer(peer_id) {
-    const pc = createVideoPeerConnection();
-    offerVideoPeer(peer_id, pc);
-    return pc;
+async function createVideoPeer(client_id, offer=null) {
+    let peer = new VideoPeer(client_id);
+    videoPeers['client_id'] = peer;
+
+    await peer.createPeerConnection();
+
+    for (const track of localstream.getTracks()) {
+        peer.addTrack(track, localstream);
+    }
+
+    await peer.negotiateConnection(offer);
+}
+
+async function getOrCreateVideoPeer(client_id, offer=null) {
+    if (!(client_id in videoPeers)) {
+        return createVideoPeer(client_id, offer);
+    }
+
+    return videoPeers[client_id];
 }
 
 async function findPeers() {
+    let self_id = await get_self_id();
+    console.log('Got self_id:', self_id);
     let room_info = await get_room_info();
     console.log('Got room info:', room_info);
-    //for (client_id in room_info) {
-    //    peer = new VideoPeer();
-    //}
+    room_info.clients.forEach(async function(client_id) {
+        if (client_id === self_id) {
+            return;
+        }
+
+        let peer = getOrCreateVideoPeer(client_id);
+    });
+}
+
+async function processMessage(evt) {
+    let message = JSON.parse(evt.data);
+
+    console.log('Processing message:', message);
+
+    if (message.type === 'offer') {
+        let sessionDesc = {'type': 'offer', 'sdp': message.data};
+        let offer = new RTCSessionDescription(sessionDesc);
+        let peer = getOrCreateVideoPeer(message.sender, offer);
+    }
 }
 
 async function start() {
@@ -290,25 +331,12 @@ async function start() {
     const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
 
     groundControl = await groundControlPromise;
-    let stream = await streamPromise;
+    localstream = await streamPromise;
 
-    //navigator.mediaDevices.getUserMedia(constraints)
-    //    .then(stream => do_thing(stream))
-    //    .then(result => do_other_thing(result))
-    //    .catch(error => console.log('Error:', error));
-
-    //async function do_thing(stream) {
-    //    console.log('A thing is done with stream', stream);
-    //}
-
-    //for (const track of stream.getTracks()) {
-    //    console.log('Adding track:', track);
-    //    groundControl.addTrack(track, stream);
-    //}
-
+    groundControlChannel.addEventListener('message', processMessage);
 
     const videoElement = document.querySelector('video#localVideo');
-    //videoElement.srcObject = stream;
+    videoElement.srcObject = localstream;
 
     // Wait for data channel to open
     while (groundControlChannel.readyState != 'open') {

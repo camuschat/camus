@@ -7,7 +7,9 @@ import uuid
 
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 
+
 _chat_manager = None
+
 
 async def get_chat_manager():
     global _chat_manager
@@ -15,8 +17,10 @@ async def get_chat_manager():
         _chat_manager = ChatManager()
     return _chat_manager
 
+
 class ChatManagerException(Exception):
     pass
+
 
 class ChatRoom:
     def __init__(self, id):
@@ -31,18 +35,6 @@ class ChatRoom:
     def get_clients(self):
         return self.clients.values()
 
-    async def sdp_notify(self, client):
-        '''
-        Notify all clients in the room of the given client's sdp.
-        '''
-
-        for _client in self.clients.values():
-            data = {'sender': client.id,
-                    'receiver': _client.id,
-                    'type': 'sdp',
-                    'data': {'sdp': client.sdp},
-                   }
-            _client.send(data)
 
 class ChatClient:
     def __init__(self, id, room=None, pc=None):
@@ -214,9 +206,9 @@ class ChatManager:
             # TODO: reply with error
             return
 
-        logging.info('Sending message to client {}'.format(to_client))
         to_client = self.clients[chat_message.receiver]
         to_client.send(chat_message.json())
+        logging.info('Sending message to client {}'.format(to_client.id))
 
     def _handle_local_message(self, message, client, channel):
         reply = ChatMessage()
@@ -271,7 +263,6 @@ class ChatManager:
             greeting.receiver = client.id
             greeting.type = 'greeting'
             greeting.data = 'This is Ground Control to Major Tom: You\'ve really made the grade. Now it\'s time to leave the capsule if you dare.'
-            #channel.send('greetings')
             channel.send(greeting.json())
 
             @channel.on("message")
