@@ -30,8 +30,8 @@ async def reset():
 async def rtc():
     manager, client, room = await get_chat_info()
 
-    if room is not None:
-        return redirect('/rtc/{}'.format(room.id))
+    #if room is not None:
+    #    return redirect('/rtc/{}'.format(room.id))
 
     form = RtcForm()
     if form.validate_on_submit():
@@ -50,9 +50,10 @@ async def rtc_room(room_id):
     if room is None:
         return '404', 404
 
+    #manager, client, _ = await get_chat_info()
+
     if request.method == 'GET':
         client.enter_room(room)
-        #room.
         return await render_template('rtcroom.html', title='rtc', room=room)
 
     params = await request.json

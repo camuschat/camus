@@ -129,8 +129,8 @@ class ChatClient:
     def message_available(self):
         return self.messageq.qsize() > 0
 
-    async def disconnect(self):
-        pass
+    def disconnect(self):
+        self.pc.close()
 
 class ChatMessage:
     def __init__(self, message=None):
@@ -233,8 +233,6 @@ class ChatManager:
 
         logging.info('Sending response: {}'.format(reply.json()))
         channel.send(reply.json())
-        #client.send('pong')
-        #client.send(reply.json())
 
     def _parse_message(self, message, client):
         chat_message = ChatMessage(message)
@@ -336,6 +334,6 @@ class ChatManager:
             raise ChatManagerException('Client {} doesn\'t exist'.format(client_id))
 
         # TODO
-        pass
+        client_id
 
 

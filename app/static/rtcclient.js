@@ -2,7 +2,7 @@
 
 var groundControl = null;
 var groundControlChannel = null;
-var videoPeers = {};
+var videoPeers = new Map();
 var localstream = null;
 
 class VideoPeer {
@@ -93,6 +93,26 @@ class VideoPeer {
     addTrack(track, stream) {
         console.log('Add track:', track);
         this.peerconnection.addTrack(track, stream);
+    }
+
+    async shutdown() {
+        // TODO: Fix "TypeError: Cannot read property 'getLocalStreams' of null"
+        if (this.peerconnection !== null) {
+            this.peerconnection.getReceivers().forEach(receiver => {
+                receiver.track.stop();
+            });
+
+            this.peerconnection.close();
+            this.peerconnection = null;
+        }
+
+        const time = new Date().getTime();
+        const data = {"receiver": this.client_id,
+                      "type": "bye",
+                      "data": time};
+        await sendMessage(data);
+
+        console.log('Shutdown connection with peer ' + this.client_id);
     }
 }
 
@@ -276,7 +296,7 @@ async function establishGroundControl() {
 
 async function createVideoPeer(client_id, offer=null) {
     let peer = new VideoPeer(client_id);
-    videoPeers['client_id'] = peer;
+    videoPeers.set(client_id, peer);
 
     await peer.createPeerConnection();
 
@@ -288,11 +308,11 @@ async function createVideoPeer(client_id, offer=null) {
 }
 
 async function getOrCreateVideoPeer(client_id, offer=null) {
-    if (!(client_id in videoPeers)) {
+    if (!videoPeers.has(client_id)) {
         return createVideoPeer(client_id, offer);
     }
 
-    return videoPeers[client_id];
+    return videoPeers.get(client_id);
 }
 
 async function findPeers() {
@@ -318,7 +338,44 @@ async function processMessage(evt) {
         let sessionDesc = {'type': 'offer', 'sdp': message.data};
         let offer = new RTCSessionDescription(sessionDesc);
         let peer = getOrCreateVideoPeer(message.sender, offer);
+    } else if (message.type == 'bye') {
+        let client_id = message.sender;
+        if (videoPeers.has(client_id)) {
+            await videoPeers.get(client_id).shutdown()
+            videoPeers.delete(client_id)
+        }
     }
+}
+
+async function shutdownVideoPeers() {
+    videoPeers.forEach(async function(peer, peer_id) {
+        console.log('Shutdown connection with peer ' + peer_id);
+        await peer.shutdown();
+    });
+}
+
+async function shutdownGroundControl() {
+    if (groundControl !== null) {
+        groundControl.getReceivers().forEach(receiver => {
+            receiver.track.stop();
+        });
+    }
+
+    const time = new Date().getTime();
+    const data = {"receiver": "ground control",
+                  "type": "bye",
+                  "data": time};
+    await sendMessage(data);
+
+    groundControl.close();
+    groundControl = null;
+
+    console.log('Shutdown connection with Ground Control ');
+}
+
+async function shutdown() {
+    await shutdownVideoPeers();
+    await shutdownGroundControl();
 }
 
 async function start() {
