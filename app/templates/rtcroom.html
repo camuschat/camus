@@ -1,21 +1,25 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<div>
-    <video id="localVideo" autoplay playsinline muted controls="false"></video>
-    <audio id="localAudio" autoplay="true"></audio>
-    <video id="remoteVideo" autoplay playsinline controls="false"></video>
-    <audio id="remoteAudio" autoplay="true"></audio>
+<div class="row">
+    <div class="col-sm-9">
+        <video id="localVideo" width="100%" autoplay playsinline muted controls="false"></video>
+        <audio id="localAudio" autoplay="true"></audio>
+    </div>
+    <div class="col-sm-3">
+        <video id="remoteVideo" width="100%" autoplay playsinline controls="false"></video>
+        <audio id="remoteAudio" autoplay="true"></audio>
+    </div>
 </div>
-<div>
-    <button id="ping" onclick="ping()">Ping</button>
-    <button id="get_room_info" onclick="get_room_info()">Room Info</button>
-    <button id="greeting" onclick="greeting()">Greeting</button>
-    <button id="shutdown" onclick="shutdown()">Shutdown</button>
+<div class="row justify-content-center">
+    <div class "col-sm-12">
+        <button class="btn" id="ping" onclick="ping()">Ping</button>
+        <button class="btn" id="get_room_info" onclick="get_room_info()">Room Info</button>
+        <button class="btn" id="greeting" onclick="greeting()">Greeting</button>
+        <button class="btn" id="shutdown" onclick="shutdown()">Shutdown</button>
+    </div>
 </div>
 
 
 <script src="{{ url_for('static', filename='rtcclient.js') }}"></script>
-<script type="text/javascript" charset="utf-8">
-</script>
 {% endblock %}

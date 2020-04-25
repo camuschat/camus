@@ -7,7 +7,7 @@ from quart import flash, jsonify, redirect, render_template, request, url_for, s
 from werkzeug.urls import url_parse
 
 from app import app
-from app.forms import RtcForm
+from app.forms import RoomCreate, RoomJoin
 
 from app import chat
 
@@ -33,13 +33,29 @@ async def rtc():
     #if room is not None:
     #    return redirect('/rtc/{}'.format(room.id))
 
-    form = RtcForm()
-    if form.validate_on_submit():
+    form_create = RoomCreate()
+    if form_create.validate_on_submit():
+        form = form_create
         room_id = form.room_id.data
-        manager.get_or_create_room(room_id)
+        password = None if not len(form.password.data) else form.password.data
+        is_public = form.public.data
+        guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
+        admin_list = [client.id]
+        manager.create_room(room_id, password=password, guest_limit=guest_limit,
+                            admin_list=admin_list, is_public=is_public)
         return redirect('/rtc/{}'.format(room_id))
 
-    return await render_template('rtc.html', title='rtc', form=form)
+    form_join = RoomJoin()
+    if form_join.validate_on_submit():
+        form = form_join
+        room_id = form.room_id.data
+        password = form.password.data
+        # TODO: verify password
+        return redirect('/rtc/{}'.format(room_id))
+
+    public_rooms = manager.get_public_rooms()
+    return await render_template('rtc.html', title='rtc', form_create=form_create,
+                                 form_join=form_join, public_rooms=public_rooms)
 
 
 @app.route('/rtc/<room_id>', methods=['GET', 'POST'])

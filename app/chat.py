@@ -1,8 +1,8 @@
 import asyncio
 from asyncio import Queue
-
 import json
 import logging
+import time
 import uuid
 
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
@@ -23,27 +23,41 @@ class ChatManagerException(Exception):
 
 
 class ChatRoom:
-    def __init__(self, id):
+    def __init__(self, id, password=None, guest_limit=None, admin_list=None, is_public=False):
         logging.info('Create ChatRoom {}'.format(id))
         self.id = id
         self.clients = {}
+        self.password = password
+        self.guest_limit = guest_limit
+        self.admin_list = admin_list if admin_list is not None else []
+        self.is_public = is_public
 
     def add_client(self, client):
         self.clients[client.id] = client
         client.room = self
+
+    def remove_client(self, client):
+        logging.info('Attempting to remove client {}'.format(client.id))
+        if client.id in self.clients:
+            logging.info('Clients: {}'.format(len(self.clients)))
+            logging.info('Removing client {}'.format(client.id))
+            del self.clients[client.id]
+            client.room = None
+        logging.info('Clients remaining: {}'.format(len(self.clients)))
 
     def get_clients(self):
         return self.clients.values()
 
 
 class ChatClient:
-    def __init__(self, id, room=None, pc=None):
+    def __init__(self, id, room=None, pc=None, is_admin=False):
         logging.info('Create ChatClient {}'.format(id))
         self.id = id
         self.room = room
         self.datachannel = None
         self.sdp = None
         self.messageq = Queue()
+        self.is_admin = is_admin
 
         if pc is not None:
             self.pc = pc
@@ -52,6 +66,10 @@ class ChatClient:
     def enter_room(self, room):
         self.room = room
         room.add_client(self)
+
+    def leave_room(self):
+        self.room.remove_client(self)
+        self.room = None
 
     def create_peer_connection(self):
         '''
@@ -129,8 +147,15 @@ class ChatClient:
     def message_available(self):
         return self.messageq.qsize() > 0
 
-    def disconnect(self):
-        self.pc.close()
+    async def shutdown(self):
+        message = ChatMessage()
+        message.sender = 'ground control'
+        message.receiver = self.id
+        message.type = 'bye'
+        message.data = int(time.time() * 1000)
+        self.send(message.json())
+
+        await self.pc.close()
 
 class ChatMessage:
     def __init__(self, message=None):
@@ -194,15 +219,15 @@ class ChatManager:
 
         logging.info('Done creating ChatManager')
 
-    def _handle_message(self, message, client, channel):
+    async def _handle_message(self, message, client, channel):
         chat_message = self._parse_message(message, client)
 
         if chat_message.receiver == self._message_address:
-            self._handle_local_message(chat_message, client, channel)
+            await self._handle_local_message(chat_message, client, channel)
             return
 
         if chat_message.receiver not in self.clients:
-            logging.info('Message recipient does not exist for message: {}'.format(chat_message.json))
+            logging.info('Message recipient does not exist for message: {}'.format(chat_message.json()))
             # TODO: reply with error
             return
 
@@ -210,7 +235,7 @@ class ChatManager:
         to_client.send(chat_message.json())
         logging.info('Sending message to client {}'.format(to_client.id))
 
-    def _handle_local_message(self, message, client, channel):
+    async def _handle_local_message(self, message, client, channel):
         reply = ChatMessage()
         reply.sender = self._message_address
         reply.receiver = client.id
@@ -226,6 +251,12 @@ class ChatManager:
             reply.data = self._get_room_info(client.room.id)
         elif message.type == 'greeting':
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
+            return
+        elif message.type == 'bye':
+            logging.info('Removing client {} from room {}'.format(client.id, client.room.id))
+            client.leave_room()
+            await client.shutdown()
+            self.clients.pop(client.id, None)
             return
         else:
             reply.type = 'error'
@@ -264,23 +295,27 @@ class ChatManager:
             channel.send(greeting.json())
 
             @channel.on("message")
-            def on_message(message):
+            async def on_message(message):
                 logging.info('Received message: {}'.format(message))
                 #logging.info('{} // {}'.format(id(channel), id(client.datachannel)))
                 #if isinstance(message, str) and message.startswith("ping"):
                 #channel.send('pong' + message[4:])
-                self._handle_message(message, client, channel)
+                await self._handle_message(message, client, channel)
 
         self.clients[client.id] = client
 
     def get_room(self, room_id):
         return self.rooms.get(room_id)
 
-    def create_room(self, room_id):
+    def get_public_rooms(self):
+        # TODO: return only public rooms
+        return self.rooms.values()
+
+    def create_room(self, room_id, **kwargs):
         if room_id in self.rooms:
             raise ChatManagerException('Room {} already exists'.format(room_id))
 
-        room = ChatRoom(room_id)
+        room = ChatRoom(room_id, **kwargs)
         self.add_room(room)
 
         return room
@@ -311,29 +346,30 @@ class ChatManager:
 
         return self.create_client(client_id)
 
-    def enter_room(self, client, room):
-        client.room = room
-        room.add_client(client)
+    #def enter_room(self, client, room):
+    #    logging.info('Client {} entering room {}'.format(client.id, room.id))
+    #    client.room = room
+    #    room.add_client(client)
 
-        ## remove/
-        if room_id not in self.rooms:
-            raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
+    #    ## remove/
+    #    if room_id not in self.rooms:
+    #        raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
 
-        if client_id not in self.clients:
-            self.clients[client_id] = ChatClient(client_id)
+    #    if client_id not in self.clients:
+    #        self.clients[client_id] = ChatClient(client_id)
 
-        client = self.clients[client_id]
-        self.rooms[room_id].add(client)
-        ## /remove
+    #    client = self.clients[client_id]
+    #    self.rooms[room_id].add(client)
+    #    ## /remove
 
-    async def leave_room(self, client_id, room_id):
-        if room_id not in self.rooms:
-            raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
+    #async def leave_room(self, client_id, room_id):
+    #    if room_id not in self.rooms:
+    #        raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
 
-        if client_id not in self.clients:
-            raise ChatManagerException('Client {} doesn\'t exist'.format(client_id))
+    #    if client_id not in self.clients:
+    #        raise ChatManagerException('Client {} doesn\'t exist'.format(client_id))
 
-        # TODO
-        client_id
+    #    # TODO
+    #    client_id
 
 

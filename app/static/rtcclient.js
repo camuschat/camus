@@ -96,7 +96,6 @@ class VideoPeer {
     }
 
     async shutdown() {
-        // TODO: Fix "TypeError: Cannot read property 'getLocalStreams' of null"
         if (this.peerconnection !== null) {
             this.peerconnection.getReceivers().forEach(receiver => {
                 receiver.track.stop();
@@ -401,5 +400,9 @@ async function start() {
     }
     let peers = await findPeers();
 }
+
+window.addEventListener('beforeunload', async function(event) {
+    await shutdown();
+});
 
 start()
