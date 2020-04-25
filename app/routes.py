@@ -29,7 +29,7 @@ async def reset():
 
 @app.route('/rtc', methods=['GET', 'POST'])
 async def rtc():
-    manager, client, room = await get_chat_info()
+    manager = await chat.get_chat_manager()
 
     form_create = RoomCreate()
     if form_create.validate_on_submit():
@@ -38,11 +38,15 @@ async def rtc():
         password = None if not len(form.password.data) else form.password.data
         is_public = form.public.data
         guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
-        admin_list = [client.id]
-        # TODO: verify that the room_id doesn't already exist
-        manager.create_room(room_id, password=password, guest_limit=guest_limit,
-                            admin_list=admin_list, is_public=is_public)
-        return redirect('/rtc/{}'.format(room_id))
+        #admin_list = [client.id]
+        admin_list = []
+
+        if room_id not in manager.rooms:
+            manager.create_room(room_id, password=password, guest_limit=guest_limit,
+                                admin_list=admin_list, is_public=is_public)
+            return redirect('/rtc/{}'.format(room_id))
+        else:
+            await flash('Room name not available')
 
     form_join = RoomJoin()
     public_rooms = manager.get_public_rooms()
@@ -52,7 +56,7 @@ async def rtc():
 
 @app.route('/rtc/<room_id>', methods=['GET', 'POST'])
 async def rtc_room(room_id):
-    manager, client, _ = await get_chat_info()
+    manager = await chat.get_chat_manager()
     room = manager.get_room(room_id)
 
     if room is None:
@@ -60,7 +64,9 @@ async def rtc_room(room_id):
 
     if room.password is None:
         try:
+            client = manager.create_client()
             client.enter_room(room)
+            session['client_id'] = client.id
             return await render_template('rtcroom.html', title='rtc')
         except ChatManagerException as e:
             return 'Guest limit already reached', 418
@@ -71,20 +77,34 @@ async def rtc_room(room_id):
         password = form.password.data
 
         if password == room.password:
-            client.enter_room(room)
-            return await render_template('rtcroom.html', title='rtc')
-        await flash('Invalid password')
+            try:
+                client = manager.create_client()
+                client.enter_room(room)
+                session['client_id'] = client.id
+                return await render_template('rtcroom.html', title='rtc')
+            except ChatManagerException as e:
+                return 'Guest limit already reached', 418
+        else:
+            await flash('Invalid password')
 
     return await render_template('join-room.html', title='Join a room', form=form, room_id=room_id)
 
 
 @app.route('/rtc/<room_id>/offer', methods=['POST'])
 async def rtc_room_offer(room_id):
-    manager, client, _ = await get_chat_info()
+    manager = await chat.get_chat_manager()
     room = manager.get_room(room_id)
 
     if room is None:
-        return '404', 404
+        return 'Invalid room id', 404
+
+    client_id = session.get('client_id')
+    client = manager.clients.get(client_id)
+    if client is None:
+        return 'Invalid client id', 404
+
+    if client_id not in room.clients:
+        return 'Unauthorized', 401
 
     params = await request.json
     if params['type'] == 'offer':
@@ -97,18 +117,3 @@ async def rtc_room_offer(room_id):
     if params['type'] == 'icecandidate':
         # TODO: support trickle ice
         return '404', 404
-
-
-async def get_chat_info():
-    # TODO: client should only be created when entering a room
-    client_id = session.get('client_id')
-    manager = await chat.get_chat_manager()
-    client = manager.get_or_create_client(client_id)
-    room = client.room
-    session['client_id'] = client.id
-
-    return manager, client, room
-
-async def handle_message(message):
-    manager, client, room = await get_chat_info()
-

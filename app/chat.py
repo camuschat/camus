@@ -301,9 +301,6 @@ class ChatManager:
             @channel.on("message")
             async def on_message(message):
                 logging.info('Received message: {}'.format(message))
-                #logging.info('{} // {}'.format(id(channel), id(client.datachannel)))
-                #if isinstance(message, str) and message.startswith("ping"):
-                #channel.send('pong' + message[4:])
                 await self._handle_message(message, client, channel)
 
         self.clients[client.id] = client
@@ -312,7 +309,6 @@ class ChatManager:
         return self.rooms.get(room_id)
 
     def get_public_rooms(self):
-        # TODO: return only public rooms
         return [room for room in self.rooms.values() if room.is_public]
 
     def create_room(self, room_id, **kwargs):
@@ -349,31 +345,3 @@ class ChatManager:
             return self.clients[client_id]
 
         return self.create_client(client_id)
-
-    #def enter_room(self, client, room):
-    #    logging.info('Client {} entering room {}'.format(client.id, room.id))
-    #    client.room = room
-    #    room.add_client(client)
-
-    #    ## remove/
-    #    if room_id not in self.rooms:
-    #        raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
-
-    #    if client_id not in self.clients:
-    #        self.clients[client_id] = ChatClient(client_id)
-
-    #    client = self.clients[client_id]
-    #    self.rooms[room_id].add(client)
-    #    ## /remove
-
-    #async def leave_room(self, client_id, room_id):
-    #    if room_id not in self.rooms:
-    #        raise ChatManagerException('Room {} doesn\'t exist'.format(room_id))
-
-    #    if client_id not in self.clients:
-    #        raise ChatManagerException('Client {} doesn\'t exist'.format(client_id))
-
-    #    # TODO
-    #    client_id
-
-
