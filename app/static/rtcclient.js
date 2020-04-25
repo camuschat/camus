@@ -276,7 +276,7 @@ async function offerGroundControl(pc) {
     }
 
     // Make an offer and wait for the answer
-    const response = await fetch(document.URL, {
+    const response = await fetch(document.URL + '/offer', {
         body: JSON.stringify({sdp: pc.localDescription.sdp, type: pc.localDescription.type}),
         headers: {'Content-Type': 'application/json'},
         method: 'POST'

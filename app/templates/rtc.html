@@ -24,7 +24,7 @@
             {% else %}
             <div class="list-group-item">
                 <h4>{{ room.id }} (Participants: {{ room.clients|length }})</h4>
-                <form class="form form-inline" method="post" role="form">
+                <form class="form form-inline" method="post" role="form" action="{{ url_for('rtc') + '/' + room.id }}">
                     {{ form_join.csrf_token }}
                     <input id="room_id" name="room_id" type="hidden" value="{{ room.id }}">
                     {{ wtf.form_errors(form_join, hiddens="only") }}

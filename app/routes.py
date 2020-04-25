@@ -30,9 +30,6 @@ async def reset():
 async def rtc():
     manager, client, room = await get_chat_info()
 
-    #if room is not None:
-    #    return redirect('/rtc/{}'.format(room.id))
-
     form_create = RoomCreate()
     if form_create.validate_on_submit():
         form = form_create
@@ -46,13 +43,6 @@ async def rtc():
         return redirect('/rtc/{}'.format(room_id))
 
     form_join = RoomJoin()
-    if form_join.validate_on_submit():
-        form = form_join
-        room_id = form.room_id.data
-        password = form.password.data
-        # TODO: verify password
-        return redirect('/rtc/{}'.format(room_id))
-
     public_rooms = manager.get_public_rooms()
     return await render_template('rtc.html', title='rtc', form_create=form_create,
                                  form_join=form_join, public_rooms=public_rooms)
@@ -66,11 +56,30 @@ async def rtc_room(room_id):
     if room is None:
         return '404', 404
 
-    #manager, client, _ = await get_chat_info()
-
-    if request.method == 'GET':
+    if room.password is None:
         client.enter_room(room)
-        return await render_template('rtcroom.html', title='rtc', room=room)
+        return await render_template('rtcroom.html', title='rtc')
+
+    form = RoomJoin()
+    if form.validate_on_submit():
+        room_id = form.room_id.data
+        password = form.password.data
+
+        if password == room.password:
+            client.enter_room(room)
+            return await render_template('rtcroom.html', title='rtc')
+        await flash('Invalid password')
+
+    return await render_template('join-room.html', title='Join a room', form=form, room_id=room_id)
+
+
+@app.route('/rtc/<room_id>/offer', methods=['POST'])
+async def rtc_room_offer(room_id):
+    manager, client, _ = await get_chat_info()
+    room = manager.get_room(room_id)
+
+    if room is None:
+        return '404', 404
 
     params = await request.json
     if params['type'] == 'offer':
@@ -81,6 +90,7 @@ async def rtc_room(room_id):
         return jsonify(answer)
 
     if params['type'] == 'icecandidate':
+        # TODO: support trickle ice
         return '404', 404
 
 

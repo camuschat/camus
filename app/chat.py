@@ -166,6 +166,7 @@ class ChatMessage:
         else:
             _json = message
 
+        # TODO: verify the sender against the client connection
         self.sender = _json.get('sender')
         self.receiver = _json.get('receiver')
         self.type = _json.get('type')
