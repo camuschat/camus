@@ -95,6 +95,7 @@ async def rtc_room_offer(room_id):
 
 
 async def get_chat_info():
+    # TODO: client should only be created when entering a room
     client_id = session.get('client_id')
     manager = await chat.get_chat_manager()
     client = manager.get_or_create_client(client_id)

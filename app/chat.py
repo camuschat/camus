@@ -310,7 +310,7 @@ class ChatManager:
 
     def get_public_rooms(self):
         # TODO: return only public rooms
-        return self.rooms.values()
+        return [room for room in self.rooms.values() if room.is_public]
 
     def create_room(self, room_id, **kwargs):
         if room_id in self.rooms:
