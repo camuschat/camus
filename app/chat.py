@@ -33,6 +33,9 @@ class ChatRoom:
         self.is_public = is_public
 
     def add_client(self, client):
+        if not len(self.clients) < self.guest_limit:
+            raise ChatManagerException('Guest limit already reached')
+
         self.clients[client.id] = client
         client.room = self
 

@@ -10,6 +10,7 @@ from app import app
 from app.forms import RoomCreate, RoomJoin
 
 from app import chat
+from app.chat import ChatManagerException
 
 
 @app.route('/')
@@ -38,6 +39,7 @@ async def rtc():
         is_public = form.public.data
         guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
         admin_list = [client.id]
+        # TODO: verify that the room_id doesn't already exist
         manager.create_room(room_id, password=password, guest_limit=guest_limit,
                             admin_list=admin_list, is_public=is_public)
         return redirect('/rtc/{}'.format(room_id))
@@ -57,8 +59,11 @@ async def rtc_room(room_id):
         return '404', 404
 
     if room.password is None:
-        client.enter_room(room)
-        return await render_template('rtcroom.html', title='rtc')
+        try:
+            client.enter_room(room)
+            return await render_template('rtcroom.html', title='rtc')
+        except ChatManagerException as e:
+            return 'Guest limit already reached', 418
 
     form = RoomJoin()
     if form.validate_on_submit():
