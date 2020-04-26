@@ -30,15 +30,16 @@ class VideoPeer {
             console.log("Signaling state:", pc.signalingState);
         });
 
+        let client_id = this.client_id;
         pc.addEventListener('track', function(evt) {
             if (evt.track.kind == 'video') {
                 console.log('Video track received:', evt.track.id)
-                document.getElementById('remoteVideo').srcObject = evt.streams[0];
-
+                attachVideoElement(client_id, evt.streams[0]);
             }
             else {
                 console.log('Audio track received:', evt.track.id)
-                document.getElementById('remoteAudio').srcObject = evt.streams[0];
+                // TODO: enable audio
+                //document.getElementById('remoteAudio').srcObject = evt.streams[0];
             }
         });
 
@@ -105,6 +106,9 @@ class VideoPeer {
             this.peerconnection = null;
         }
 
+        let videoelement = document.getElementById('video-' + this.client_id);
+        videoelement.remove();
+
         const time = new Date().getTime();
         const data = {"receiver": this.client_id,
                       "type": "bye",
@@ -113,6 +117,31 @@ class VideoPeer {
 
         console.log('Shutdown connection with peer ' + this.client_id);
     }
+}
+
+function attachVideoElement(videoId, track) {
+    let searchstr = 'video-' + videoId;
+    //console.log('Getting element with id: ', searchstr);
+    let videoelement = document.getElementById(searchstr);
+    //console.log('videoelement: ', videoelement);
+    videoelement.srcObject = track;
+
+    videoelement.addEventListener("click", function(evt) {
+        // Move video element in and out of center stage on click
+        let stage = document.getElementById('video-stage');
+        let thumbs = document.getElementById('video-thumbs');
+
+        let stageVideo = stage.firstElementChild;
+        console.log('videoelement', videoelement);
+        console.log('stageVideo', stageVideo);
+        if (stageVideo != null) {
+            thumbs.append(stageVideo);
+        }
+
+        if (videoelement !== stageVideo) {
+            stage.append(videoelement);
+        }
+    });
 }
 
 async function sendMessage(data) {
@@ -233,11 +262,7 @@ function createGroundControlConnection() {
     pc.addEventListener('track', function(evt) {
         if (evt.track.kind == 'video') {
             console.log('Video track received:', evt.track.id)
-            document.getElementById('localVideo').srcObject = evt.streams[0];
-        }
-        else {
-            console.log('Audio track received:', evt.track.id)
-            document.getElementById('localAudio').srcObject = evt.streams[0];
+            //document.getElementById('video-local').srcObject = evt.streams[0];
         }
     });
 
@@ -297,6 +322,16 @@ async function createVideoPeer(client_id, offer=null) {
     let peer = new VideoPeer(client_id);
     videoPeers.set(client_id, peer);
 
+    // Create a video element for the VideoPeer
+    let videoelement = document.createElement('video');
+    videoelement.id = 'video-' + client_id;
+    videoelement.autoplay = 'true';
+    videoelement.style.width = '100%';
+    videoelement.playsinline = 'true';
+    let videoThumbs = document.getElementById('video-thumbs');
+    videoThumbs.appendChild(videoelement);
+    console.log('Video thumbs: ', videoThumbs);
+
     await peer.createPeerConnection();
 
     for (const track of localstream.getTracks()) {
@@ -308,7 +343,7 @@ async function createVideoPeer(client_id, offer=null) {
 
 async function getOrCreateVideoPeer(client_id, offer=null) {
     if (!videoPeers.has(client_id)) {
-        return createVideoPeer(client_id, offer);
+        return await createVideoPeer(client_id, offer);
     }
 
     return videoPeers.get(client_id);
@@ -351,6 +386,8 @@ async function shutdownVideoPeers() {
         console.log('Shutdown connection with peer ' + peer_id);
         await peer.shutdown();
     });
+
+    videoPeers.clear();
 }
 
 async function shutdownGroundControl() {
@@ -368,6 +405,7 @@ async function shutdownGroundControl() {
 
     groundControl.close();
     groundControl = null;
+    groundControlChannel = null;
 
     console.log('Shutdown connection with Ground Control ');
 }
@@ -387,12 +425,11 @@ async function start() {
     const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
 
     groundControl = await groundControlPromise;
-    localstream = await streamPromise;
-
     groundControlChannel.addEventListener('message', processMessage);
 
-    const videoElement = document.querySelector('video#localVideo');
-    videoElement.srcObject = localstream;
+    localstream = await streamPromise;
+    attachVideoElement('local', localstream);
+    //document.getElementById('video-local').srcObject = localstream;
 
     // Wait for data channel to open
     while (groundControlChannel.readyState != 'open') {

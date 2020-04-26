@@ -2,13 +2,10 @@
 
 {% block app_content %}
 <div class="row">
-    <div class="col-sm-9">
-        <video id="remoteVideo" width="100%" autoplay playsinline controls="false"></video>
-        <audio id="remoteAudio" autoplay="true"></audio>
+    <div class="col-sm-9" id="video-stage">
+        <video id="video-local" width="100%" autoplay playsinline muted></video>
     </div>
-    <div class="col-sm-3">
-        <video id="localVideo" width="100%" autoplay playsinline muted controls="false"></video>
-        <audio id="localAudio" autoplay="true"></audio>
+    <div class="col-sm-3" id="video-thumbs">
     </div>
 </div>
 <div class="row">
