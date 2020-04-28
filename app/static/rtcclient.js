@@ -151,6 +151,7 @@ class GroundControl {
     }
 
     async sendReceiveMessage(data, responseParams) {
+        // return a Promise that resolves when an appropriate response is received
         return new Promise((resolve, reject) => {
             function matchResponse(message) {
                 for (const key in responseParams) {
@@ -161,7 +162,7 @@ class GroundControl {
                 return true;
             }
 
-            let dc = this.datachannel;
+            let dc = this.datachannel;  // needed to access the datachannel inside the closure
             function onMessage(evt) {
                 let message = JSON.parse(evt.data);
                 if (matchResponse(message)) {
@@ -290,6 +291,12 @@ async function processMessage(evt) {
         let sessionDesc = {'type': 'offer', 'sdp': message.data};
         let offer = new RTCSessionDescription(sessionDesc);
         let peer = getOrCreateVideoPeer(message.sender, offer);
+    } else if (message.type == 'ping') {
+        const data = {"receiver": message.sender,
+                      "type": "pong",
+                      "data": message.data};
+        await groundControl.sendMessage(data);
+
     } else if (message.type == 'bye') {
         let client_id = message.sender;
         if (videoPeers.has(client_id)) {

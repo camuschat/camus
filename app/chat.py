@@ -2,10 +2,11 @@ import asyncio
 from asyncio import Queue
 import json
 import logging
-import time
 import uuid
 
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
+
+from app.util import MTimer, time_ms
 
 
 _chat_manager = None
@@ -26,27 +27,24 @@ class ChatRoom:
     def __init__(self, id, password=None, guest_limit=None, admin_list=None, is_public=False):
         logging.info('Create ChatRoom {}'.format(id))
         self.id = id
-        self.clients = {}
+        self.clients = {}  # TODO: see how to get rid of this (rely on room client lists only)
         self.password = password
         self.guest_limit = guest_limit
         self.admin_list = admin_list if admin_list is not None else []
         self.is_public = is_public
 
     def add_client(self, client):
-        if not len(self.clients) < self.guest_limit:
+        if self.guest_limit is not None and len(self.clients) == self.guest_limit:
             raise ChatManagerException('Guest limit already reached')
 
         self.clients[client.id] = client
         client.room = self
 
     def remove_client(self, client):
-        logging.info('Attempting to remove client {}'.format(client.id))
-        if client.id in self.clients:
-            logging.info('Clients: {}'.format(len(self.clients)))
-            logging.info('Removing client {}'.format(client.id))
-            del self.clients[client.id]
-            client.room = None
-        logging.info('Clients remaining: {}'.format(len(self.clients)))
+        logging.info('Removing client {} from room {}'.format(client.id, self.id))
+        self.clients.pop(client.id, None)
+        client.room = None
+        logging.info('{} clients remaining in room {}'.format(len(self.clients), self.id))
 
     def get_clients(self):
         return self.clients.values()
@@ -54,13 +52,17 @@ class ChatRoom:
 
 class ChatClient:
     def __init__(self, id, room=None, pc=None, is_admin=False):
-        logging.info('Create ChatClient {}'.format(id))
+        logging.info('Create client {}'.format(id))
         self.id = id
         self.room = room
         self.datachannel = None
         self.sdp = None
-        self.messageq = Queue()
         self.is_admin = is_admin
+
+        # Used by ChatManager for reaping
+        # TODO: there is probably a cleaner solution
+        self.last_seen = time_ms()
+        self.timer = None
 
         if pc is not None:
             self.pc = pc
@@ -71,8 +73,9 @@ class ChatClient:
         room.add_client(self)
 
     def leave_room(self):
-        self.room.remove_client(self)
-        self.room = None
+        if self.room is not None:
+            self.room.remove_client(self)
+            self.room = None
 
     def create_peer_connection(self):
         '''
@@ -81,10 +84,6 @@ class ChatClient:
 
         logging.info('Create peer connection for {}'.format(self.id))
         self.pc = RTCPeerConnection()
-
-        #@self.pc.on("iceconnectionstatechange")
-        #async def on_iceconnectionstatechange():
-        #    logging.info("ICE connection state: {}".format(pc.iceConnectionState))
 
         #@self.pc.on("track")
         #def on_track(track):
@@ -96,32 +95,10 @@ class ChatClient:
         def on_datachannel(channel):
             logging.info('Data channel created for client {}'.format(self.id))
             self.datachannel = channel
-            #channel.send('ping')
 
-
-        #@self.datachannel.on("message")
-        #async def on_message(message):
-        #    logging.info('Client {} received message: {}'.format(self.id, message))
-        #    chat_message = ChatMessage(message)
-        #    if chat_message.sender is None:
-        #        chat_message.sender = self.id
-        #    await self.messageq.put(chat_message)
-
-        #    if isinstance(message, str) and message.startswith("ping"):
-        #        self.datachannel.send('pong' + message[4:])
-
-        #@self.pc.on("datachannel")
-        #def on_datachannel(channel):
-        #    @channel.on("message")
-        #    async def on_message(message):
-        #        logging.info('Client {} received message: {}'.format(self.id, message))
-        #        #chat_message = ChatMessage(message)
-        #        #if chat_message.sender is None:
-        #        #    chat_message.sender = self.id
-        #        #await self.messageq.put(chat_message)
-
-        #        #if isinstance(message, str) and message.startswith("ping"):
-        #        #self.datachannel.send('pong' + message[4:])
+            @channel.on("message")
+            async def on_message(message):
+                self.last_seen = time_ms()
 
         return self.pc
 
@@ -136,28 +113,33 @@ class ChatClient:
         answer = await self.pc.createAnswer()
         await self.pc.setLocalDescription(answer)
 
-        #return json.dumps({"sdp": self.pc.localDescription.sdp, "type": self.pc.localDescription.type})
         return {"sdp": self.pc.localDescription.sdp, "type": self.pc.localDescription.type}
 
     def send(self, data):
         # send data over peerconnection data channel
-        logging.info('ChatClient.send({})'.format(data))
-        self.datachannel.send(data)
+        if self.datachannel.readyState == 'open':
+            logging.info('ChatClient.send({})'.format(data))
+            self.datachannel.send(data)
+        else:
+            logging.info('Couldn\'t send message: datachannel is not open')
 
-    async def receive(self):
-        return await self.messageq.get()
-
-    def message_available(self):
-        return self.messageq.qsize() > 0
+    def ping(self):
+        message = ChatMessage()
+        message.sender = 'ground control'
+        message.receiver = self.id
+        message.type = 'ping'
+        message.data = time_ms()
+        self.send(message.json())
 
     async def shutdown(self):
         message = ChatMessage()
         message.sender = 'ground control'
         message.receiver = self.id
         message.type = 'bye'
-        message.data = int(time.time() * 1000)
+        message.data = time_ms()
         self.send(message.json())
 
+        self.datachannel.close()
         await self.pc.close()
 
 class ChatMessage:
@@ -178,39 +160,6 @@ class ChatMessage:
     def json(self):
         return json.dumps(self.__dict__)
 
-#class ChatMessageHandler:
-#    def __init__(self, client):
-#        self.client = client
-#
-#    async def run(self):
-#        while True:
-#            message = await client.receive()
-#
-#    async def handle(self):
-#        pass
-#
-#    async def bar(self, coro):
-#        #e.g. coro = foo
-#        while True:
-#            result, coro = await coro
-#            await handle_result(result)
-#
-#    async def foo(self):
-#        f = client.receive
-#        return (await f(), f())
-#
-#    async def run(self, coro):
-#        [result for result, coro in await coro]
-#
-#
-#    async def make_coro(self, coro):
-#        return await coro, coro
-#
-#
-#class RecurringTask:
-#    def __init__(self, f):
-#        self.f = f
-#
 
 class ChatManager:
     def __init__(self):
@@ -220,6 +169,7 @@ class ChatManager:
         self._stop = False
         self._message_forwarder_task = None
         self._message_address = "ground control"
+        self._reap_timeout = 15
 
         logging.info('Done creating ChatManager')
 
@@ -247,6 +197,9 @@ class ChatManager:
         if message.type == 'ping':
             reply.type = 'pong'
             reply.data = message.data
+        elif message.type == 'pong':
+            logging.info('Got pong {} from client {}'.format(message.data, message.sender))
+            return
         elif message.type == 'get-clients':
             reply.type = message.type
             reply.data = self._list_clients()
@@ -257,10 +210,9 @@ class ChatManager:
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
             return
         elif message.type == 'bye':
+            # TODO: notify all other clients in the room
             logging.info('Removing client {} from room {}'.format(client.id, client.room.id))
-            client.leave_room()
-            await client.shutdown()
-            self.clients.pop(client.id, None)
+            await self.remove_client(client)
             return
         else:
             reply.type = 'error'
@@ -303,7 +255,27 @@ class ChatManager:
                 logging.info('Received message: {}'.format(message))
                 await self._handle_message(message, client, channel)
 
+                # Reap this client if we haven't seen it for too long
+                if client.timer is not None:
+                    client.timer.cancel()
+                client.timer = MTimer(self._reap_timeout, self._reap, client=client)
+
         self.clients[client.id] = client
+
+    async def remove_client(self, client):
+        logging.info('Removing client {}'.format(client.id))
+        client.leave_room()
+        await client.shutdown()
+        self.clients.pop(client.id, None)
+
+    async def _reap(self, client):
+        # Ping client and allow time for a response
+        # If a message is received in the meantime, this task is cancelled by the timer
+        logging.info('Ping client {} pending reaping'.format(client.id))
+        client.ping()
+
+        await asyncio.sleep(self._reap_timeout)
+        await self.remove_client(client)
 
     def get_room(self, room_id):
         return self.rooms.get(room_id)
