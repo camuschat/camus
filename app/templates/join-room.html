@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block app_content %}
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Join room</h3>
+        <form class="form" method="post" role="form" action="{{ url_for('rtc') + '/' + room_id }}">
+            {{ form.csrf_token }}
+            <input id="room_id" name="room_id" type="hidden" value="{{ room_id }}">
+            {{ wtf.form_errors(form, hiddens="only") }}
+            {{ wtf.form_field(form.password) }}
+            {{ wtf.form_field(form.submit) }}
+        </form>
+    </div>
+</div>
+
+{% endblock %}

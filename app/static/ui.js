@@ -32,5 +32,34 @@ function createVideoElement(id) {
     videoThumbs.appendChild(videoelement);
 }
 
-//async function startUI() {
-//}
+function toggleVideo() {
+    localstream.getTracks().forEach(track => {
+        if (track.kind == 'video') {
+            track.enabled = !track.enabled;
+            console.log(track.kind + 'enabled: ' + track.enabled);
+
+            let icon = document.getElementById('toggle-video-icon')
+            if (track.enabled) {
+                icon.innerHTML = 'videocam';
+            } else {
+                icon.innerHTML = 'videocam_off';
+            }
+        }
+    });
+}
+
+function toggleAudio() {
+    localstream.getTracks().forEach(track => {
+        if (track.kind == 'audio') {
+            track.enabled = !track.enabled;
+            console.log(track.kind + 'enabled: ' + track.enabled);
+
+            let icon = document.getElementById('toggle-audio-icon')
+            if (track.enabled) {
+                icon.innerHTML = 'mic';
+            } else {
+                icon.innerHTML = 'mic_off';
+            }
+        }
+    });
+}

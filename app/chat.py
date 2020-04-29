@@ -27,11 +27,22 @@ class ChatRoom:
     def __init__(self, id, password=None, guest_limit=None, admin_list=None, is_public=False):
         logging.info('Create ChatRoom {}'.format(id))
         self.id = id
-        self.clients = {}  # TODO: see how to get rid of this (rely on room client lists only)
+        self.clients = {}
         self.password = password
         self.guest_limit = guest_limit
         self.admin_list = admin_list if admin_list is not None else []
         self.is_public = is_public
+        self._last_active = time_ms()
+
+    @property
+    def last_active(self):
+        last_seen = [client.last_seen for client in self.clients.values()]
+        self._last_active = max([self._last_active, *last_seen])
+        return self._last_active
+
+    @property
+    def active_ago(self):
+        return int((time_ms() - self.last_active) / 60000)
 
     def add_client(self, client):
         if self.guest_limit is not None and len(self.clients) == self.guest_limit:
@@ -42,8 +53,9 @@ class ChatRoom:
 
     def remove_client(self, client):
         logging.info('Removing client {} from room {}'.format(client.id, self.id))
-        self.clients.pop(client.id, None)
+        self._last_active = max(self._last_active, client.last_seen)
         client.room = None
+        self.clients.pop(client.id, None)
         logging.info('{} clients remaining in room {}'.format(len(self.clients), self.id))
 
     def get_clients(self):
@@ -121,7 +133,8 @@ class ChatClient:
             logging.info('ChatClient.send({})'.format(data))
             self.datachannel.send(data)
         else:
-            logging.info('Couldn\'t send message: datachannel is not open')
+            logging.info('Couldn\'t send message to client {}: datachannel is not open'
+                         .format(self.id))
 
     def ping(self):
         message = ChatMessage()
@@ -165,11 +178,11 @@ class ChatManager:
     def __init__(self):
         logging.info('Create ChatManager')
         self.rooms = {}
-        self.clients = {}
+        self.clients = {} # TODO: see how to get rid of this (rely on room client lists only)
         self._stop = False
         self._message_forwarder_task = None
         self._message_address = "ground control"
-        self._reap_timeout = 15
+        self._reap_timeout = 60
 
         logging.info('Done creating ChatManager')
 
@@ -281,7 +294,8 @@ class ChatManager:
         return self.rooms.get(room_id)
 
     def get_public_rooms(self):
-        return [room for room in self.rooms.values() if room.is_public]
+        return sorted([room for room in self.rooms.values() if room.is_public],
+                      key=lambda room: room.active_ago)
 
     def create_room(self, room_id, **kwargs):
         if room_id in self.rooms:
