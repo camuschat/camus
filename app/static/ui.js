@@ -1,7 +1,6 @@
 'use strict';
 
 var videoMode = 'camera';
-var audioTrack = null;
 
 function attachVideoElement(id, stream) {
     let videoelement = document.getElementById(id);
@@ -36,7 +35,7 @@ function createVideoElement(id) {
 function toggleVideo() {
     if (videoMode == 'camera') {
         // Stop the current video track
-        let currentVideoTrack = localVideoStream.getTracks().find(track => track.kind === 'video');
+        let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
         currentVideoTrack.stop();
 
         // Update ui
@@ -50,7 +49,7 @@ function toggleVideo() {
 async function toggleDisplay() {
     if (videoMode == 'display') {
         // Stop the current video track
-        let currentVideoTrack = localVideoStream.getTracks().find(track => track.kind === 'video');
+        let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
         currentVideoTrack.stop();
 
         // Update ui
@@ -62,17 +61,14 @@ async function toggleDisplay() {
 }
 
 function toggleAudio() {
-    console.log('Toggle audio', audioTrack);
-    if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        console.log(audioTrack.kind + ' enabled: ' + audioTrack.enabled);
+    console.log('Toggle audio', manager.audioTrack);
+    manager.toggleAudio();
 
-        let icon = document.getElementById('toggle-audio-icon');
-        if ( audioTrack.enabled) {
-            icon.innerHTML = 'mic';
-        } else {
-            icon.innerHTML = 'mic_off';
-        }
+    let icon = document.getElementById('toggle-audio-icon');
+    if (manager.audioEnabled()) {
+        icon.innerHTML = 'mic';
+    } else {
+        icon.innerHTML = 'mic_off';
     }
 }
 
@@ -85,14 +81,14 @@ async function streamVideo() {
     let stream = await navigator.mediaDevices.getUserMedia(constraints);
 
     // Stop the current video track
-    let currentVideoTrack = localVideoStream.getTracks().find(track => track.kind === 'video');
+    let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
     currentVideoTrack.stop();
 
     // Update everything with new video track
     let newTrack = stream.getTracks().find(track => track.kind === 'video');
     document.getElementById('video-local').srcObject = stream;
-    localVideoStream = stream;
-    setVideoTrack(newTrack);
+    manager.localVideoStream = stream;
+    manager.setVideoTrack(newTrack);
 
     // Update ui
     document.getElementById('toggle-video-icon').innerHTML = 'videocam';
@@ -112,24 +108,17 @@ async function streamDisplay() {
     let stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
     // Stop the current video track
-    let currentVideoTrack = localVideoStream.getTracks().find(track => track.kind === 'video');
+    let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
     currentVideoTrack.stop();
 
     // Update everything with new video track
     let newTrack = stream.getTracks().find(track => track.kind === 'video');
     document.getElementById('video-local').srcObject = stream;
-    localVideoStream = stream;
-    setVideoTrack(newTrack);
+    manager.localVideoStream = stream;
+    manager.setVideoTrack(newTrack);
 
     // Update ui
     document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
     document.getElementById('toggle-display-icon').innerHTML = 'screen_share';
     videoMode = 'display';
-}
-
-function setVideoTrack(track) {
-    videoPeers.forEach((peer, peer_id) => {
-        console.log('Replace video track for peer ' + peer_id);
-        peer.setTrack(track);
-    });
 }

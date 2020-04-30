@@ -1,12 +1,9 @@
 'use strict';
 
-var groundControl = null;
-var videoPeers = new Map();
-var localVideoStream = null;
-
 class VideoPeer {
-    constructor(client_id) {
+    constructor(client_id, groundControl) {
         this.client_id = client_id;
+        this.groundControl = groundControl;
         this.connection = null;
     }
 
@@ -36,17 +33,22 @@ class VideoPeer {
     }
 
     async respondToOffer(offer) {
+        // Set the remote description with the offer
         await this.connection.setRemoteDescription(offer);
+
+        // Create an answer and send it to the peer via Ground Control
         let answer = await this.connection.createAnswer();
         await this.connection.setLocalDescription(answer);
 
         const data = {"receiver": this.client_id,
                       "type": "answer",
                       "data": this.connection.localDescription.sdp};
-        await groundControl.sendMessage(data);
+        await this.groundControl.sendMessage(data);
     }
 
     async negotiateConnection(peeroffer=null) {
+        // TODO: implement perfect negotiation
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
         if (peeroffer !== null) {
             return this.respondToOffer(peeroffer);
         }
@@ -66,7 +68,7 @@ class VideoPeer {
                       "data": this.connection.localDescription.sdp};
         let responseParams = {"sender": this.client_id,
                               "type": "answer"};
-        let response = await groundControl.sendReceiveMessage(data, responseParams);
+        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
         let answer = {'type': 'answer', 'sdp': response.data};
         return await this.connection.setRemoteDescription(answer);
     }
@@ -106,7 +108,7 @@ class VideoPeer {
         const data = {"receiver": this.client_id,
                       "type": "bye",
                       "data": time};
-        await groundControl.sendMessage(data);
+        await this.groundControl.sendMessage(data);
 
         console.log('Shutdown connection with peer ' + this.client_id);
     }
@@ -192,16 +194,19 @@ class GroundControl {
     }
 
     async shutdown() {
+        // Stop media tracks
         this.connection.getReceivers().forEach(receiver => {
             receiver.track.stop();
         });
 
+        // Say bye to Ground Control
         const time = new Date().getTime();
         const data = {"receiver": "ground control",
                     "type": "bye",
                     "data": time};
         await this.sendMessage(data);
 
+        // Shutdown connections
         this.connection.close();
         this.connection = null;
         this.datachannel = null;
@@ -215,7 +220,7 @@ async function ping() {
     const data = {"receiver": "ground control",
                   "type": "ping",
                   "data": time};
-    groundControl.sendMessage(data);
+    manager.groundControl.sendMessage(data);
 }
 
 async function get_self_id() {
@@ -226,7 +231,7 @@ async function get_self_id() {
     let responseParams = {"sender": "ground control",
                           "type": "pong",
                           "data": time};
-    let response = await groundControl.sendReceiveMessage(data, responseParams);
+    let response = await manager.groundControl.sendReceiveMessage(data, responseParams);
     return response.receiver;
 
 }
@@ -236,7 +241,7 @@ async function get_room_info() {
                 "type": "get-room-info"};
     let responseParams = {"sender": "ground control",
                           "type": "get-room-info"};
-    let response = await groundControl.sendReceiveMessage(data, responseParams);
+    let response = await manager.groundControl.sendReceiveMessage(data, responseParams);
     return response.data;
 }
 
@@ -244,7 +249,7 @@ async function greeting() {
     const data = {"receiver": "ground control",
                   "type": "greeting",
                   "data": "This is Major Tom to Ground Control: I'm stepping through the door. And the stars look very different today."};
-    groundControl.sendMessage(data);
+    manager.groundControl.sendMessage(data);
 }
 
 async function postJson(url, body) {
@@ -256,108 +261,151 @@ async function postJson(url, body) {
     return fetch(request)
 }
 
-async function establishGroundControl() {
-    const groundControl = new GroundControl();
-    await groundControl.offer();
-    return groundControl;
-}
-
-async function createVideoPeer(client_id, offer=null) {
-    let peer = new VideoPeer(client_id);
-    videoPeers.set(client_id, peer);
-    createVideoElement('video-' + client_id);
-    await peer.createPeerConnection();
-
-    for (const track of localVideoStream.getTracks()) {
-        peer.addTrack(track, localVideoStream);
+class Manager {
+    constructor() {
+        this.groundControl = new GroundControl();
+        this.videoPeers = new Map();
+        this.localVideoStream = null;
+        this.videoTrack = null;
+        this.audioTrack = null;
     }
 
-    await peer.negotiateConnection(offer);
-}
-
-async function getOrCreateVideoPeer(client_id, offer=null) {
-    if (!videoPeers.has(client_id)) {
-        return await createVideoPeer(client_id, offer);
+    setAudioTrack(track) {
+        this.setTrack(track);
+        this.audioTrack = track;
     }
 
-    return videoPeers.get(client_id);
-}
+    setVideoTrack(track) {
+        this.setTrack(track);
+        this.videoTrack = track;
+    }
 
-async function findPeers() {
-    let self_id = await get_self_id();
-    let room_info = await get_room_info();
+    setTrack(track) {
+        this.videoPeers.forEach((peer, peer_id) => {
+            console.log('Replace ' + track.kind + ' track for peer ' + peer_id);
+            peer.setTrack(track);
+        });
+    }
 
-    room_info.clients.forEach(async function(client_id) {
-        if (client_id === self_id) {
-            return;
-        }
-
-        let peer = getOrCreateVideoPeer(client_id);
-    });
-}
-
-async function processMessage(evt) {
-    let message = JSON.parse(evt.data);
-
-    console.log('Processing message:', message);
-
-    if (message.type === 'offer') {
-        let sessionDesc = {'type': 'offer', 'sdp': message.data};
-        let offer = new RTCSessionDescription(sessionDesc);
-        let peer = getOrCreateVideoPeer(message.sender, offer);
-    } else if (message.type == 'ping') {
-        const data = {"receiver": message.sender,
-                      "type": "pong",
-                      "data": message.data};
-        await groundControl.sendMessage(data);
-
-    } else if (message.type == 'bye') {
-        let client_id = message.sender;
-        if (videoPeers.has(client_id)) {
-            await videoPeers.get(client_id).shutdown()
-            videoPeers.delete(client_id)
+    toggleAudio() {
+        if (this.audioTrack) {
+            this.audioTrack.enabled = !this.audioTrack.enabled;
+            console.log(this.audioTrack.kind + ' enabled: ' + this.audioTrack.enabled);
         }
     }
-}
 
-async function shutdownVideoPeers() {
-    videoPeers.forEach(async function(peer, peer_id) {
-        await peer.shutdown();
-    });
-
-    videoPeers.clear();
-}
-
-async function shutdown() {
-    await shutdownVideoPeers();
-    await groundControl.shutdown();
-}
-
-async function start() {
-    const groundControlPromise = establishGroundControl();
-
-    const constraints = {
-        audio: true,
-        video: true
+    audioEnabled() {
+        return this.audioTrack && this.audioTrack.enabled;
     }
-    const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
 
-    groundControl = await groundControlPromise;
-    groundControl.datachannel.addEventListener('message', processMessage);
-
-    localVideoStream = await streamPromise;
-    audioTrack = localVideoStream.getTracks().find(track => track.kind === 'audio');
-    attachVideoElement('video-local', localVideoStream);
-
-    // Wait for data channel to open
-    while (groundControl.datachannel.readyState != 'open') {
-        await new Promise(r => setTimeout(r, 100));
+    async establishGroundControl() {
+        await this.groundControl.offer();
+        return this.groundControl;
     }
-    let peers = await findPeers();
+
+    async createVideoPeer(client_id, offer=null) {
+        let peer = new VideoPeer(client_id, this.groundControl);
+        this.videoPeers.set(client_id, peer);
+        createVideoElement('video-' + client_id); // TODO: Movie to ui.js
+        await peer.createPeerConnection();
+
+        peer.addTrack(this.videoTrack, this.localVideoStream);
+        peer.addTrack(this.audioTrack, this.localVideoStream);
+        //for (const track of this.localVideoStream.getTracks()) {
+        //    peer.addTrack(track, this.localVideoStream);
+        //}
+
+        await peer.negotiateConnection(offer);
+    }
+
+    async getOrCreateVideoPeer(client_id, offer=null) {
+        if (!this.videoPeers.has(client_id)) {
+            return await this.createVideoPeer(client_id, offer);
+        }
+
+        return this.videoPeers.get(client_id);
+    }
+
+    async findPeers() {
+        let self_id = await get_self_id();
+        let room_info = await get_room_info();
+
+        let manager = this;  // needed to access the manager inside the closure
+        room_info.clients.forEach(async function(client_id) {
+            if (client_id === self_id) {
+                return;
+            }
+
+            // TODO: gross
+            let peer = manager.getOrCreateVideoPeer(client_id);
+        });
+    }
+
+    async processMessage(evt) {
+        // TODO: processMessage() is used as a callback, so we can't use this, which is ugly
+        let message = JSON.parse(evt.data);
+        console.log('Processing message:', message);
+
+        if (message.type === 'offer') {
+            let sessionDesc = {'type': 'offer', 'sdp': message.data};
+            let offer = new RTCSessionDescription(sessionDesc);
+            let peer = await manager.getOrCreateVideoPeer(message.sender, offer);
+        } else if (message.type == 'ping') {
+            const data = {"receiver": message.sender,
+                        "type": "pong",
+                        "data": message.data};
+            await manager.groundControl.sendMessage(data);
+
+        } else if (message.type == 'bye') {
+            let client_id = message.sender;
+            if (manager.videoPeers.has(client_id)) {
+                await manager.videoPeers.get(client_id).shutdown()
+                manager.videoPeers.delete(client_id)
+            }
+        }
+    }
+
+    async shutdownVideoPeers() {
+        this.videoPeers.forEach(async function(peer, peer_id) {
+            await peer.shutdown();
+        });
+
+        this.videoPeers.clear();
+    }
+
+    async shutdown() {
+        await this.shutdownVideoPeers();
+        await this.groundControl.shutdown();
+    }
+
+    async start() {
+        const groundControlPromise = this.establishGroundControl();
+
+        const constraints = {
+            audio: true,
+            video: true
+        }
+        const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
+
+        this.groundControl = await groundControlPromise;
+        this.groundControl.datachannel.addEventListener('message', this.processMessage);
+
+        this.localVideoStream = await streamPromise;
+        this.videoTrack = this.localVideoStream.getTracks().find(track => track.kind === 'video');
+        this.audioTrack = this.localVideoStream.getTracks().find(track => track.kind === 'audio');
+        attachVideoElement('video-local', this.localVideoStream);  // TODO: move to ui.js
+
+        // Wait for data channel to open
+        while (this.groundControl.datachannel.readyState != 'open') {
+            await new Promise(r => setTimeout(r, 100));
+        }
+        let peers = await this.findPeers();
+    }
 }
 
 window.addEventListener('beforeunload', async function(event) {
     await shutdown();
 });
 
-start()
+var manager = new Manager();
+manager.start()
