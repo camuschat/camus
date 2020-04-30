@@ -14,16 +14,20 @@
             <i id="toggle-video-icon" class="material-icons">videocam</i></button>
         <button class="btn" id="toggle-audio" onclick="toggleAudio()">
             <i id="toggle-audio-icon" class="material-icons">mic</i></button>
+        <button class="btn" id="toggle-display" onclick="toggleDisplay()">
+            <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
     </div>
 </div>
 <div class="row">
     <div class "col-md-12">
         <hr>
         <p>Debug commands (hint: open the console for logging)</p>
-        <button class="btn" id="ping" onclick="ping()">Ping</button>
-        <button class="btn" id="get_room_info" onclick="get_room_info()">Room Info</button>
-        <button class="btn" id="greeting" onclick="greeting()">Greeting</button>
-        <button class="btn" id="shutdown" onclick="shutdown()">Shutdown</button>
+        <button class="btn" id="debug-ping" onclick="ping()">Ping</button>
+        <button class="btn" id="debug-get_room_info" onclick="get_room_info()">Room Info</button>
+        <button class="btn" id="debug-greeting" onclick="greeting()">Greeting</button>
+        <button class="btn" id="debug-shutdown" onclick="shutdown()">Shutdown</button>
+        <button class="btn" id="debug-desktop" onclick="streamDisplay()">Desktop</button>
+        <button class="btn" id="debug-webcam" onclick="streamVideo()">Webcam</button>
     </div>
 </div>
 

@@ -2,7 +2,7 @@
 
 var groundControl = null;
 var videoPeers = new Map();
-var localstream = null;
+var localVideoStream = null;
 
 class VideoPeer {
     constructor(client_id) {
@@ -72,7 +72,21 @@ class VideoPeer {
     }
 
     addTrack(track, stream) {
+        console.log('In VideoPeer.addTrack()');
         this.connection.addTrack(track, stream);
+    }
+
+    setTrack(track) {
+        let trackSender = this.connection.getSenders().find(sender =>
+            sender.track.kind === track.kind);
+
+        if (trackSender) {
+            console.log('Replacing track on sender ', trackSender);
+            trackSender.track.stop();
+            trackSender.replaceTrack(track);
+        } else {
+            this.connection.addTrack(track);
+        }
     }
 
     async shutdown() {
@@ -254,8 +268,8 @@ async function createVideoPeer(client_id, offer=null) {
     createVideoElement('video-' + client_id);
     await peer.createPeerConnection();
 
-    for (const track of localstream.getTracks()) {
-        peer.addTrack(track, localstream);
+    for (const track of localVideoStream.getTracks()) {
+        peer.addTrack(track, localVideoStream);
     }
 
     await peer.negotiateConnection(offer);
@@ -331,8 +345,9 @@ async function start() {
     groundControl = await groundControlPromise;
     groundControl.datachannel.addEventListener('message', processMessage);
 
-    localstream = await streamPromise;
-    attachVideoElement('video-local', localstream);
+    localVideoStream = await streamPromise;
+    audioTrack = localVideoStream.getTracks().find(track => track.kind === 'audio');
+    attachVideoElement('video-local', localVideoStream);
 
     // Wait for data channel to open
     while (groundControl.datachannel.readyState != 'open') {
