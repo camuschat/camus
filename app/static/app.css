@@ -42,7 +42,16 @@ a:hover {
 }
 
 .btn:hover {
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.btn:active {
+    background-color: #dddddd;
 }
 
 #video-stage {
@@ -50,18 +59,19 @@ a:hover {
 }
 
 #video-thumbs {
-    max-height: 600px;
+    max-height: 600;
+    overflow-y: auto;
+
     text-overflow: ellipsis;
 }
 
 #message-bar {
-    max-height: 600px;
     width: 100%;
     height: 100%;
 }
 
 #message-log {
-    max-height: 600px;
+    max-height: 400px;
     overflow-y: auto;
 }
 

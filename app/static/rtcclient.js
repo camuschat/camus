@@ -269,6 +269,8 @@ class Manager {
         this.localVideoStream = null;
         this.videoTrack = null;
         this.audioTrack = null;
+        this.textMessages = [];
+        this.messageListeners = [];
     }
 
     setAudioTrack(track) {
@@ -355,6 +357,9 @@ class Manager {
                         "type": "pong",
                         "data": message.data};
             await manager.groundControl.sendMessage(data);
+        } else if (message.type == 'text') {
+            manager.textMessages.push(message.data);
+            console.log('Text message received: ', message.data);
 
         } else if (message.type == 'bye') {
             let client_id = message.sender;
@@ -363,6 +368,27 @@ class Manager {
                 manager.videoPeers.delete(client_id)
             }
         }
+
+        manager.messageListeners.forEach(([messageParams, listener]) => {
+            function matchResponse(message) {
+                for (const key in messageParams) {
+                    if (!(message.hasOwnProperty(key) && message[key] === messageParams[key])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (matchResponse(message)) {
+                console.log('Received valid response message:', message);
+                listener(message);
+            }
+
+        });
+    }
+
+    addMessageListener(messageParams, listener) {
+        this.messageListeners.push([messageParams, listener]);
     }
 
     async shutdownVideoPeers() {

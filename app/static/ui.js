@@ -148,23 +148,8 @@ function toggleAudio() {
     }
 }
 
-function toggleMessageBar() {
-    console.log('Toggle messages');
-
-    let videoThumbs = document.getElementById('video-thumbs');
-    let messageBar = document.getElementById('message-bar');
-
-    if (messageBar.style.display === 'none') {
-        videoThumbs.style.display = 'none';
-        messageBar.style.display = 'block';
-    } else {
-        videoThumbs.style.display = 'block';
-        messageBar.style.display = 'none';
-    }
-}
-
 async function streamVideo() {
-    // Get stream from cam and mic
+     Get stream from cam and mic
     const constraints = {
         audio: true,
         video: true
@@ -222,12 +207,21 @@ async function streamDisplay() {
     videoMode = 'display';
 }
 
-function sendMessage() {
+async function sendMessage() {
     let messageLog = document.getElementById('message-log');
     let message = document.getElementById('message-input').value;
-    console.log('Send message: ' + message);
-    messageLog.innerHTML += '<p>' + message + '<p>';
+    const time = new Date().getTime();
+    const data = {"receiver": "room",
+                  "type": "text",
+                  "data": message};
+    await manager.groundControl.sendMessage(data);
+    console.log('Sent message: ', message);
 };
+
+function updateMessageBar(message) {
+    let messageLog = document.getElementById('message-log');
+    messageLog.innerHTML += '<p>' + message.data + '<p>';
+}
 
 function shutdown() {
     manager.shutdown();
@@ -241,7 +235,7 @@ function mediaInfo() {
     console.log('Width: ', videoSettings.width);
 };
 
-function startUI() {
+async function startUI() {
     console.log('base uri: ', document.baseURI);
     console.log('uri: ', document.documentURI);
     console.log('domain: ', document.domain);
@@ -251,9 +245,9 @@ function startUI() {
     console.log('last modified: ', document.lastModified);
     console.log('scripts: ', document.scripts);
 
-    document.getElementById('message-input').addEventListener('change', () => {
-        console.log('onchange: ', document.getElementById('message-input').value);
-    });
+    await new Promise(r => setTimeout(r, 200)); // allow manager to start up
+    let messageParams = {"type": "text"};
+    manager.addMessageListener(messageParams, updateMessageBar);
 }
 
 startUI();

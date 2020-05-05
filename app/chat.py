@@ -193,6 +193,10 @@ class ChatManager:
             await self._handle_local_message(chat_message, client, channel)
             return
 
+        if chat_message.receiver == 'room':
+            self._hand_room_message(chat_message, client)
+            return
+
         if chat_message.receiver not in self.clients:
             logging.info('Message recipient does not exist for message: {}'.format(chat_message.json()))
             # TODO: reply with error
@@ -233,6 +237,12 @@ class ChatManager:
 
         logging.info('Sending response: {}'.format(reply.json()))
         channel.send(reply.json())
+
+    def _hand_room_message(self, message, client):
+        room = client.room
+        for c in room.clients.values():
+            #if c.id != client.id:
+            c.send(message.json())
 
     def _parse_message(self, message, client):
         chat_message = ChatMessage(message)
