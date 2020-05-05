@@ -22,7 +22,8 @@ class VideoPeer {
             // TODO: what's in evt.streams?
             if (evt.track.kind == 'video') {
                 console.log('Video track received:', evt.track.id)
-                attachVideoElement('video-' + this.client_id, evt.streams[0]);
+                createVideoElement(this.client_id); // TODO: Movie to ui.js
+                attachVideoElement(this.client_id, evt.streams[0]);
             }
             else {
                 console.log('Audio track received:', evt.track.id)
@@ -306,7 +307,6 @@ class Manager {
     async createVideoPeer(client_id, offer=null) {
         let peer = new VideoPeer(client_id, this.groundControl);
         this.videoPeers.set(client_id, peer);
-        createVideoElement('video-' + client_id); // TODO: Movie to ui.js
         await peer.createPeerConnection();
 
         peer.addTrack(this.videoTrack, this.localVideoStream);
@@ -385,6 +385,14 @@ class Manager {
             audio: true,
             video: true
         }
+        //const constraints = {
+        //    audio: true,
+        //    video: {
+        //        width: {max: 640},
+        //        height: {max: 480},
+        //        frameRate: {max: 10}
+        //    }
+        //}
         const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
 
         this.groundControl = await groundControlPromise;
@@ -393,7 +401,8 @@ class Manager {
         this.localVideoStream = await streamPromise;
         this.videoTrack = this.localVideoStream.getTracks().find(track => track.kind === 'video');
         this.audioTrack = this.localVideoStream.getTracks().find(track => track.kind === 'audio');
-        attachVideoElement('video-local', this.localVideoStream);  // TODO: move to ui.js
+        createVideoElement('local');
+        attachVideoElement('local', this.localVideoStream);  // TODO: move to ui.js
 
         // Wait for data channel to open
         while (this.groundControl.datachannel.readyState != 'open') {

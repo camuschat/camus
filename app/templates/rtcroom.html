@@ -2,32 +2,51 @@
 
 {% block app_content %}
 <div class="row">
-    <div class="col-md-9" id="video-stage">
-        <video id="video-local" width="100%" autoplay playsinline muted></video>
+    <div class="col-md-8" id="video-stage">
     </div>
-    <div class="col-md-3" id="video-thumbs">
+    <div class="col-md-4">
+        <div id="video-thumbs">
+        </div>
+        <div id="message-bar" style="display:none">
+            <h3>Messages</h3>
+            <div id="message-log">message log</div>
+
+            <input type="text" id="message-input" placeholder="Type a message">
+            <button class="btn" id="send-message" onclick="sendMessage()">
+                <i id="send-message-icon" class="material-icons">send</i></button>
+        </div>
     </div>
 </div>
 <div class="row">
-    <div class "col-md-12">
-        <button class="btn" id="toggle-video" onclick="toggleVideo()">
-            <i id="toggle-video-icon" class="material-icons">videocam</i></button>
-        <button class="btn" id="toggle-audio" onclick="toggleAudio()">
-            <i id="toggle-audio-icon" class="material-icons">mic</i></button>
-        <button class="btn" id="toggle-display" onclick="toggleDisplay()">
-            <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
+    <div class "col-md-12 centered">
+        <div id="control-bar">
+            <button class="btn" id="toggle-video" onclick="toggleVideo()">
+                <i id="toggle-video-icon" class="material-icons">videocam</i></button>
+            <button class="btn" id="toggle-audio" onclick="toggleAudio()">
+                <i id="toggle-audio-icon" class="material-icons">mic</i></button>
+            <button class="btn" id="toggle-display" onclick="toggleDisplay()">
+                <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
+            <button class="btn" id="toggle-messages" onclick="toggleMessageBar()">
+                <i id="toggle-messages-icon" class="material-icons">chat</i></button>
+        </div>
     </div>
 </div>
 <div class="row">
     <div class "col-md-12">
         <hr>
-        <p>Debug commands (hint: open the console for logging)</p>
-        <button class="btn" id="debug-ping" onclick="ping()">Ping</button>
-        <button class="btn" id="debug-get_room_info" onclick="get_room_info()">Room Info</button>
-        <button class="btn" id="debug-greeting" onclick="greeting()">Greeting</button>
-        <button class="btn" id="debug-shutdown" onclick="shutdown()">Shutdown</button>
-        <button class="btn" id="debug-desktop" onclick="streamDisplay()">Desktop</button>
-        <button class="btn" id="debug-webcam" onclick="streamVideo()">Webcam</button>
+        <button class="btn" data-toggle="collapse" data-target="#debug">
+            Debug
+        </button>
+        <div id="debug" class="collapse">
+            <p>(Hint: open the console for logging)</p>
+            <button class="btn" id="debug-ping" onclick="ping()">Ping</button>
+            <button class="btn" id="debug-get_room_info" onclick="get_room_info()">Room Info</button>
+            <button class="btn" id="debug-greeting" onclick="greeting()">Greeting</button>
+            <button class="btn" id="debug-shutdown" onclick="shutdown()">Shutdown</button>
+            <button class="btn" id="debug-desktop" onclick="streamDisplay()">Desktop</button>
+            <button class="btn" id="debug-webcam" onclick="streamVideo()">Webcam</button>
+            <button class="btn" id="debug-media-info" onclick="mediaInfo()">Media info</button>
+        </div>
     </div>
 </div>
 

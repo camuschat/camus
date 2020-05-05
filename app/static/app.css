@@ -1,0 +1,80 @@
+video {
+    width: 100%;
+    max-height: 750px;
+}
+
+video:hover {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    transition-delay: 0.2s;
+    transition-timing-function: ease;
+}
+
+.video-box {
+    position: relative;
+}
+
+.video-box:hover .video-tag {
+    display: inline;
+    text-shadow: 2px 2px 5px floralwhite;
+    text-overflow: ellipsis;
+}
+
+.video-tag {
+    display: none;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    z-index: 9;
+    max-width: 200px;
+    text-overflow: ellipsis;
+    color: darkslategray;
+}
+
+a {
+    color: darkslategray;
+}
+
+a:hover {
+    color: darkslategray;
+    text-shadow: 0.5px 0.5px 0px slategray;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background-color: #EEEEEE;
+}
+
+#video-stage {
+    min-height: 500px;
+}
+
+#video-thumbs {
+    max-height: 600px;
+    text-overflow: ellipsis;
+}
+
+#message-bar {
+    max-height: 600px;
+    width: 100%;
+    height: 100%;
+}
+
+#message-log {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+#_message-bar {
+    height: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 64;
+    left: 64;
+    background-color: green;
+    transition: 0.2s;
+}
+
+#control-bar {
+    margin: 0 auto;
+}

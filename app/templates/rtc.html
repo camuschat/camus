@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/form.html" as wtf %}
 
 {% block app_content %}
 
 <div class="row">
     <div class="col-md-5">
         <h3>Create a room</h3>
-        {{ wtf.quick_form(form_create) }}
+        {{ wtf.render_form(form_create) }}
     </div>
     <div class="col-md-2">
     </div>
@@ -32,8 +32,8 @@
                     {{ form_join.csrf_token }}
                     <input id="room_id" name="room_id" type="hidden" value="{{ room.id }}">
                     {{ wtf.form_errors(form_join, hiddens="only") }}
-                    {{ wtf.form_field(form_join.password) }}
-                    {{ wtf.form_field(form_join.submit) }}
+                    {{ wtf.render_field(form_join.password) }}
+                    {{ wtf.render_field(form_join.submit) }}
                 </form>
 
             </div>

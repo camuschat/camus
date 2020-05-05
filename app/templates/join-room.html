@@ -1,6 +1,6 @@
 
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/form.html" as wtf %}
 
 {% block app_content %}
 
@@ -11,8 +11,8 @@
             {{ form.csrf_token }}
             <input id="room_id" name="room_id" type="hidden" value="{{ room_id }}">
             {{ wtf.form_errors(form, hiddens="only") }}
-            {{ wtf.form_field(form.password) }}
-            {{ wtf.form_field(form.submit) }}
+            {{ wtf.render_field(form.password) }}
+            {{ wtf.render_field(form.submit) }}
         </form>
     </div>
 </div>
