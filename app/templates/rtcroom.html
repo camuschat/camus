@@ -1,6 +1,23 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+<div class="modal" id="user-profile-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <p class="modal-title">Enter your display name</p>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="username-input">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" id="user-profile-save" data-dismiss="modal" onclick="saveUserProfile()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-md-8">
         <div class="row">

@@ -1,8 +1,9 @@
 'use strict';
 
 class VideoPeer {
-    constructor(client_id, groundControl) {
-        this.client_id = client_id;
+    constructor(client, groundControl) {
+        this.client_id = client.id;
+        this.username = client.username;
         this.groundControl = groundControl;
         this.connection = null;
     }
@@ -241,7 +242,7 @@ async function get_room_info() {
     let data = {"receiver": "ground control",
                 "type": "get-room-info"};
     let responseParams = {"sender": "ground control",
-                          "type": "get-room-info"};
+                          "type": "room-info"};
     let response = await manager.groundControl.sendReceiveMessage(data, responseParams);
     return response.data;
 }
@@ -264,6 +265,7 @@ async function postJson(url, body) {
 
 class Manager {
     constructor() {
+        this.username = 'Major Tom';
         this.groundControl = new GroundControl();
         this.videoPeers = new Map();
         this.localVideoStream = null;
@@ -271,6 +273,18 @@ class Manager {
         this.audioTrack = null;
         this.textMessages = [];
         this.messageListeners = [];
+        this.outbox = [];
+    }
+
+    async setUsername(username) {
+        this.username = username;
+
+        const data = {receiver: 'ground control',
+                      type: 'profile',
+                      data: {username: this.username}
+        };
+        await this.groundControl.sendMessage(data);
+        console.log('Set username in manager: ', this.username);
     }
 
     setAudioTrack(track) {
@@ -306,9 +320,9 @@ class Manager {
         return this.groundControl;
     }
 
-    async createVideoPeer(client_id, offer=null) {
-        let peer = new VideoPeer(client_id, this.groundControl);
-        this.videoPeers.set(client_id, peer);
+    async createVideoPeer(client, offer=null) {
+        let peer = new VideoPeer(client, this.groundControl);
+        this.videoPeers.set(client.id, peer);
         await peer.createPeerConnection();
 
         peer.addTrack(this.videoTrack, this.localVideoStream);
@@ -320,12 +334,12 @@ class Manager {
         await peer.negotiateConnection(offer);
     }
 
-    async getOrCreateVideoPeer(client_id, offer=null) {
-        if (!this.videoPeers.has(client_id)) {
-            return await this.createVideoPeer(client_id, offer);
+    async getOrCreateVideoPeer(client, offer=null) {
+        if (!this.videoPeers.has(client.id)) {
+            return await this.createVideoPeer(client, offer);
         }
 
-        return this.videoPeers.get(client_id);
+        return this.videoPeers.get(client.id);
     }
 
     async findPeers() {
@@ -333,13 +347,13 @@ class Manager {
         let room_info = await get_room_info();
 
         let manager = this;  // needed to access the manager inside the closure
-        room_info.clients.forEach(async function(client_id) {
-            if (client_id === self_id) {
+        room_info.clients.forEach(async function(client) {
+            if (client.id === self_id) {
                 return;
             }
 
             // TODO: gross
-            let peer = manager.getOrCreateVideoPeer(client_id);
+            let peer = manager.getOrCreateVideoPeer(client);
         });
     }
 
@@ -351,7 +365,8 @@ class Manager {
         if (message.type === 'offer') {
             let sessionDesc = {'type': 'offer', 'sdp': message.data};
             let offer = new RTCSessionDescription(sessionDesc);
-            let peer = await manager.getOrCreateVideoPeer(message.sender, offer);
+            let client = {id: message.sender, username: ''};
+            let peer = await manager.getOrCreateVideoPeer(client, offer);
         } else if (message.type == 'ping') {
             const data = {"receiver": message.sender,
                         "type": "pong",

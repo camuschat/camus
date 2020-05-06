@@ -63,9 +63,10 @@ class ChatRoom:
 
 
 class ChatClient:
-    def __init__(self, id, room=None, pc=None, is_admin=False):
+    def __init__(self, id, username=None, room=None, pc=None, is_admin=False):
         logging.info('Create client {}'.format(id))
         self.id = id
+        self.username = username if username is not None else self.id
         self.room = room
         self.datachannel = None
         self.sdp = None
@@ -194,7 +195,7 @@ class ChatManager:
             return
 
         if chat_message.receiver == 'room':
-            self._hand_room_message(chat_message, client)
+            self._handle_room_message(chat_message, client)
             return
 
         if chat_message.receiver not in self.clients:
@@ -217,11 +218,14 @@ class ChatManager:
         elif message.type == 'pong':
             logging.info('Got pong {} from client {}'.format(message.data, message.sender))
             return
-        elif message.type == 'get-clients':
-            reply.type = message.type
-            reply.data = self._list_clients()
+        elif message.type == 'profile':
+            username = message.data.get('username')
+            if username:
+                client.username = username
+            logging.info('Set username for client {}: {}'.format(client.id, username))
+            return
         elif message.type == 'get-room-info':
-            reply.type = message.type
+            reply.type = 'room-info'
             reply.data = self._get_room_info(client.room.id)
         elif message.type == 'greeting':
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
@@ -238,7 +242,8 @@ class ChatManager:
         logging.info('Sending response: {}'.format(reply.json()))
         channel.send(reply.json())
 
-    def _hand_room_message(self, message, client):
+    def _handle_room_message(self, message, client):
+        logging.info('Room message from {}: {}'.format(client.username, message))
         room = client.room
         for c in room.clients.values():
             #if c.id != client.id:
@@ -256,6 +261,9 @@ class ChatManager:
     def _get_room_info(self, room_id):
         room = self.rooms[room_id]
         clients = [client.id for client in room.get_clients()]
+
+        clients = [{'id': client.id, 'username': client.username}
+                   for client in room.get_clients()]
 
         return {'room_id': room_id, 'clients': clients}
 

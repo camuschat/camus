@@ -71,18 +71,29 @@ a:hover {
 }
 
 #message-log {
+    min-height: 200px;
     max-height: 400px;
     overflow-y: auto;
 }
 
-#_message-bar {
-    height: 100%;
-    position: fixed;
-    z-index: 1;
-    top: 64;
-    left: 64;
-    background-color: green;
-    transition: 0.2s;
+.message-time {
+    display: inline-block;
+    font-size: small;
+    font-style: italic;
+    margin-bottom: 0px;
+    margin-left: 10px;
+    float: right;
+}
+
+.message-from {
+    display: inline-block;
+    font-variant-caps: all-small-caps;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+
+.message-text {
+    margin-top: 0px;
 }
 
 #control-bar {

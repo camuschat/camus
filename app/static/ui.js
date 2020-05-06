@@ -149,7 +149,7 @@ function toggleAudio() {
 }
 
 async function streamVideo() {
-     Get stream from cam and mic
+    // Get stream from cam and mic
     const constraints = {
         audio: true,
         video: true
@@ -209,18 +209,48 @@ async function streamDisplay() {
 
 async function sendMessage() {
     let messageLog = document.getElementById('message-log');
-    let message = document.getElementById('message-input').value;
+    let messageInput = document.getElementById('message-input');
+    let message = messageInput.value;
+
     const time = new Date().getTime();
-    const data = {"receiver": "room",
-                  "type": "text",
-                  "data": message};
+    const data = {receiver: 'room',
+                  type: 'text',
+                  data: {from: manager.username,
+                         time: time,
+                         text: message}
+                 };
     await manager.groundControl.sendMessage(data);
+    messageInput.value = '';
     console.log('Sent message: ', message);
 };
 
 function updateMessageBar(message) {
+    let time = document.createElement('p');
+    time.setAttribute('class', 'message-time');
+    time.innerHTML = new Date(message.data.time).toLocaleTimeString("en-US");
+
+    let from = document.createElement('p');
+    from.setAttribute('class', 'message-from');
+    from.innerHTML = message.data.from;
+
+    let text = document.createElement('p');
+    text.setAttribute('class', 'message-text');
+    text.innerHTML = message.data.text;
+
     let messageLog = document.getElementById('message-log');
-    messageLog.innerHTML += '<p>' + message.data + '<p>';
+    messageLog.appendChild(from);
+    messageLog.appendChild(time);
+    messageLog.appendChild(text);
+}
+
+function promptUserName() {
+    $('#user-profile-modal').modal();
+}
+
+async function saveUserProfile() {
+    let username = document.getElementById('username-input').value;
+    await manager.setUsername(username);
+    console.log('Set username: ', username);
 }
 
 function shutdown() {
@@ -248,6 +278,8 @@ async function startUI() {
     await new Promise(r => setTimeout(r, 200)); // allow manager to start up
     let messageParams = {"type": "text"};
     manager.addMessageListener(messageParams, updateMessageBar);
+
+    promptUserName();
 }
 
 startUI();
