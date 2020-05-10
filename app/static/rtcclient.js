@@ -372,6 +372,7 @@ class Manager {
         console.log('peerClientIds: ', peerClientIds);
         console.log('removeIds: ', removeIds);
 
+        let manager = this;  // needed to access the manager inside the closure
         removeIds.forEach(async function(clientId) {
             let peer = this.videoPeers.get(clientId);
             await peer.shutdown();
@@ -380,7 +381,6 @@ class Manager {
         });
 
         // Add peers in room
-        let manager = this;  // needed to access the manager inside the closure
         let self_id = await get_self_id();
         roomInfo.clients.forEach(async function(client) {
             if (client.id !== self_id) {
