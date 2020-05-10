@@ -304,6 +304,9 @@ function connectionInfoNode(peer) {
     infoDiv.querySelector('.info-username').innerHTML = peer.username;
     infoDiv.querySelector('.info-client-id').innerHTML = peer.client_id;
     infoDiv.querySelector('.info-connection-state').innerHTML = peer.connectionState();
+    infoDiv.querySelector('.info-ice-connection-state').innerHTML = peer.iceConnectionState();
+    infoDiv.querySelector('.info-signaling-state').innerHTML = peer.signalingState();
+    //infoDiv.querySelector('.info-remote-description').innerHTML = peer.remoteDescription();
 
     return clone;
 }

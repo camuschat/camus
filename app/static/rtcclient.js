@@ -35,7 +35,24 @@ class VideoPeer {
     }
 
     connectionState() {
+        return this.connection.connectionState;
+    }
+
+    iceConnectionState() {
         return this.connection.iceConnectionState;
+    }
+
+    signalingState() {
+        return this.connection.signalingState;
+    }
+
+    remoteDescription() {
+        let description = this.connection.remoteDescription;
+        if (description) {
+            return description.sdp;
+        } else {
+            return null;
+        }
     }
 
     async respondToOffer(offer) {
