@@ -16,22 +16,26 @@ class VideoPeer {
         this.connection = new RTCPeerConnection(config);
 
         this.connection.addEventListener('iceconnectionstatechange', () => {
-            console.log("Ice connection state:", this.connection.iceConnectionState);
+            console.log("Ice connection state <" + this.connection.iceConnectionState + "> for client " + this.client_id);
         });
 
         this.connection.addEventListener('track', (evt) => {
             // TODO: what's in evt.streams?
             if (evt.track.kind == 'video') {
-                console.log('Video track received:', evt.track.id)
+                console.log('Video track ' + evt.track.id + ' received from client ' + this.client_id)
                 createVideoElement(this.client_id); // TODO: Movie to ui.js
                 attachVideoElement(this.client_id, evt.streams[0]);
             }
             else {
-                console.log('Audio track received:', evt.track.id)
+                console.log('Audio track ' + evt.track.id + ' received from client ' + this.client_id)
             }
         });
 
         this.connection = this.connection;
+    }
+
+    connectionState() {
+        return this.connection.iceConnectionState;
     }
 
     async respondToOffer(offer) {
@@ -142,17 +146,27 @@ class GroundControl {
         console.log('Connection for Ground Control created');
     }
 
+    connectionState() {
+        return this.connection.iceConnectionState;
+    }
+
     async offer() {
+        console.log('In groundControl.offer()');
         // Create offer for Ground Control
         const offer = await this.connection.createOffer();
+        console.log('created offer', offer);
         await this.connection.setLocalDescription(offer);
+        console.log('set local description', this.connection.localDescription);
 
         // Wait for ice gathering to complete
         while (this.connection.iceGatheringState != 'complete') {
             await new Promise(r => setTimeout(r, 100));
         }
 
+        console.log('ice gathering complete');
+
         // Send the offer and wait for the answer
+        console.log('Posting offer to ' + document.URL + '/offer');
         const response = await fetch(document.URL + '/offer', {
             body: JSON.stringify({sdp: this.connection.localDescription.sdp,
                                   type: this.connection.localDescription.type}),
@@ -274,6 +288,7 @@ class Manager {
         this.textMessages = [];
         this.messageListeners = [];
         this.outbox = [];
+        console.log('Created Manager')
     }
 
     async setUsername(username) {
@@ -327,11 +342,10 @@ class Manager {
 
         peer.addTrack(this.videoTrack, this.localVideoStream);
         peer.addTrack(this.audioTrack, this.localVideoStream);
-        //for (const track of this.localVideoStream.getTracks()) {
-        //    peer.addTrack(track, this.localVideoStream);
-        //}
 
         await peer.negotiateConnection(offer);
+
+        console.log('Created video peer ', peer.client_id);
     }
 
     async getOrCreateVideoPeer(client, offer=null) {
@@ -343,29 +357,55 @@ class Manager {
     }
 
     async findPeers() {
-        let self_id = await get_self_id();
-        let room_info = await get_room_info();
+        let roomInfo = await get_room_info();
+        await this.updatePeers(roomInfo);
+    }
 
+    async updatePeers(roomInfo) {
+        console.log('In Manager.updatePeers()');
+        // Remove peers not in room
+        let roomClientIds = roomInfo.clients.map(({id, username}) => id);
+        let peerClientIds = Array.from(this.videoPeers.keys());
+        let removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
+
+        console.log('roomClientIds: ', roomClientIds);
+        console.log('peerClientIds: ', peerClientIds);
+        console.log('removeIds: ', removeIds);
+
+        removeIds.forEach(async function(clientId) {
+            let peer = this.videoPeers.get(clientId);
+            await peer.shutdown();
+            this.videoPeers.delete(clientId);
+            console.log('Removed client ', clientId);
+        });
+
+        // Add peers in room
         let manager = this;  // needed to access the manager inside the closure
-        room_info.clients.forEach(async function(client) {
-            if (client.id === self_id) {
-                return;
+        let self_id = await get_self_id();
+        roomInfo.clients.forEach(async function(client) {
+            if (client.id !== self_id) {
+                await manager.getOrCreateVideoPeer(client);
             }
+        });
 
-            // TODO: gross
-            let peer = manager.getOrCreateVideoPeer(client);
+        // Update information for each peer
+        this.videoPeers.forEach((peer, peer_id) => {
+            let oldUsername = peer.username;
+            let client = roomInfo.clients.find(client => client.id === peer_id);
+            peer.username = client.username;
+            console.log('Set peer username from ' + oldUsername + ' to ' + peer.username);
         });
     }
 
     async processMessage(evt) {
-        // TODO: processMessage() is used as a callback, so we can't use this, which is ugly
+        // TODO: processMessage() is used as a callback, so we can't use `this`, which is ugly
         let message = JSON.parse(evt.data);
         console.log('Processing message:', message);
 
         if (message.type === 'offer') {
             let sessionDesc = {'type': 'offer', 'sdp': message.data};
             let offer = new RTCSessionDescription(sessionDesc);
-            let client = {id: message.sender, username: ''};
+            let client = {id: message.sender, username: 'Major Tom'};
             let peer = await manager.getOrCreateVideoPeer(client, offer);
         } else if (message.type == 'ping') {
             const data = {"receiver": message.sender,
@@ -376,6 +416,8 @@ class Manager {
             manager.textMessages.push(message.data);
             console.log('Text message received: ', message.data);
 
+        } else if (message.type == 'room-info') {
+            await manager.updatePeers(message.data);
         } else if (message.type == 'bye') {
             let client_id = message.sender;
             if (manager.videoPeers.has(client_id)) {
@@ -454,8 +496,14 @@ class Manager {
 }
 
 window.addEventListener('beforeunload', async function(event) {
-    await shutdown();
+    await manager.shutdown();
 });
 
+
+async function start() {
+    manager.start()
+    startUI();
+}
+
 var manager = new Manager();
-manager.start()
+start();

@@ -265,6 +265,49 @@ function mediaInfo() {
     console.log('Width: ', videoSettings.width);
 };
 
+function updateTechnical() {
+    console.log('In updateTechnical()');
+    let technicalBar = document.querySelector('#technical-bar');
+    technicalBar.textContent = '';
+    // ground control
+    //manager.groundControl.connectionState();
+
+    manager.videoPeers.forEach((peer, peer_id) => {
+        console.log('Update technical for client ' + peer_id);
+        let info = connectionInfoNode(peer);
+        console.log('Info node: ');
+        console.log(info);
+        //let old = document.getElementById(info.firstElementChild.id);
+        //console.log('old: ', old);
+        //if (old) {
+        //    technicalBar.replaceChild(info, old);
+        //} else {
+        //    technicalBar.appendChild(info);
+        //}
+        technicalBar.appendChild(info);
+    });
+}
+
+function connectionInfoNode(peer) {
+    let template = document.querySelector('#connection-info-template');
+    let clone = template.content.cloneNode(true);
+
+    let div = clone.querySelector('div');
+    div.id = 'connection-info-' + peer.client_id;
+
+    let button = clone.querySelector('button');
+    button.dataset.target = '#connection-info-collapse-' + peer.client_id;
+    button.innerHTML = peer.username;
+
+    let infoDiv = clone.querySelector('div.collapse');
+    infoDiv.id = 'connection-info-collapse-' + peer.client_id;
+    infoDiv.querySelector('.info-username').innerHTML = peer.username;
+    infoDiv.querySelector('.info-client-id').innerHTML = peer.client_id;
+    infoDiv.querySelector('.info-connection-state').innerHTML = peer.connectionState();
+
+    return clone;
+}
+
 async function startUI() {
     console.log('base uri: ', document.baseURI);
     console.log('uri: ', document.documentURI);
@@ -279,7 +322,11 @@ async function startUI() {
     let messageParams = {"type": "text"};
     manager.addMessageListener(messageParams, updateMessageBar);
 
+    document.querySelector('#technical-button').addEventListener('click', () => {
+        updateTechnical();
+    });
+
     promptUserName();
 }
 
-startUI();
+//startUI();

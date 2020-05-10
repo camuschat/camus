@@ -63,9 +63,11 @@
             </div>
             <div id="video-thumbs-collapse" class="collapse show" data-parent="#accordion">
                 <div id="video-thumbs">
+                    <!-- Populated via createVideoElement() -->
                 </div>
             </div>
         </div>
+
         <div class="card">
             <div class="card-header">
                 <button class="btn btn-link" data-toggle="collapse" data-target="#message-bar-collapse">
@@ -74,8 +76,9 @@
             </div>
             <div id="message-bar-collapse" class="collapse" data-parent="#accordion">
                 <div class="card-body" id="message-bar">
-                    <div id="message-log"></div>
-
+                    <div id="message-log">
+                        <!-- Populated via updateMessageBar() -->
+                    </div>
                     <div class="input-group">
                         <input type="text" class="form-control" id="message-input" placeholder="Type a message">
                         <div class="input-group-append">
@@ -86,10 +89,37 @@
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-header">
+                <button class="btn btn-link" id="technical-button" data-toggle="collapse" data-target="#technical-bar-collapse">
+                    Technical
+                </button>
+            </div>
+            <div id="technical-bar-collapse" class="collapse" data-parent="#accordion">
+                <div id="technical-bar">
+                    <!-- Populated using #connection-info-template -->
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 <div class="row">
 </div>
+
+<template id="connection-info-template">
+    <div id="connection-info-clientid">
+        <button class="btn" data-toggle="collapse" data-target="#clientid-collapse">
+            Client Name
+        </button>
+        <div class="collapse" id="connection-info-collapse-clientid">
+            <p>Username: <span class="info-username"></span></p>
+            <p>Client ID: <span class="info-client-id"></span></p>
+            <p>Connection state: <span class="info-connection-state"></span></p>
+        </div>
+    </div>
+</template>
 
 
 <script src="{{ url_for('static', filename='ui.js') }}"></script>

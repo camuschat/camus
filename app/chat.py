@@ -44,6 +44,13 @@ class ChatRoom:
     def active_ago(self):
         return int((time_ms() - self.last_active) / 60000)
 
+    @property
+    def info(self):
+        clients = [{'id': client.id, 'username': client.username}
+                   for client in self.get_clients()]
+
+        return {'room_id': self.id, 'clients': clients}
+
     def add_client(self, client):
         if self.guest_limit is not None and len(self.clients) == self.guest_limit:
             raise ChatManagerException('Guest limit already reached')
@@ -61,12 +68,18 @@ class ChatRoom:
     def get_clients(self):
         return self.clients.values()
 
+    def broadcast(self, message):
+        logging.info('Broadcasting to room {}: {}'.format(self.id, message.json()))
+        for client in self.get_clients():
+            message.receiver = client.id
+            client.send(message.json())
+
 
 class ChatClient:
     def __init__(self, id, username=None, room=None, pc=None, is_admin=False):
         logging.info('Create client {}'.format(id))
         self.id = id
-        self.username = username if username is not None else self.id
+        self.username = username if username is not None else 'Major Tom'
         self.room = room
         self.datachannel = None
         self.sdp = None
@@ -223,17 +236,23 @@ class ChatManager:
             if username:
                 client.username = username
             logging.info('Set username for client {}: {}'.format(client.id, username))
+
+            # TODO: not working?
+            self.broadcast_room_info(client.room)
             return
         elif message.type == 'get-room-info':
             reply.type = 'room-info'
-            reply.data = self._get_room_info(client.room.id)
+            reply.data = client.room.info
         elif message.type == 'greeting':
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
             return
         elif message.type == 'bye':
-            # TODO: notify all other clients in the room
             logging.info('Removing client {} from room {}'.format(client.id, client.room.id))
             await self.remove_client(client)
+            logging.info('Removed client {} from room {}'.format(client.id, client.room.id))
+
+            # TODO: not working?
+            self.broadcast_room_info(client.room)
             return
         else:
             reply.type = 'error'
@@ -246,7 +265,6 @@ class ChatManager:
         logging.info('Room message from {}: {}'.format(client.username, message))
         room = client.room
         for c in room.clients.values():
-            #if c.id != client.id:
             c.send(message.json())
 
     def _parse_message(self, message, client):
@@ -255,17 +273,12 @@ class ChatManager:
             chat_message.sender = client.id
         return chat_message
 
-    def _list_clients(self):
-        return [client.id for client in self.clients.values()]
-
-    def _get_room_info(self, room_id):
-        room = self.rooms[room_id]
-        clients = [client.id for client in room.get_clients()]
-
-        clients = [{'id': client.id, 'username': client.username}
-                   for client in room.get_clients()]
-
-        return {'room_id': room_id, 'clients': clients}
+    def broadcast_room_info(self, room):
+        message = ChatMessage()
+        message.sender = self._message_address
+        message.type = 'room-info'
+        message.data = room.info
+        room.broadcast(message)
 
     def add_room(self, room):
         self.rooms[room.id] = room
