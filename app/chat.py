@@ -51,8 +51,11 @@ class ChatRoom:
 
         return {'room_id': self.id, 'clients': clients}
 
+    def is_full(self):
+        return self.guest_limit is not None and len(self.clients) == self.guest_limit
+
     def add_client(self, client):
-        if self.guest_limit is not None and len(self.clients) == self.guest_limit:
+        if self.is_full():
             raise ChatManagerException('Guest limit already reached')
 
         self.clients[client.id] = client
@@ -82,7 +85,6 @@ class ChatClient:
         self.username = username if username is not None else 'Major Tom'
         self.room = room
         self.datachannel = None
-        self.sdp = None
         self.is_admin = is_admin
 
         # Used by ChatManager for reaping
@@ -93,15 +95,6 @@ class ChatClient:
         if pc is not None:
             self.pc = pc
         self.pc = self.create_peer_connection()
-
-    def enter_room(self, room):
-        self.room = room
-        room.add_client(self)
-
-    def leave_room(self):
-        if self.room is not None:
-            self.room.remove_client(self)
-            self.room = None
 
     def create_peer_connection(self):
         '''
@@ -128,11 +121,8 @@ class ChatClient:
 
         return self.pc
 
-    async def setup_peer_connection(self, sdp=None):
+    async def setup_peer_connection(self, sdp):
         logging.info('Setup peer connection')
-        if sdp is None:
-            sdp = self.sdp
-
         offer = RTCSessionDescription(sdp=sdp, type='offer')
         await self.pc.setRemoteDescription(offer)
 
@@ -142,13 +132,12 @@ class ChatClient:
         return {"sdp": self.pc.localDescription.sdp, "type": self.pc.localDescription.type}
 
     def send(self, data):
-        # send data over peerconnection data channel
-        if self.datachannel.readyState == 'open':
+        try:
             logging.info('ChatClient.send({})'.format(data))
             self.datachannel.send(data)
-        else:
-            logging.info('Couldn\'t send message to client {}: datachannel is not open'
-                         .format(self.id))
+        except Exception as e:
+            logging.info('Couldn\'t send message to client {}: {}'
+                         .format(self.id, e))
 
     def ping(self):
         message = ChatMessage()
@@ -166,8 +155,13 @@ class ChatClient:
         message.data = time_ms()
         self.send(message.json())
 
-        self.datachannel.close()
-        await self.pc.close()
+        if self.datachannel is not None:
+            self.datachannel.close()
+
+        if self.pc is not None:
+            await self.pc.close()
+
+        logging.info('Finished shutting down client {}'.format(self.id))
 
 class ChatMessage:
     def __init__(self, message=None):
@@ -192,13 +186,15 @@ class ChatManager:
     def __init__(self):
         logging.info('Create ChatManager')
         self.rooms = {}
-        self.clients = {} # TODO: see how to get rid of this (rely on room client lists only)
         self._stop = False
         self._message_forwarder_task = None
         self._message_address = "ground control"
         self._reap_timeout = 60
 
-        logging.info('Done creating ChatManager')
+    @property
+    def clients(self):
+        return {client.id: client for room in self.rooms.values()
+                for client in room.clients.values()}
 
     async def _handle_message(self, message, client, channel):
         chat_message = self._parse_message(message, client)
@@ -247,9 +243,7 @@ class ChatManager:
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
             return
         elif message.type == 'bye':
-            logging.info('Removing client {} from room {}'.format(client.id, client.room.id))
             await self.remove_client(client)
-            logging.info('Removed client {} from room {}'.format(client.id, client.room.id))
 
             # TODO: not working?
             self.broadcast_room_info(client.room)
@@ -304,13 +298,12 @@ class ChatManager:
                     client.timer.cancel()
                 client.timer = MTimer(self._reap_timeout, self._reap, client=client)
 
-        self.clients[client.id] = client
-
     async def remove_client(self, client):
-        logging.info('Removing client {}'.format(client.id))
-        client.leave_room()
+        if client.timer is not None:
+            client.timer.cancel()
+
+        client.room.remove_client(client)
         await client.shutdown()
-        self.clients.pop(client.id, None)
 
     async def _reap(self, client):
         # Ping client and allow time for a response
@@ -347,18 +340,7 @@ class ChatManager:
             raise ChatManagerException('Client {} already exists'.format(room_id))
 
         client = ChatClient(client_id)
+        client.timer = MTimer(self._reap_timeout, self._reap, client=client)
         self.add_client(client)
 
         return client
-
-    def get_or_create_room(self, room_id):
-        if room_id in self.rooms:
-            return self.rooms[room_id]
-
-        return self.create_room(room_id)
-
-    def get_or_create_client(self, client_id):
-        if client_id in self.clients:
-            return self.clients[client_id]
-
-        return self.create_client(client_id)

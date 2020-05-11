@@ -38,7 +38,6 @@ async def rtc():
         password = None if not len(form.password.data) else form.password.data
         is_public = form.public.data
         guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
-        #admin_list = [client.id]
         admin_list = []
 
         if room_id not in manager.rooms:
@@ -62,14 +61,11 @@ async def rtc_room(room_id):
     if room is None:
         return '404', 404
 
+    if room.is_full():
+        return 'Guest limit already reached', 418
+
     if room.password is None:
-        try:
-            client = manager.create_client()
-            client.enter_room(room)
-            session['client_id'] = client.id
-            return await render_template('rtcroom.html', title='rtc')
-        except ChatManagerException as e:
-            return 'Guest limit already reached', 418
+        return await render_template('rtcroom.html', title='rtc')
 
     form = RoomJoin()
     if form.validate_on_submit():
@@ -77,13 +73,8 @@ async def rtc_room(room_id):
         password = form.password.data
 
         if password == room.password:
-            try:
-                client = manager.create_client()
-                client.enter_room(room)
-                session['client_id'] = client.id
-                return await render_template('rtcroom.html', title='rtc')
-            except ChatManagerException as e:
-                return 'Guest limit already reached', 418
+            # TODO: Generate token to be used with offer
+            return await render_template('rtcroom.html', title='rtc')
         else:
             await flash('Invalid password')
 
@@ -98,20 +89,12 @@ async def rtc_room_offer(room_id):
     if room is None:
         return 'Invalid room id', 404
 
-    client_id = session.get('client_id')
-    client = manager.clients.get(client_id)
-    if client is None:
-        return 'Invalid client id', 404
-
-    if client_id not in room.clients:
-        return 'Unauthorized', 401
-
     params = await request.json
     if params['type'] == 'offer':
         sdp = params['sdp']
-        client.sdp = sdp
-        #await client.create_peer_connection()
-        answer = await client.setup_peer_connection()
+        client = manager.create_client()
+        room.add_client(client)
+        answer = await client.setup_peer_connection(sdp)
         return jsonify(answer)
 
     if params['type'] == 'icecandidate':
