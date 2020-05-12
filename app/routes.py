@@ -29,7 +29,7 @@ async def reset():
 
 @app.route('/rtc', methods=['GET', 'POST'])
 async def rtc():
-    manager = await chat.get_chat_manager()
+    manager = chat.get_chat_manager()
 
     form_create = RoomCreate()
     if form_create.validate_on_submit():
@@ -55,7 +55,7 @@ async def rtc():
 
 @app.route('/rtc/<room_id>', methods=['GET', 'POST'])
 async def rtc_room(room_id):
-    manager = await chat.get_chat_manager()
+    manager = chat.get_chat_manager()
     room = manager.get_room(room_id)
 
     if room is None:
@@ -83,7 +83,7 @@ async def rtc_room(room_id):
 
 @app.route('/rtc/<room_id>/offer', methods=['POST'])
 async def rtc_room_offer(room_id):
-    manager = await chat.get_chat_manager()
+    manager = chat.get_chat_manager()
     room = manager.get_room(room_id)
 
     if room is None:

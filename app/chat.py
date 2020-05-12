@@ -12,7 +12,7 @@ from app.util import MTimer, time_ms
 _chat_manager = None
 
 
-async def get_chat_manager():
+def get_chat_manager():
     global _chat_manager
     if _chat_manager is None:
         _chat_manager = ChatManager()
@@ -277,27 +277,6 @@ class ChatManager:
     def add_room(self, room):
         self.rooms[room.id] = room
 
-    def add_client(self, client):
-        @client.pc.on("datachannel")
-        async def on_datachannel(channel):
-            logging.info('Sending greeting to client {}'.format(client.id))
-            greeting = ChatMessage()
-            greeting.sender = self._message_address
-            greeting.receiver = client.id
-            greeting.type = 'greeting'
-            greeting.data = 'This is Ground Control to Major Tom: You\'ve really made the grade. Now it\'s time to leave the capsule if you dare.'
-            channel.send(greeting.json())
-
-            @channel.on("message")
-            async def on_message(message):
-                logging.info('Received message: {}'.format(message))
-                await self._handle_message(message, client, channel)
-
-                # Reap this client if we haven't seen it for too long
-                if client.timer is not None:
-                    client.timer.cancel()
-                client.timer = MTimer(self._reap_timeout, self._reap, client=client)
-
     async def remove_client(self, client):
         if client.timer is not None:
             client.timer.cancel()
@@ -341,6 +320,25 @@ class ChatManager:
 
         client = ChatClient(client_id)
         client.timer = MTimer(self._reap_timeout, self._reap, client=client)
-        self.add_client(client)
+
+        @client.pc.on("datachannel")
+        async def on_datachannel(channel):
+            logging.info('Sending greeting to client {}'.format(client.id))
+            greeting = ChatMessage()
+            greeting.sender = self._message_address
+            greeting.receiver = client.id
+            greeting.type = 'greeting'
+            greeting.data = 'This is Ground Control to Major Tom: You\'ve really made the grade. Now it\'s time to leave the capsule if you dare.'
+            channel.send(greeting.json())
+
+            @channel.on("message")
+            async def on_message(message):
+                logging.info('Received message: {}'.format(message))
+                await self._handle_message(message, client, channel)
+
+                # Reap this client if we haven't seen it for too long
+                if client.timer is not None:
+                    client.timer.cancel()
+                client.timer = MTimer(self._reap_timeout, self._reap, client=client)
 
         return client
