@@ -23,6 +23,11 @@ function videoBoxOnClick(evt) {
 }
 
 function createVideoElement(id) {
+    if (document.querySelector('#video-box-' + id)) {
+        // element already exists
+        return;
+    }
+
     let videoTag = document.createElement('p');
     videoTag.className = 'video-tag'
     videoTag.innerHTML = id;
@@ -277,13 +282,6 @@ function updateTechnical() {
         let info = connectionInfoNode(peer);
         console.log('Info node: ');
         console.log(info);
-        //let old = document.getElementById(info.firstElementChild.id);
-        //console.log('old: ', old);
-        //if (old) {
-        //    technicalBar.replaceChild(info, old);
-        //} else {
-        //    technicalBar.appendChild(info);
-        //}
         technicalBar.appendChild(info);
     });
 }

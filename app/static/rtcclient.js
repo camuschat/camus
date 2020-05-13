@@ -1,5 +1,13 @@
 'use strict';
 
+window.addEventListener('unhandledrejection', function(event) {
+    console.log('An unhandled error occurred');
+    console.log(event.promise);
+    console.log(event.reason);
+
+    //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
+});
+
 class VideoPeer {
     constructor(client, groundControl) {
         this.client_id = client.id;
@@ -19,19 +27,46 @@ class VideoPeer {
             console.log("Ice connection state <" + this.connection.iceConnectionState + "> for client " + this.client_id);
         });
 
-        this.connection.addEventListener('track', (evt) => {
-            // TODO: what's in evt.streams?
-            if (evt.track.kind == 'video') {
-                console.log('Video track ' + evt.track.id + ' received from client ' + this.client_id)
-                createVideoElement(this.client_id); // TODO: Movie to ui.js
-                attachVideoElement(this.client_id, evt.streams[0]);
-            }
-            else {
-                console.log('Audio track ' + evt.track.id + ' received from client ' + this.client_id)
-            }
-        });
+        // Handle incoming tracks from the peer
+        this.connection.ontrack = ({track, streams}) => {
+            console.log(`${track.kind} track ${track.id} received from client ${this.client_id}`);
 
-        this.connection = this.connection;
+            if (track.kind === 'video') {
+                track.onunmute = () => {
+                    createVideoElement(this.client_id); // TODO: Movie to ui.js
+                    attachVideoElement(this.client_id, streams[0]);
+                };
+            }
+        };
+
+        // Handle re-negotiation of the connection
+        const connection = this.connection;
+        const groundControl = this.groundControl;
+        const client_id = this.client_id;
+        let makingOffer = false;
+        this.connection.onnegotiationneeded = async () => {
+            return;
+            try {
+                makingOffer = true;
+                await connection.setLocalDescription();
+                const data = {"receiver": client_id,
+                              "type": "offer",
+                              "data": connection.localDescription.sdp};
+                await groundControl.sendMessage(data);
+            } catch(err) {
+                console.error(err);
+            } finally {
+                makingOffer = false;
+            }
+        };
+
+        // Send ICE candidates as they are ready
+        this.connection.onicecandidate = async ({candidate}) => {
+            const data = {"receiver": client_id,
+                          "type": "icecandidate",
+                          "data": candidate};
+            //await groundControl.sendMessage(data);
+        }
     }
 
     connectionState() {
@@ -53,6 +88,13 @@ class VideoPeer {
         } else {
             return null;
         }
+    }
+
+    onOffer() {
+    }
+
+    onIceCandidate () {
+        //if this.makingOffer
     }
 
     async respondToOffer(offer) {
@@ -153,6 +195,9 @@ class GroundControl {
 
         this.connection.addEventListener('iceconnectionstatechange', () => {
             console.log("Ice connection state:", this.connection.iceConnectionState);
+            if (this.connection.iceConnectionState === "failed") {
+                this.connection.restartIce();
+            }
         });
 
         this.datachannel = this.connection.createDataChannel('data');
@@ -294,6 +339,121 @@ async function postJson(url, body) {
     return fetch(request)
 }
 
+
+class MessageHandler {
+    constructor(manager, signaler) {
+        this.manager = manager;
+        this.signaler = signaler;
+        this.messageListeners = [];
+        this.handlers = {'ping': this.ping,
+                         'pong': this.pong,
+                         'text': this.text,
+                         'get-room-info': this.getRoomInfo,
+                         'room-info': this.roomInfo,
+                         'profile': this.profile,
+                         'offer': this.offer,
+                         'answer': this.answer,
+                         'greeting': this.greeting,
+                         'bye': this.bye
+        };
+    }
+
+    addMessageListener(messageParams, listener) {
+        this.messageListeners.push([messageParams, listener]);
+    }
+
+    async handleMessage(message) {
+        await this.handlers[message.type].call(this, message);
+
+        this.messageListeners.forEach(([messageParams, listener]) => {
+            if (this.match(message, messageParams)) {
+                console.log('Calling listener for message: ', message);
+                listener(message);
+            }
+
+        });
+    }
+
+    async ping(message) {
+        console.log('<< Received ping: ', message);
+
+        console.log('this: ', this);
+        let response = this.emptyMessage();
+        response.receiver = message.sender;
+        response.type = 'pong';
+        response.data = message.data;
+        await this.signaler.sendMessage(response);
+
+        console.log('>> Sent pong: ', message);
+    }
+
+    async pong(message) {
+        console.log('<< Received pong: ', message);
+    };
+
+    async text(message) {
+        console.log('<< Received text: ', message);
+        manager.textMessages.push(message.data);
+    }
+
+    async getRoomInfo(message) {
+        console.log('<< Received get-room-info: ', message);
+    }
+
+    async roomInfo(message) {
+        console.log('<< Received room-info: ', message);
+        await manager.updatePeers(message.data);
+    }
+
+    async profile(message) {
+        console.log('<< Received profile: ', message);
+    }
+
+    async offer(message) {
+        console.log('<< Received offer: ', message);
+
+        // TODO: perfect negotiation
+        const sessionDesc = {'type': 'offer', 'sdp': message.data};
+        const offer = new RTCSessionDescription(sessionDesc);
+        const client = {id: message.sender, username: 'Major Tom'};
+        await manager.getOrCreateVideoPeer(client, offer);
+    }
+
+    async answer(message) {
+        console.log('<< Received answer: ', message);
+    }
+
+    async greeting(message) {
+        console.log('<< Received greeting: ', message);
+    }
+
+    async bye(message) {
+        console.log('<< Received bye: ', message);
+
+        let client_id = message.sender;
+        if (manager.videoPeers.has(client_id)) {
+            await manager.videoPeers.get(client_id).shutdown()
+            manager.videoPeers.delete(client_id)
+        }
+    }
+
+    emptyMessage() {
+        return {sender: '',
+                receiver: '',
+                type: '',
+                data: ''};
+    }
+
+    match(message, params) {
+        for (const key in params) {
+            if (!(message.hasOwnProperty(key) && message[key] === params[key])) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
 class Manager {
     constructor() {
         this.username = 'Major Tom';
@@ -303,7 +463,7 @@ class Manager {
         this.videoTrack = null;
         this.audioTrack = null;
         this.textMessages = [];
-        this.messageListeners = [];
+        this.messageHandler = new MessageHandler(this, this.groundControl);
         this.outbox = [];
         console.log('Created Manager')
     }
@@ -393,7 +553,7 @@ class Manager {
         removeIds.forEach(async function(clientId) {
             let peer = this.videoPeers.get(clientId);
             await peer.shutdown();
-            this.videoPeers.delete(clientId);
+            manager.videoPeers.delete(clientId);
             console.log('Removed client ', clientId);
         });
 
@@ -414,55 +574,8 @@ class Manager {
         });
     }
 
-    async processMessage(evt) {
-        // TODO: processMessage() is used as a callback, so we can't use `this`, which is ugly
-        let message = JSON.parse(evt.data);
-        console.log('Processing message:', message);
-
-        if (message.type === 'offer') {
-            let sessionDesc = {'type': 'offer', 'sdp': message.data};
-            let offer = new RTCSessionDescription(sessionDesc);
-            let client = {id: message.sender, username: 'Major Tom'};
-            let peer = await manager.getOrCreateVideoPeer(client, offer);
-        } else if (message.type == 'ping') {
-            const data = {"receiver": message.sender,
-                        "type": "pong",
-                        "data": message.data};
-            await manager.groundControl.sendMessage(data);
-        } else if (message.type == 'text') {
-            manager.textMessages.push(message.data);
-            console.log('Text message received: ', message.data);
-
-        } else if (message.type == 'room-info') {
-            await manager.updatePeers(message.data);
-        } else if (message.type == 'bye') {
-            let client_id = message.sender;
-            if (manager.videoPeers.has(client_id)) {
-                await manager.videoPeers.get(client_id).shutdown()
-                manager.videoPeers.delete(client_id)
-            }
-        }
-
-        manager.messageListeners.forEach(([messageParams, listener]) => {
-            function matchResponse(message) {
-                for (const key in messageParams) {
-                    if (!(message.hasOwnProperty(key) && message[key] === messageParams[key])) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            if (matchResponse(message)) {
-                console.log('Received valid response message:', message);
-                listener(message);
-            }
-
-        });
-    }
-
     addMessageListener(messageParams, listener) {
-        this.messageListeners.push([messageParams, listener]);
+        this.messageHandler.addMessageListener(messageParams, listener);
     }
 
     async shutdownVideoPeers() {
@@ -495,8 +608,10 @@ class Manager {
         //}
         const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
 
-        this.groundControl = await groundControlPromise;
-        this.groundControl.datachannel.addEventListener('message', this.processMessage);
+        await groundControlPromise;
+        this.groundControl.datachannel.addEventListener('message', (evt) => {
+            this.messageHandler.handleMessage(JSON.parse(evt.data));
+        });
 
         this.localVideoStream = await streamPromise;
         this.videoTrack = this.localVideoStream.getTracks().find(track => track.kind === 'video');
@@ -518,7 +633,7 @@ window.addEventListener('beforeunload', async function(event) {
 
 
 async function start() {
-    manager.start()
+    await manager.start()
     startUI();
 }
 
