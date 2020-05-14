@@ -23,10 +23,6 @@ class VideoPeer {
         config.iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
         this.connection = new RTCPeerConnection(config);
 
-        this.connection.addEventListener('iceconnectionstatechange', () => {
-            console.log("Ice connection state <" + this.connection.iceConnectionState + "> for client " + this.client_id);
-        });
-
         // Handle incoming tracks from the peer
         this.connection.ontrack = ({track, streams}) => {
             console.log(`${track.kind} track ${track.id} received from client ${this.client_id}`);
@@ -39,33 +35,47 @@ class VideoPeer {
             }
         };
 
-        // Handle re-negotiation of the connection
-        const connection = this.connection;
-        const groundControl = this.groundControl;
-        const client_id = this.client_id;
-        let makingOffer = false;
-        this.connection.onnegotiationneeded = async () => {
-            return;
-            try {
-                makingOffer = true;
-                await connection.setLocalDescription();
-                const data = {"receiver": client_id,
-                              "type": "offer",
-                              "data": connection.localDescription.sdp};
-                await groundControl.sendMessage(data);
-            } catch(err) {
-                console.error(err);
-            } finally {
-                makingOffer = false;
+        // Handle failed ICE connections
+        this.connection.oniceconnectionstatechange = () => {
+            console.log(`Ice connection state: ${this.connection.iceConnectionState} (Client: ${this.client_id})`);
+            if (this.connection.iceConnectionState === "failed") {
+                //this.connection.restartIce();
             }
         };
 
-        // Send ICE candidates as they are ready
+        // Handle re-negotiation of the connection
+        this.connection.onnegotiationneeded = async () => {
+            console.log('onnegotiationneeded');
+            //if (this.makingOffer) {
+            //  return;
+            //}
+
+            try {
+                this.makingOffer = true;
+                await this.connection.setLocalDescription();
+                const description = this.connection.localDescription.toJSON();
+                await this.groundControl.sendMessage({
+                    receiver: this.client_id,
+                    type: description.type,
+                    data: description
+                });
+            } catch(err) {
+                console.error(err);
+            } finally {
+                this.makingOffer = false;
+            }
+        };
+
+        // Send ICE candidates as they are gathered
         this.connection.onicecandidate = async ({candidate}) => {
-            const data = {"receiver": client_id,
-                          "type": "icecandidate",
-                          "data": candidate};
-            //await groundControl.sendMessage(data);
+            if (candidate) {
+                //console.log('Gathered ICE candidate: ', candidate);
+                //await this.groundControl.sendMessage({
+                //    receiver: this.client_id,
+                //    type: 'icecandidate',
+                //    data: candidate.toJSON()
+                //});
+            }
         }
     }
 
@@ -75,6 +85,10 @@ class VideoPeer {
 
     iceConnectionState() {
         return this.connection.iceConnectionState;
+    }
+
+    iceGatheringState() {
+        return this.connection.iceGatheringState;
     }
 
     signalingState() {
@@ -90,52 +104,62 @@ class VideoPeer {
         }
     }
 
-    onOffer() {
-    }
+    async onOffer(offer) {
+        console.log('Processing offer: ', offer);
+        try {
+            const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
+            const polite = manager.id < this.client_id;
+            console.log('? Polite: ', polite);
 
-    onIceCandidate () {
-        //if this.makingOffer
-    }
+            if (offerCollision && !polite) {
+                // We're the impolite peer, so ignore the offer
+                console.log('! Ignoring offer');
+                console.log('? makingOffer: ', this.makingOffer);
+                console.log('? signalingState: ', this.connection.signalingState);
+                return;
+            }
 
-    async respondToOffer(offer) {
-        // Set the remote description with the offer
-        await this.connection.setRemoteDescription(offer);
+            await this.connection.setRemoteDescription(offer);
+            await this.connection.setLocalDescription();
 
-        // Create an answer and send it to the peer via Ground Control
-        let answer = await this.connection.createAnswer();
-        await this.connection.setLocalDescription(answer);
-
-        const data = {"receiver": this.client_id,
-                      "type": "answer",
-                      "data": this.connection.localDescription.sdp};
-        await this.groundControl.sendMessage(data);
-    }
-
-    async negotiateConnection(peeroffer=null) {
-        // TODO: implement perfect negotiation
-        // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
-        if (peeroffer !== null) {
-            return this.respondToOffer(peeroffer);
+            const description = this.connection.localDescription.toJSON();
+            console.log('Sending answer: ', this.connection.localDescription);
+            await this.groundControl.sendMessage({
+                receiver: this.client_id,
+                type: description.type,
+                data: description
+            });
+        } catch(err) {
+            console.error(err);
         }
+    }
 
-        // Create offer for peer
-        const offer = await this.connection.createOffer();
-        await this.connection.setLocalDescription(offer);
+    async onAnswer(answer) {
+        console.log('Processing answer: ', answer);
+        try {
+            //const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
+            //const polite = manager.id < this.client_id;
+            //if (offerCollision && !polite) {
+            //    // We're the impolite peer, so ignore the offer
+            //    console.log('! Ignoring answer');
+            //    console.log('? makingOffer: ', this.makingOffer);
+            //    console.log('? signalingState: ', this.connection.signalingState);
+            //    return;
+            //}
 
-        // Wait for ice gathering to complete
-        while (this.connection.iceGatheringState != 'complete') {
-            await new Promise(r => setTimeout(r, 100));
+            await this.connection.setRemoteDescription(answer);
+        } catch(err) {
+            console.error(err);
+        };
+    }
+
+    async onIceCandidate(candidate) {
+        //console.log(`Adding ICE candidate for client ${this.client_id}: `, candidate);
+        try {
+            //await this.connection.addIceCandidate(candidate);
+        } catch(err) {
+            console.error(err);
         }
-
-        // Make an offer and wait for the answer
-        const data = {"receiver": this.client_id,
-                      "type": "offer",
-                      "data": this.connection.localDescription.sdp};
-        let responseParams = {"sender": this.client_id,
-                              "type": "answer"};
-        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
-        let answer = {'type': 'answer', 'sdp': response.data};
-        return await this.connection.setRemoteDescription(answer);
     }
 
     addTrack(track, stream) {
@@ -156,6 +180,10 @@ class VideoPeer {
         }
     }
 
+    async restartIce() {
+        this.connection.restartIce();
+    }
+
     async shutdown() {
         if (this.connection !== null) {
             this.connection.getReceivers().forEach(receiver => {
@@ -166,8 +194,10 @@ class VideoPeer {
             this.connection = null;
         }
 
-        let videoelement = document.getElementById('video-' + this.client_id);
-        videoelement.remove();
+        let videoelement = document.getElementById('video-box-' + this.client_id);
+        if (videoelement) {
+            videoelement.remove();
+        }
 
         const time = new Date().getTime();
         const data = {"receiver": this.client_id,
@@ -241,12 +271,15 @@ class GroundControl {
 
     async sendMessage(data) {
         this.datachannel.send(JSON.stringify(data));
-        console.log('Sent message to Ground Control:', data);
+        if (data.type === 'offer' || data.type === 'answer') {
+            console.log(`>> Sent ${data.type}: `, data);
+        }
     }
 
     async sendReceiveMessage(data, responseParams) {
         // return a Promise that resolves when an appropriate response is received
         return new Promise((resolve, reject) => {
+            // TODO: use message handler?
             function matchResponse(message) {
                 for (const key in responseParams) {
                     if (!(message.hasOwnProperty(key) && message[key] === responseParams[key])) {
@@ -260,7 +293,7 @@ class GroundControl {
             function onMessage(evt) {
                 let message = JSON.parse(evt.data);
                 if (matchResponse(message)) {
-                    console.log('Received valid response message:', message);
+                    console.log(`Response matched: `, responseParams);
                     dc.removeEventListener('message', onMessage);
                     resolve(message);
                 }
@@ -353,6 +386,7 @@ class MessageHandler {
                          'profile': this.profile,
                          'offer': this.offer,
                          'answer': this.answer,
+                         'icecandidate': this.iceCandidate,
                          'greeting': this.greeting,
                          'bye': this.bye
         };
@@ -377,14 +411,13 @@ class MessageHandler {
     async ping(message) {
         console.log('<< Received ping: ', message);
 
-        console.log('this: ', this);
         let response = this.emptyMessage();
         response.receiver = message.sender;
         response.type = 'pong';
         response.data = message.data;
         await this.signaler.sendMessage(response);
 
-        console.log('>> Sent pong: ', message);
+        console.log('>> Sent pong: ', response);
     }
 
     async pong(message) {
@@ -393,7 +426,7 @@ class MessageHandler {
 
     async text(message) {
         console.log('<< Received text: ', message);
-        manager.textMessages.push(message.data);
+        this.manager.textMessages.push(message.data);
     }
 
     async getRoomInfo(message) {
@@ -402,7 +435,7 @@ class MessageHandler {
 
     async roomInfo(message) {
         console.log('<< Received room-info: ', message);
-        await manager.updatePeers(message.data);
+        await this.manager.updatePeers(message.data);
     }
 
     async profile(message) {
@@ -412,15 +445,31 @@ class MessageHandler {
     async offer(message) {
         console.log('<< Received offer: ', message);
 
-        // TODO: perfect negotiation
-        const sessionDesc = {'type': 'offer', 'sdp': message.data};
-        const offer = new RTCSessionDescription(sessionDesc);
-        const client = {id: message.sender, username: 'Major Tom'};
-        await manager.getOrCreateVideoPeer(client, offer);
+        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const offer = new RTCSessionDescription(message.data);
+        if (message.type !== message.data.type){
+            throw new Error('! Type mismatch in offer');
+        }
+        await peer.onOffer(offer);
     }
 
     async answer(message) {
         console.log('<< Received answer: ', message);
+
+        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const answer = new RTCSessionDescription(message.data);
+        if (message.type !== message.data.type){
+            throw new Error('! Type mismatch in answer');
+        }
+        await peer.onAnswer(answer);
+    }
+
+    async iceCandidate(message) {
+        //console.log('<< Received icecandidate: ', message);
+
+        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const iceCandidate = new RTCIceCandidate(message.data);
+        await peer.onIceCandidate(iceCandidate);
     }
 
     async greeting(message) {
@@ -431,9 +480,9 @@ class MessageHandler {
         console.log('<< Received bye: ', message);
 
         let client_id = message.sender;
-        if (manager.videoPeers.has(client_id)) {
-            await manager.videoPeers.get(client_id).shutdown()
-            manager.videoPeers.delete(client_id)
+        if (this.manager.videoPeers.has(client_id)) {
+            await this.manager.videoPeers.get(client_id).shutdown();
+            this.manager.videoPeers.delete(client_id);
         }
     }
 
@@ -465,6 +514,7 @@ class Manager {
         this.textMessages = [];
         this.messageHandler = new MessageHandler(this, this.groundControl);
         this.outbox = [];
+        this.id = null;
         console.log('Created Manager')
     }
 
@@ -512,7 +562,7 @@ class Manager {
         return this.groundControl;
     }
 
-    async createVideoPeer(client, offer=null) {
+    async createVideoPeer(client) {
         let peer = new VideoPeer(client, this.groundControl);
         this.videoPeers.set(client.id, peer);
         await peer.createPeerConnection();
@@ -520,14 +570,14 @@ class Manager {
         peer.addTrack(this.videoTrack, this.localVideoStream);
         peer.addTrack(this.audioTrack, this.localVideoStream);
 
-        await peer.negotiateConnection(offer);
-
         console.log('Created video peer ', peer.client_id);
+
+        return peer;
     }
 
-    async getOrCreateVideoPeer(client, offer=null) {
+    async getOrCreateVideoPeer(client) {
         if (!this.videoPeers.has(client.id)) {
-            return await this.createVideoPeer(client, offer);
+            return await this.createVideoPeer(client);
         }
 
         return this.videoPeers.get(client.id);
@@ -549,19 +599,17 @@ class Manager {
         console.log('peerClientIds: ', peerClientIds);
         console.log('removeIds: ', removeIds);
 
-        let manager = this;  // needed to access the manager inside the closure
-        removeIds.forEach(async function(clientId) {
+        removeIds.forEach(async (clientId) => {
             let peer = this.videoPeers.get(clientId);
             await peer.shutdown();
-            manager.videoPeers.delete(clientId);
+            this.videoPeers.delete(clientId);
             console.log('Removed client ', clientId);
         });
 
         // Add peers in room
-        let self_id = await get_self_id();
-        roomInfo.clients.forEach(async function(client) {
-            if (client.id !== self_id) {
-                await manager.getOrCreateVideoPeer(client);
+        roomInfo.clients.forEach(async (client) => {
+            if (client.id !== this.id) {
+                await this.getOrCreateVideoPeer(client);
             }
         });
 
@@ -623,6 +671,7 @@ class Manager {
         while (this.groundControl.datachannel.readyState != 'open') {
             await new Promise(r => setTimeout(r, 100));
         }
+        this.id = await get_self_id();
         let peers = await this.findPeers();
     }
 }

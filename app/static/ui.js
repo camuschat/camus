@@ -258,6 +258,12 @@ async function saveUserProfile() {
     console.log('Set username: ', username);
 }
 
+function restartIce() {
+    manager.videoPeers.forEach((peer, peer_id) => {
+        peer.restartIce();
+    });
+}
+
 function shutdown() {
     manager.shutdown();
 }
@@ -303,6 +309,7 @@ function connectionInfoNode(peer) {
     infoDiv.querySelector('.info-client-id').innerHTML = peer.client_id;
     infoDiv.querySelector('.info-connection-state').innerHTML = peer.connectionState();
     infoDiv.querySelector('.info-ice-connection-state').innerHTML = peer.iceConnectionState();
+    infoDiv.querySelector('.info-ice-gathering-state').innerHTML = peer.iceGatheringState();
     infoDiv.querySelector('.info-signaling-state').innerHTML = peer.signalingState();
     //infoDiv.querySelector('.info-remote-description').innerHTML = peer.remoteDescription();
 
@@ -310,14 +317,6 @@ function connectionInfoNode(peer) {
 }
 
 async function startUI() {
-    console.log('base uri: ', document.baseURI);
-    console.log('uri: ', document.documentURI);
-    console.log('domain: ', document.domain);
-    console.log('cookie: ', document.cookie);
-    console.log('error checking: ', document.strictErrorChecking);
-    console.log('referrer: ', document.referrer);
-    console.log('last modified: ', document.lastModified);
-    console.log('scripts: ', document.scripts);
 
     await new Promise(r => setTimeout(r, 200)); // allow manager to start up
     let messageParams = {"type": "text"};
