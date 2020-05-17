@@ -1,0 +1,8 @@
+# python
+__pycache__/
+*.egg-info/
+
+# cypress
+test/cypress/plugins/
+test/cypress/support/
+test/cypress/videos/
