@@ -22,7 +22,7 @@ CMD /usr/local/bin/quart run --host 0.0.0.0
 
 
 # test (server)
-FROM base AS test-server
+FROM prod AS test-server
 ENV QUART_ENV development
 RUN pip install -r /app/requirements/test.txt
 
