@@ -14,6 +14,7 @@ class VideoPeer {
         this.username = client.username;
         this.groundControl = groundControl;
         this.connection = null;
+        this.makingOffer = false;
     }
 
     async createPeerConnection() {
@@ -39,16 +40,13 @@ class VideoPeer {
         this.connection.oniceconnectionstatechange = () => {
             console.log(`Ice connection state: ${this.connection.iceConnectionState} (Client: ${this.client_id})`);
             if (this.connection.iceConnectionState === "failed") {
-                //this.connection.restartIce();
+                this.connection.restartIce();
             }
         };
 
         // Handle re-negotiation of the connection
         this.connection.onnegotiationneeded = async () => {
             console.log('onnegotiationneeded');
-            //if (this.makingOffer) {
-            //  return;
-            //}
 
             try {
                 this.makingOffer = true;
@@ -70,11 +68,11 @@ class VideoPeer {
         this.connection.onicecandidate = async ({candidate}) => {
             if (candidate) {
                 //console.log('Gathered ICE candidate: ', candidate);
-                //await this.groundControl.sendMessage({
-                //    receiver: this.client_id,
-                //    type: 'icecandidate',
-                //    data: candidate.toJSON()
-                //});
+                await this.groundControl.sendMessage({
+                    receiver: this.client_id,
+                    type: 'icecandidate',
+                    data: candidate.toJSON()
+                });
             }
         }
     }
@@ -105,30 +103,50 @@ class VideoPeer {
     }
 
     async onOffer(offer) {
+        /* Perfect negotiation:
+         * 1. If we are ready to accept the offer (i.e. we're not in the process of making our
+         *    own offer), then set the remote description with the offer.
+         * 2. Otherwise, there is an "offer collision". If we are the impolite peer, ignore the
+         *    offer. If we are polite, roll back the local description, set the remote description
+         *    with the offer, and finally respond to the peer with an answer.
+         */
+
         console.log('Processing offer: ', offer);
+        if (offer.type !== 'offer') {
+            throw new Error('type mismatch');
+        }
+
         try {
-            const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
             const polite = manager.id < this.client_id;
+            const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
             console.log('? Polite: ', polite);
 
-            if (offerCollision && !polite) {
-                // We're the impolite peer, so ignore the offer
-                console.log('! Ignoring offer');
-                console.log('? makingOffer: ', this.makingOffer);
-                console.log('? signalingState: ', this.connection.signalingState);
-                return;
+            if (offerCollision) {
+                if (!polite) {
+                    return;
+                }
+
+                // Polite peer rolls back local description and accepts remote offer
+                await Promise.all([
+                    this.connection.setLocalDescription({type: "rollback"}),
+                    this.connection.setRemoteDescription(offer)
+                ]);
+
+                // Polite peer creates an answer to the remote offer and sends it
+                const answer = await this.connection.createAnswer();
+                await this.connection.setLocalDescription(answer);
+
+                const description = this.connection.localDescription.toJSON();
+                console.log('Respond to offer: ', this.connection.localDescription);
+                await this.groundControl.sendMessage({
+                    receiver: this.client_id,
+                    type: description.type,
+                    data: description
+                });
+            } else {
+                // No collision, so accept the remote offer
+                await this.connection.setRemoteDescription(offer);
             }
-
-            await this.connection.setRemoteDescription(offer);
-            await this.connection.setLocalDescription();
-
-            const description = this.connection.localDescription.toJSON();
-            console.log('Sending answer: ', this.connection.localDescription);
-            await this.groundControl.sendMessage({
-                receiver: this.client_id,
-                type: description.type,
-                data: description
-            });
         } catch(err) {
             console.error(err);
         }
@@ -136,17 +154,8 @@ class VideoPeer {
 
     async onAnswer(answer) {
         console.log('Processing answer: ', answer);
-        try {
-            //const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
-            //const polite = manager.id < this.client_id;
-            //if (offerCollision && !polite) {
-            //    // We're the impolite peer, so ignore the offer
-            //    console.log('! Ignoring answer');
-            //    console.log('? makingOffer: ', this.makingOffer);
-            //    console.log('? signalingState: ', this.connection.signalingState);
-            //    return;
-            //}
 
+        try {
             await this.connection.setRemoteDescription(answer);
         } catch(err) {
             console.error(err);
@@ -154,9 +163,8 @@ class VideoPeer {
     }
 
     async onIceCandidate(candidate) {
-        //console.log(`Adding ICE candidate for client ${this.client_id}: `, candidate);
         try {
-            //await this.connection.addIceCandidate(candidate);
+            await this.connection.addIceCandidate(candidate);
         } catch(err) {
             console.error(err);
         }
@@ -271,7 +279,7 @@ class GroundControl {
 
     async sendMessage(data) {
         this.datachannel.send(JSON.stringify(data));
-        if (data.type === 'offer' || data.type === 'answer') {
+        if (data.type === 'offer' || data.type === 'answer' || data.type === 'icecandidate') {
             console.log(`>> Sent ${data.type}: `, data);
         }
     }
@@ -416,8 +424,6 @@ class MessageHandler {
         response.type = 'pong';
         response.data = message.data;
         await this.signaler.sendMessage(response);
-
-        console.log('>> Sent pong: ', response);
     }
 
     async pong(message) {
@@ -465,7 +471,7 @@ class MessageHandler {
     }
 
     async iceCandidate(message) {
-        //console.log('<< Received icecandidate: ', message);
+        console.log('<< Received icecandidate: ', message);
 
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         const iceCandidate = new RTCIceCandidate(message.data);
