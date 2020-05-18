@@ -17,7 +17,7 @@
             No rooms are available
         {% endif %}
         {% for room in public_rooms %}
-            {% if room.password is none %}
+            {% if room.password_hash is none %}
             <a id="room-link-{{ room.id }}" href={{ url_for('rtc') + '/' + room.id }} class="list-group-item">
                     <h4>{{ room.name }}</h4>
                     <p>Participants: {{ room.clients|length }} / {{ room.guest_limit if room.guest_limit is not none else "Unlimited" }}</p>
