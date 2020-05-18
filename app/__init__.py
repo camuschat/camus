@@ -20,11 +20,18 @@ import quart.flask_patch
 
 from quart import Quart
 from flask_bootstrap import Bootstrap
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from config import Config
 
 app = Quart(__name__)
 app.config.from_object(Config)
 bootstrap = Bootstrap(app)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour", "5 per minute"]
+)
 
 from app import routes

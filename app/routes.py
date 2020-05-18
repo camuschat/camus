@@ -6,7 +6,7 @@ from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder
 from quart import flash, jsonify, redirect, render_template, request, url_for, send_from_directory, session
 from werkzeug.urls import url_parse
 
-from app import app
+from app import app, limiter
 from app.forms import RoomCreate, RoomJoin
 
 from app import chat
@@ -28,6 +28,7 @@ async def reset():
 
 
 @app.route('/rtc', methods=['GET', 'POST'])
+#@limiter.exempt  # throws `TypeError: 'coroutine' object is not iterable`
 async def rtc():
     manager = chat.get_chat_manager()
 
