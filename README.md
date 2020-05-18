@@ -131,5 +131,5 @@ See the [development documentation][development-docs] for build & test instructi
 [python-37-whatsnew]: https://docs.python.org/3.7/whatsnew/3.7.html
 [createoffer-docs]: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createOffer
 [createanswer-docs]: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createAnswer
-[messaging-docs]: blob/master/docs/messaging-protocol.md
-[development-docs]: blob/master/docs/development.md
+[messaging-docs]: docs/messaging-protocol.md
+[development-docs]: docs/development.md
