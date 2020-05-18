@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired
 
 
 class RoomCreate(FlaskForm):
-    room_id = StringField('Room name', validators=[DataRequired()])
+    room_name = StringField('Room name', validators=[DataRequired()])
     password = PasswordField('Room password (optional)')
     public = BooleanField('Public (i.e. listed to the right)')
     guest_limit = SelectField('Guest limit', coerce=int,

@@ -19,13 +19,13 @@
         {% for room in public_rooms %}
             {% if room.password is none %}
             <a id="room-link-{{ room.id }}" href={{ url_for('rtc') + '/' + room.id }} class="list-group-item">
-                    <h4>{{ room.id }}</h4>
+                    <h4>{{ room.name }}</h4>
                     <p>Participants: {{ room.clients|length }} / {{ room.guest_limit if room.guest_limit is not none else "Unlimited" }}</p>
                     <p>Last active: {{ room.active_ago }} minutes ago</p>
                 </a>
             {% else %}
             <div class="list-group-item">
-                    <h4>{{ room.id }}</h4>
+                    <h4>{{ room.name }}</h4>
                     <p>Participants: {{ room.clients|length }} / {{ room.guest_limit if room.guest_limit is not none else "Unlimited" }}</p>
                     <p>Last active: {{ room.active_ago }} minutes ago</p>
                 <form class="form form-inline" method="post" role="form" action="{{ url_for('rtc') + '/' + room.id }}">

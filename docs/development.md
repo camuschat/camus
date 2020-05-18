@@ -54,7 +54,7 @@ $ make serve && docker logs -f rtc-chat-dev
 ```
 
 You can run a development shell using `make shell`. This launches an interactive Docker container that
-has all testing and development requirements.
+has all testing and development requirements installed.
 
 As with testing containers, development containers mount the code from your local project directory,
 so you only need to rebuild the development images if `requirements` have changed.

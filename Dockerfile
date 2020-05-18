@@ -34,5 +34,8 @@ RUN npm install cypress
 
 # dev
 FROM test-server AS dev
+RUN apt-get update && apt-get install -y \
+    vim
+
 ENV QUART_ENV development
 RUN pip install -r /app/requirements/dev.txt

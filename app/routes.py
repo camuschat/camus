@@ -10,7 +10,7 @@ from app import app
 from app.forms import RoomCreate, RoomJoin
 
 from app import chat
-from app.chat import ChatManagerException
+from app.chat import ChatException
 
 
 @app.route('/')
@@ -34,17 +34,17 @@ async def rtc():
     form_create = RoomCreate()
     if form_create.validate_on_submit():
         form = form_create
-        room_id = form.room_id.data
+        room_name = form.room_name.data
         password = None if not len(form.password.data) else form.password.data
         is_public = form.public.data
         guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
         admin_list = []
 
-        if room_id not in manager.rooms:
-            manager.create_room(room_id, password=password, guest_limit=guest_limit,
-                                admin_list=admin_list, is_public=is_public)
-            return redirect('/rtc/{}'.format(room_id))
-        else:
+        try:
+            room = manager.create_room(room_name, password=password, guest_limit=guest_limit,
+                                       admin_list=admin_list, is_public=is_public)
+            return redirect('/rtc/{}'.format(room.id))
+        except ChatException as e:
             await flash('Room name not available')
 
     form_join = RoomJoin()

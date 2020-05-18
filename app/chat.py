@@ -5,6 +5,7 @@ import logging
 import uuid
 
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
+from slugify import slugify
 
 from app.util import MTimer, time_ms
 
@@ -19,14 +20,15 @@ def get_chat_manager():
     return _chat_manager
 
 
-class ChatManagerException(Exception):
+class ChatException(Exception):
     pass
 
 
 class ChatRoom:
-    def __init__(self, id, password=None, guest_limit=None, admin_list=None, is_public=False):
+    def __init__(self, name, password=None, guest_limit=None, admin_list=None, is_public=False):
         logging.info('Create ChatRoom {}'.format(id))
-        self.id = id
+        self.name = name
+        self.id = slugify(name)
         self.clients = {}
         self.password = password
         self.guest_limit = guest_limit
@@ -56,7 +58,7 @@ class ChatRoom:
 
     def add_client(self, client):
         if self.is_full():
-            raise ChatManagerException('Guest limit already reached')
+            raise ChatException('Guest limit already reached')
 
         self.clients[client.id] = client
         client.room = self
@@ -300,11 +302,12 @@ class ChatManager:
         return sorted([room for room in self.rooms.values() if room.is_public],
                       key=lambda room: room.active_ago)
 
-    def create_room(self, room_id, **kwargs):
+    def create_room(self, name, **kwargs):
+        room_id = slugify(name)
         if room_id in self.rooms:
-            raise ChatManagerException('Room {} already exists'.format(room_id))
+            raise ChatException('Room {} already exists'.format(room_id))
 
-        room = ChatRoom(room_id, **kwargs)
+        room = ChatRoom(name, **kwargs)
         self.add_room(room)
 
         return room
@@ -316,7 +319,7 @@ class ChatManager:
             client_id = uuid.uuid4().hex
 
         if client_id in self.clients:
-            raise ChatManagerException('Client {} already exists'.format(room_id))
+            raise ChatException('Client {} already exists'.format(client_id))
 
         client = ChatClient(client_id)
         client.timer = MTimer(self._reap_timeout, self._reap, client=client)
