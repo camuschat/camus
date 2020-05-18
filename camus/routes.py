@@ -3,6 +3,8 @@ import asyncio
 from quart import (copy_current_websocket_context, flash, jsonify, redirect, render_template,
                    request, websocket)
 
+from quart_rate_limiter import rate_limit, timedelta
+
 from camus import app
 from camus.forms import RoomCreate, RoomJoin
 

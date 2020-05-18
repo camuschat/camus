@@ -3,4 +3,5 @@ bootstrap-flask==1.3.1
 flask-wtf==0.14.3
 pyee==7.0.2
 python-slugify==4.0.1
+Quart-Rate-Limiter==0.4.0
 werkzeug==1.0.1
