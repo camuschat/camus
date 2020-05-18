@@ -64,7 +64,7 @@ async def rtc_room(room_id):
     if room.is_full():
         return 'Guest limit already reached', 418
 
-    if room.password is None:
+    if room.authenticate():  # i.e. a password is not required
         return await render_template('rtcroom.html', title='rtc')
 
     form = RoomJoin()
@@ -72,7 +72,7 @@ async def rtc_room(room_id):
         room_id = form.room_id.data
         password = form.password.data
 
-        if password == room.password:
+        if room.authenticate(password):
             # TODO: Generate token to be used with offer
             return await render_template('rtcroom.html', title='rtc')
         else:

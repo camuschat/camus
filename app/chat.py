@@ -7,6 +7,8 @@ import uuid
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from slugify import slugify
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from app.util import MTimer, time_ms
 
 
@@ -30,7 +32,7 @@ class ChatRoom:
         self.name = name
         self.id = slugify(name)
         self.clients = {}
-        self.password = password
+        self.password_hash = None if password is None else generate_password_hash(password)
         self.guest_limit = guest_limit
         self.admin_list = admin_list if admin_list is not None else []
         self.is_public = is_public
@@ -52,6 +54,12 @@ class ChatRoom:
                    for client in self.get_clients()]
 
         return {'room_id': self.id, 'clients': clients}
+
+    def authenticate(self, password=None):
+        if password is None:
+            return self.password_hash is None
+
+        return check_password_hash(self.password_hash, password)
 
     def is_full(self):
         return self.guest_limit is not None and len(self.clients) == self.guest_limit
