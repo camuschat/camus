@@ -2,6 +2,21 @@
 
 var videoMode = 'camera';
 
+window.addEventListener('load', function () {
+    const profileForm = document.querySelector('#user-profile-modal form');
+    profileForm.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        saveUserProfile();
+    });
+
+    const messageForm = document.querySelector('#message-bar form');
+    messageForm.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        sendMessage();
+    });
+});
+
+
 function attachVideoElement(id, stream) {
     let videoElement = document.getElementById('video-' + id);
     videoElement.srcObject = stream;
@@ -29,7 +44,7 @@ function createVideoElement(id) {
     }
 
     let videoTag = document.createElement('p');
-    videoTag.className = 'video-tag'
+    videoTag.className = 'video-tag';
     videoTag.innerHTML = id;
 
     let videoElement = document.createElement('video');
@@ -53,7 +68,7 @@ function createVideoElement(id) {
     };
     videoBox.ondragover = (evt) => {
         allowVideoDrop(evt);
-    }
+    };
 
     videoBox.addEventListener('click', function(evt) {
         console.log('Click on videoBox', videoBox);
@@ -158,7 +173,7 @@ async function streamVideo() {
     const constraints = {
         audio: true,
         video: true
-    }
+    };
     //const constraints = {
     //    audio: true,
     //    video: {
@@ -193,7 +208,7 @@ async function streamDisplay() {
             displaySurface: 'application'
         },
         'audio': false
-    }
+    };
     let stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
     // Stop the current video track
@@ -217,6 +232,10 @@ async function sendMessage() {
     let messageInput = document.getElementById('message-input');
     let message = messageInput.value;
 
+    if (!message) {
+        return;
+    }
+
     const time = new Date().getTime();
     const data = {receiver: 'room',
                   type: 'text',
@@ -227,7 +246,7 @@ async function sendMessage() {
     await manager.groundControl.sendMessage(data);
     messageInput.value = '';
     console.log('Sent message: ', message);
-};
+}
 
 function updateMessageBar(message) {
     let time = document.createElement('p');
@@ -249,13 +268,14 @@ function updateMessageBar(message) {
 }
 
 function promptUserName() {
-    $('#user-profile-modal').modal();
+    $('#user-profile-modal').modal('show');
 }
 
 async function saveUserProfile() {
-    let username = document.getElementById('username-input').value;
+    const username = document.querySelector('#username-input').value;
     await manager.setUsername(username);
-    console.log('Set username: ', username);
+
+    $('#user-profile-modal').modal('hide');
 }
 
 function restartIce() {
@@ -274,10 +294,9 @@ function mediaInfo() {
     console.log('Framerate: ', videoSettings.frameRate);
     console.log('Height: ', videoSettings.height);
     console.log('Width: ', videoSettings.width);
-};
+}
 
 function updateTechnical() {
-    console.log('In updateTechnical()');
     let technicalBar = document.querySelector('#technical-bar');
     technicalBar.textContent = '';
     // ground control
@@ -286,8 +305,6 @@ function updateTechnical() {
     manager.videoPeers.forEach((peer, peer_id) => {
         console.log('Update technical for client ' + peer_id);
         let info = connectionInfoNode(peer);
-        console.log('Info node: ');
-        console.log(info);
         technicalBar.appendChild(info);
     });
 }

@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<div class="modal" id="user-profile-modal" tabindex="-1" role="dialog">
+<div class="modal" id="user-profile-modal" tabindex="-1" data-backdrop='static' data-keyboard=false role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <p class="modal-title">Enter your display name</p>
             </div>
             <div class="modal-body">
-                <div class="input-group">
-                    <input type="text" class="form-control" id="username-input">
-                    <div class="input-group-append">
-                        <button type="button" class="btn btn-primary" id="user-profile-save" data-dismiss="modal" onclick="saveUserProfile()">Save</button>
+                <form>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="username-input">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" id="user-profile-save" type="submit">Save</button>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -80,13 +82,16 @@
                     <div id="message-log">
                         <!-- Populated via updateMessageBar() -->
                     </div>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="message-input" placeholder="Type a message">
-                        <div class="input-group-append">
-                            <button class="btn" id="send-message" onclick="sendMessage()">
-                                <i id="send-message-icon" class="material-icons">send</i></button>
+                    <form>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="message-input" placeholder="Type a message">
+                            <div class="input-group-append">
+                                <button class="btn" id="send-message" type="submit">
+                                    <i id="send-message-icon" class="material-icons">send</i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -94,7 +99,7 @@
         <div class="card">
             <div class="card-header">
                 <button class="btn btn-link" id="technical-button" data-toggle="collapse" data-target="#technical-bar-collapse">
-                    Technical
+                    Connections
                 </button>
             </div>
             <div id="technical-bar-collapse" class="collapse" data-parent="#accordion">
