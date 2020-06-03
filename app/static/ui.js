@@ -37,7 +37,7 @@ function videoBoxOnClick(evt) {
     }
 }
 
-function createVideoElement(id) {
+function createVideoElement(id, username) {
     if (document.querySelector('#video-box-' + id)) {
         // element already exists
         return;
@@ -45,7 +45,7 @@ function createVideoElement(id) {
 
     let videoTag = document.createElement('p');
     videoTag.className = 'video-tag';
-    videoTag.innerHTML = id;
+    videoTag.innerHTML = username;
 
     let videoElement = document.createElement('video');
     videoElement.id = 'video-' + id;
@@ -84,6 +84,16 @@ function createVideoElement(id) {
         if (videoBox !== stageVideo) {
             stage.append(videoBox);
         }
+    });
+
+    videoElement.addEventListener('mouseover', function(evt) {
+        if (id === 'local') {
+            videoTag.innerHTML = manager.username;
+            return;
+        }
+
+        const videoPeer = manager.videoPeers.get(id);
+        videoTag.innerHTML = videoPeer.username;
     });
 
     videoBox.appendChild(videoTag);

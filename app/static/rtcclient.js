@@ -30,7 +30,7 @@ class VideoPeer {
 
             if (track.kind === 'video') {
                 track.onunmute = () => {
-                    createVideoElement(this.client_id); // TODO: Movie to ui.js
+                    createVideoElement(this.client_id, this.username); // TODO: Movie to ui.js
                     attachVideoElement(this.client_id, streams[0]);
                 };
             }
@@ -74,7 +74,7 @@ class VideoPeer {
                     data: candidate.toJSON()
                 });
             }
-        }
+        };
     }
 
     connectionState() {
@@ -159,7 +159,7 @@ class VideoPeer {
             await this.connection.setRemoteDescription(answer);
         } catch(err) {
             console.error(err);
-        };
+        }
     }
 
     async onIceCandidate(candidate) {
@@ -240,7 +240,7 @@ class GroundControl {
 
         this.datachannel = this.connection.createDataChannel('data');
         this.datachannel.onopen = function(evt) {
-            greeting()
+            greeting();
         };
 
         console.log('Connection for Ground Control created');
@@ -371,15 +371,6 @@ async function greeting() {
     manager.groundControl.sendMessage(data);
 }
 
-async function postJson(url, body) {
-    request = {
-        body: JSON.stringify(body),
-        headers: {'Content-Type': 'application/json'},
-        method: 'POST'
-    }
-    return fetch(request)
-}
-
 
 class MessageHandler {
     constructor(manager, signaler) {
@@ -428,7 +419,7 @@ class MessageHandler {
 
     async pong(message) {
         console.log('<< Received pong: ', message);
-    };
+    }
 
     async text(message) {
         console.log('<< Received text: ', message);
@@ -521,7 +512,6 @@ class Manager {
         this.messageHandler = new MessageHandler(this, this.groundControl);
         this.outbox = [];
         this.id = null;
-        console.log('Created Manager')
     }
 
     async setUsername(username) {
@@ -651,7 +641,7 @@ class Manager {
         const constraints = {
             audio: true,
             video: true
-        }
+        };
         //const constraints = {
         //    audio: true,
         //    video: {
@@ -670,7 +660,7 @@ class Manager {
         this.localVideoStream = await streamPromise;
         this.videoTrack = this.localVideoStream.getTracks().find(track => track.kind === 'video');
         this.audioTrack = this.localVideoStream.getTracks().find(track => track.kind === 'audio');
-        createVideoElement('local');
+        createVideoElement('local', this.username);
         attachVideoElement('local', this.localVideoStream);  // TODO: move to ui.js
 
         // Wait for data channel to open
@@ -688,7 +678,7 @@ window.addEventListener('beforeunload', async function(event) {
 
 
 async function start() {
-    await manager.start()
+    await manager.start();
     startUI();
 }
 
