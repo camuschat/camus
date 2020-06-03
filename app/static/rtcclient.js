@@ -36,6 +36,16 @@ class VideoPeer {
             }
         };
 
+        this.connection.onconnectionstatechange = (evt) => {
+            switch(this.connection.connectionState) {
+                case 'disconnected':
+                case 'failed':
+                case 'closed':
+                    this.removeVideoElement();
+                    break;
+            }
+        };
+
         // Handle failed ICE connections
         this.connection.oniceconnectionstatechange = () => {
             console.log(`Ice connection state: ${this.connection.iceConnectionState} (Client: ${this.client_id})`);
@@ -202,10 +212,7 @@ class VideoPeer {
             this.connection = null;
         }
 
-        let videoelement = document.getElementById('video-box-' + this.client_id);
-        if (videoelement) {
-            videoelement.remove();
-        }
+        this.removeVideoElement();
 
         const time = new Date().getTime();
         const data = {"receiver": this.client_id,
@@ -214,6 +221,13 @@ class VideoPeer {
         await this.groundControl.sendMessage(data);
 
         console.log('Shutdown connection with peer ' + this.client_id);
+    }
+
+    removeVideoElement() {
+        const videoelement = document.getElementById('video-box-' + this.client_id);
+        if (videoelement) {
+            videoelement.remove();
+        }
     }
 }
 
