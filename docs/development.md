@@ -3,7 +3,7 @@
 Make is used to simplify and automate the build and test process.
 The Makefile defines a number of commands for things like building artifacts, running server-side
 and end-to-end tests, and running a development server or shell.
-Run `make` without arguments or `make help` for a list of available commands:
+Run `make` or `make help` for a list of available commands:
 
 ```
 $ make help
@@ -23,7 +23,8 @@ clean-images         Remove Docker images
 ```
 
 > **Note:** You may have to run commands using `sudo` if your user is not in the `docker` group.
-  Alternatively, [add your user][docker-non-root] to the `docker` group.
+  Alternatively, [add your user][docker-non-root] to the `docker` group OR
+  run Docker in [rootless mode][docker-rootless].
 
 ## Building
 
@@ -38,7 +39,7 @@ There are two different sets of tests: server tests, which are written in Python
 [pytest][pytest-docs]; and end-to-end tests, which are written in JavaScript and run using
 [Cypress][cypress-docs].
 Each set of tests uses a different Docker image and can be run separately with `make test-server`
-or `make-test-client`, or all together by simply running `make test`.
+or `make test-client`, or all together by simply running `make test`.
 
 Test containers mount the code from your local project directory, so you only need to rebuild the
 testing images if `requirements` have changed.
@@ -70,3 +71,4 @@ and other commands. If you only want to remove containers or images, use `make c
 [pytest-docs]: https://docs.pytest.org/en/latest/
 [cypress-docs]: https://docs.cypress.io/
 [docker-non-root]: https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+[docker-rootless]: https://docs.docker.com/engine/security/rootless/

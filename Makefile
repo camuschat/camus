@@ -8,7 +8,7 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: build
-build: build-prod build-test-server build-test-client build-dev  ## Build all Docker images, including for production, testing, and development
+build: build-prod build-test-server build-dev  ## Build all Docker images, including for production, testing, and development
 
 .PHONY: build-prod
 build-prod:  ## Build Docker image for production
@@ -17,10 +17,6 @@ build-prod:  ## Build Docker image for production
 .PHONY: build-test-server
 build-test-server:  ## Build Docker image for testing the server
 	docker build --target test-server -t rtc-chat:test-server -t rtc-chat:latest .
-
-.PHONY: build-test-client
-build-test-client:  ## Build Docker image for testing the client
-	sudo docker build --target test-client -t rtc-chat:test-client .
 
 .PHONY: build-dev
 build-dev:  ## Build Docker image for development environment
@@ -31,18 +27,16 @@ test: test-server test-client  ## Run all tests, both server-side and client-sid
 
 .PHONY: test-server
 test-server:  ## Run server tests
-	docker run --rm -d \
-        --name rtc-chat-test \
+	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/rtc-chat"\
         -e QUART_APP=/opt/rtc-chat/app.py \
         -e QUART_ENV=development \
 		rtc-chat:test-server \
-        /bin/bash -c "pip install -e /opt/rtc-chat && python -m pytest /opt/rtc-chat" \
-    && docker logs -f rtc-chat-test
+        /bin/bash -c "pip install -e /opt/rtc-chat && python -m pytest /opt/rtc-chat"
 
 .PHONY: test-client
 test-client: clean-containers serve  ## Run client tests
-	docker run --rm -it \
+	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)/test",target="/e2e" \
 		--net host \
 		-w /e2e \
@@ -50,7 +44,7 @@ test-client: clean-containers serve  ## Run client tests
 
 .PHONY: serve
 serve: clean-containers  ## Run development server
-	docker run --rm -d \
+	@docker run --rm -d \
         --name rtc-chat-dev \
         --mount type=bind,source="$(CURDIR)",target="/opt/rtc-chat"\
         -e QUART_APP=/opt/rtc-chat/app.py \
@@ -61,7 +55,7 @@ serve: clean-containers  ## Run development server
 
 .PHONY: shell
 shell:  ## Run development environment shell
-	docker run --rm -it \
+	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/rtc-chat"\
         -w /opt/rtc-chat \
         -e QUART_APP=/opt/rtc-chat/app.py \
@@ -74,9 +68,9 @@ clean: clean-containers clean-images  ## Remove Docker containers and images
 
 .PHONY: clean-containers
 clean-containers:  ## Remove Docker containers
-	- docker stop $(containers)
-	- docker container rm $(containers)
+	@docker stop $(containers) 2>/dev/null || true
+	@docker container rm $(containers) 2>/dev/null || true
 
 .PHONY: clean-images
 clean-images:  ## Remove Docker images
-	- docker image rm $(images)
+	@docker image rm $(images) 2>/dev/null || true

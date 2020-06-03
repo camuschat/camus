@@ -10,11 +10,14 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     python-dev
 
-ADD . /app
+ADD requirements.txt /app/
+ADD ./requirements/ /app/requirements/
+RUN pip install -r /app/requirements.txt
 
 
 # prod
 FROM base AS prod
+ADD . /app
 ENV QUART_APP /app/app.py
 ENV QUART_ENV production
 RUN pip install -r /app/requirements/production.txt
@@ -25,11 +28,6 @@ CMD /usr/local/bin/quart run --host 0.0.0.0
 FROM prod AS test-server
 ENV QUART_ENV development
 RUN pip install -r /app/requirements/test.txt
-
-
-# test (client)
-FROM node:12.16-slim AS test-client
-RUN npm install cypress
 
 
 # dev
