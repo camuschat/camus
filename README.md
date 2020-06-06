@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/mrgnr/rtc-chat.svg?branch=master)](https://travis-ci.org/mrgnr/rtc-chat)
+[![License](https://img.shields.io/github/license/mrgnr/rtc-chat)](LICENSE)
+[![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/mrgnr/donate)
+
 # RTC-Chat
 
 RTC-Chat is a video chat app that implements the core features you'd expect from any such an app:

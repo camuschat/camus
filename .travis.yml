@@ -1,0 +1,7 @@
+language: python
+
+services:
+  - docker
+
+script:
+  - make build && make test
