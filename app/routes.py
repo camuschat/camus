@@ -1,10 +1,4 @@
-import asyncio
-import logging
-
-from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder
-
-from quart import flash, jsonify, redirect, render_template, request, url_for, send_from_directory, session
-from werkzeug.urls import url_parse
+from quart import flash, jsonify, redirect, render_template, request
 
 from app import app
 from app.forms import RoomCreate, RoomJoin
@@ -17,14 +11,6 @@ from app.chat import ChatException
 @app.route('/index')
 async def index():
     return await render_template('index.html')
-
-
-@app.route('/reset')
-async def reset():
-    if 'client_id' in session:
-        del session['client_id']
-
-    return redirect(url_for('rtc'))
 
 
 @app.route('/rtc', methods=['GET', 'POST'])

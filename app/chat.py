@@ -1,10 +1,9 @@
 import asyncio
-from asyncio import Queue
 import json
 import logging
 import uuid
 
-from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
+from aiortc import RTCPeerConnection, RTCSessionDescription
 from slugify import slugify
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -165,6 +164,10 @@ class ChatClient:
         message.data = time_ms()
         self.send(message.json())
 
+        if self.timer is not None:
+            self.timer.cancel()
+            self.timer = None
+
         if self.datachannel is not None:
             self.datachannel.close()
 
@@ -242,8 +245,6 @@ class ChatManager:
             if username:
                 client.username = username
             logging.info('Set username for client {}: {}'.format(client.id, username))
-
-            # TODO: not working?
             self.broadcast_room_info(client.room)
             return
         elif message.type == 'get-room-info':
@@ -254,9 +255,6 @@ class ChatManager:
             return
         elif message.type == 'bye':
             await self.remove_client(client)
-
-            # TODO: not working?
-            self.broadcast_room_info(client.room)
             return
         else:
             reply.type = 'error'
@@ -288,10 +286,11 @@ class ChatManager:
         self.rooms[room.id] = room
 
     async def remove_client(self, client):
-        if client.timer is not None:
-            client.timer.cancel()
+        room = client.room
+        if room:
+            room.remove_client(client)
+            self.broadcast_room_info(room)
 
-        client.room.remove_client(client)
         await client.shutdown()
 
     async def _reap(self, client):
@@ -345,11 +344,19 @@ class ChatManager:
             @channel.on("message")
             async def on_message(message):
                 logging.info('Received message: {}'.format(message))
-                await self._handle_message(message, client, channel)
 
                 # Reap this client if we haven't seen it for too long
                 if client.timer is not None:
                     client.timer.cancel()
                 client.timer = MTimer(self._reap_timeout, self._reap, client=client)
+
+                await self._handle_message(message, client, channel)
+
+        @client.pc.on('iceconnectionstatechange')
+        async def on_iceconnectionstatechange():
+            state = client.pc.iceConnectionState
+            logging.info('ICE connection state for client %s changed to %s', client.id, state)
+            if state in ('failed', 'closed'):
+                await self.remove_client(client)
 
         return client
