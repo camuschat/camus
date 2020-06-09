@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/mrgnr/rtc-chat.svg?branch=master)](https://travis-ci.org/mrgnr/rtc-chat)
 [![License](https://img.shields.io/github/license/mrgnr/rtc-chat)](LICENSE)
+
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/mrgnr/donate)
 
 # RTC-Chat
@@ -21,6 +22,11 @@ The client is implemented in Javascript and makes use of the WebRTC web APIs.
 - Desktop sharing
 - Text chat
 - Room management (public/private, password/no password, guest limits)
+
+
+## Demo
+
+You can find a live demo at [https://chat.mrgnr.io/rtc](https://chat.mrgnr.io/rtc).
 
 
 ## Running
