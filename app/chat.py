@@ -4,6 +4,7 @@ import logging
 import uuid
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
+from pyee import AsyncIOEventEmitter
 from slugify import slugify
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -25,8 +26,10 @@ class ChatException(Exception):
     pass
 
 
-class ChatRoom:
+class ChatRoom(AsyncIOEventEmitter):
     def __init__(self, name, password=None, guest_limit=None, admin_list=None, is_public=False):
+        super().__init__()
+
         logging.info('Create ChatRoom {}'.format(id))
         self.name = name
         self.id = slugify(name)
@@ -36,6 +39,21 @@ class ChatRoom:
         self.admin_list = admin_list if admin_list is not None else []
         self.is_public = is_public
         self._last_active = time_ms()
+
+        async def check_expire():
+            now = time_ms() / 1000
+            last_active = self.last_active / 1000
+
+            if now - last_active > self._reap_timeout:
+                logging.info('Room %s is expiring', self.id)
+                self.emit('expire')
+            else:
+                new_timeout = last_active + self._reap_timeout - now
+                self._timer = MTimer(new_timeout, check_expire)
+
+        self._reap_timeout = 3600
+        self._timer = MTimer(self._reap_timeout, check_expire)
+
 
     @property
     def last_active(self):
@@ -85,6 +103,15 @@ class ChatRoom:
         for client in self.get_clients():
             message.receiver = client.id
             client.send(message.json())
+
+    async def shutdown(self):
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
+
+        for client in self.clients.values():
+            self.remove_client(client)
+            await client.shutdown()
 
 
 class ChatClient:
@@ -317,7 +344,16 @@ class ChatManager:
         room = ChatRoom(name, **kwargs)
         self.add_room(room)
 
+        @room.on('expire')
+        async def on_expire():
+            await self.remove_room(room)
+
         return room
+
+    async def remove_room(self, room):
+        logging.info('Removing room %s', room.id)
+        self.rooms.pop(room.id, None)
+        await room.shutdown()
 
     def create_client(self, client_id=None):
         logging.info('create_client()')
