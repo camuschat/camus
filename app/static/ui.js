@@ -22,21 +22,6 @@ function attachVideoElement(id, stream) {
     videoElement.srcObject = stream;
 }
 
-function videoBoxOnClick(evt) {
-    // Move video element in and out of center stage on click
-    let stage = document.getElementById('video-stage');
-    let thumbs = document.getElementById('video-thumbs');
-
-    let stageVideo = stage.firstElementChild;
-    if (stageVideo != null) {
-        thumbs.append(stageVideo);
-    }
-
-    if (videoBox !== stageVideo) {
-        stage.append(videoBox);
-    }
-}
-
 function createVideoElement(id, username) {
     if (document.querySelector('#video-box-' + id)) {
         // element already exists
@@ -101,6 +86,13 @@ function createVideoElement(id, username) {
     videoThumbs.appendChild(videoBox);
 }
 
+function removeVideoElement(id) {
+    const videoelement = document.getElementById('video-box-' + id);
+    if (videoelement) {
+        videoelement.remove();
+    }
+}
+
 function dragVideo(evt) {
     console.log('dragVideo');
     evt.dataTransfer.setData('id', evt.target.id);
@@ -138,7 +130,7 @@ function swapNodes(node1, node2) {
     parent2.removeChild(temp2);
 }
 
-function toggleVideo() {
+async function toggleVideo() {
     if (videoMode == 'camera') {
         // Stop the current video track
         let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
@@ -148,7 +140,7 @@ function toggleVideo() {
         document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
         videoMode = 'off';
     } else {
-        streamVideo();
+        await streamVideo();
     }
 }
 
@@ -179,30 +171,29 @@ function toggleAudio() {
 }
 
 async function streamVideo() {
+    // Stop the current video track
+    if (manager.localVideoStream) {
+        const currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
+        if (currentVideoTrack) {
+            currentVideoTrack.stop();
+        }
+    }
+
     // Get stream from cam and mic
     const constraints = {
         audio: true,
         video: true
     };
-    //const constraints = {
-    //    audio: true,
-    //    video: {
-    //        width: {max: 640},
-    //        height: {max: 480},
-    //        frameRate: {max: 10}
-    //    }
-    //}
-    let stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-    // Stop the current video track
-    let currentVideoTrack = manager.localVideoStream.getTracks().find(track => track.kind === 'video');
-    currentVideoTrack.stop();
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
     // Update everything with new video track
-    let newTrack = stream.getTracks().find(track => track.kind === 'video');
-    document.getElementById('video-local').srcObject = stream;
+    const videoTrack = stream.getTracks().find(track => track.kind === 'video');
+    const audioTrack = stream.getTracks().find(track => track.kind === 'audio');
+    createVideoElement('local', manager.username);
+    attachVideoElement('local', stream);
     manager.localVideoStream = stream;
-    manager.setVideoTrack(newTrack);
+    manager.setVideoTrack(videoTrack);
+    manager.setAudioTrack(audioTrack);
 
     // Update ui
     document.getElementById('toggle-video-icon').innerHTML = 'videocam';
@@ -346,8 +337,35 @@ function connectionInfoNode(peer) {
 async function startUI() {
 
     await new Promise(r => setTimeout(r, 200)); // allow manager to start up
+    await streamVideo();
     let messageParams = {"type": "text"};
     manager.addMessageListener(messageParams, updateMessageBar);
+
+    manager.on('videopeer', (peer) => {
+        // Display video when a track is received from a peer
+        peer.on('track', (track, streams) => {
+            if (track.kind === 'video') {
+                track.onunmute = () => {
+                    createVideoElement(peer.client_id, peer.username);
+                    attachVideoElement(peer.client_id, streams[0]);
+                };
+            }
+        });
+
+        // Remove video when a peer disconnects
+        peer.on('shutdown', () => {
+            removeVideoElement(peer.client_id);
+        });
+        peer.on('connectionstatechange', (connectionState) => {
+            switch(connectionState) {
+                case 'disconnected':
+                case 'failed':
+                case 'closed':
+                    removeVideoElement(peer.client_id);
+                    break;
+            }
+        });
+    });
 
     document.querySelector('#technical-button').addEventListener('click', () => {
         updateTechnical();

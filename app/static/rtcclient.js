@@ -8,8 +8,34 @@ window.addEventListener('unhandledrejection', function(event) {
     //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
 });
 
-class VideoPeer {
+
+class EventEmitter {
+    constructor() {
+        this.events = new Map();
+    }
+
+    on(event, callback) {
+        if (!this.events.has(event)) {
+            this.events.set(event, []);
+        }
+
+        this.events.get(event).push(callback);
+    }
+
+    emit(event, ...args) {
+        if (this.events.has(event)) {
+            const callbacks = this.events.get(event);
+            callbacks.forEach((callback) => {
+                callback(...args);
+            });
+        }
+    }
+}
+
+
+class VideoPeer extends EventEmitter {
     constructor(client, groundControl) {
+        super();
         this.client_id = client.id;
         this.username = client.username;
         this.groundControl = groundControl;
@@ -27,23 +53,11 @@ class VideoPeer {
         // Handle incoming tracks from the peer
         this.connection.ontrack = ({track, streams}) => {
             console.log(`${track.kind} track ${track.id} received from client ${this.client_id}`);
-
-            if (track.kind === 'video') {
-                track.onunmute = () => {
-                    createVideoElement(this.client_id, this.username); // TODO: Movie to ui.js
-                    attachVideoElement(this.client_id, streams[0]);
-                };
-            }
+            this.emit('track', track, streams);
         };
 
         this.connection.onconnectionstatechange = (evt) => {
-            switch(this.connection.connectionState) {
-                case 'disconnected':
-                case 'failed':
-                case 'closed':
-                    this.removeVideoElement();
-                    break;
-            }
+            this.emit('connectionstatechange', this.connection.connectionState);
         };
 
         // Handle failed ICE connections
@@ -52,6 +66,8 @@ class VideoPeer {
             if (this.connection.iceConnectionState === "failed") {
                 this.connection.restartIce();
             }
+
+            this.emit('iceconnectionstatechange', this.connection.iceConnectionState);
         };
 
         // Handle re-negotiation of the connection
@@ -180,21 +196,16 @@ class VideoPeer {
         }
     }
 
-    addTrack(track, stream) {
-        console.log('In VideoPeer.addTrack()');
-        this.connection.addTrack(track, stream);
-    }
-
-    setTrack(track) {
+    setTrack(track, stream=null) {
         let trackSender = this.connection.getSenders().find(sender =>
-            sender.track.kind === track.kind);
+            sender.track && sender.track.kind === track.kind);
 
         if (trackSender) {
             console.log('Replacing track on sender ', trackSender);
             trackSender.track.stop();
             trackSender.replaceTrack(track);
         } else {
-            this.connection.addTrack(track);
+            this.connection.addTrack(track, stream);
         }
     }
 
@@ -203,6 +214,7 @@ class VideoPeer {
     }
 
     async shutdown() {
+        // Clean up RTCPeerConnection
         if (this.connection !== null) {
             this.connection.getReceivers().forEach(receiver => {
                 receiver.track.stop();
@@ -212,22 +224,16 @@ class VideoPeer {
             this.connection = null;
         }
 
-        this.removeVideoElement();
-
+        // Say bye to peer
         const time = new Date().getTime();
         const data = {"receiver": this.client_id,
                       "type": "bye",
                       "data": time};
         await this.groundControl.sendMessage(data);
 
-        console.log('Shutdown connection with peer ' + this.client_id);
-    }
+        this.emit('shutdown');
 
-    removeVideoElement() {
-        const videoelement = document.getElementById('video-box-' + this.client_id);
-        if (videoelement) {
-            videoelement.remove();
-        }
+        console.log('Shutdown connection with peer ' + this.client_id);
     }
 }
 
@@ -514,8 +520,9 @@ class MessageHandler {
     }
 }
 
-class Manager {
+class Manager extends EventEmitter {
     constructor() {
+        super();
         this.username = 'Major Tom';
         this.groundControl = new GroundControl();
         this.videoPeers = new Map();
@@ -552,7 +559,7 @@ class Manager {
     setTrack(track) {
         this.videoPeers.forEach((peer, peer_id) => {
             console.log('Replace ' + track.kind + ' track for peer ' + peer_id);
-            peer.setTrack(track);
+            peer.setTrack(track, this.localVideoStream);
         });
     }
 
@@ -577,10 +584,16 @@ class Manager {
         this.videoPeers.set(client.id, peer);
         await peer.createPeerConnection();
 
-        peer.addTrack(this.videoTrack, this.localVideoStream);
-        peer.addTrack(this.audioTrack, this.localVideoStream);
+        if (this.localVideoStream && this.videoTrack) {
+            peer.setTrack(this.videoTrack, this.localVideoStream);
+        }
+
+        if (this.localVideoStream && this.audioTrack) {
+            peer.setTrack(this.audioTrack, this.localVideoStream);
+        }
 
         console.log('Created video peer ', peer.client_id);
+        this.emit('videopeer', peer);
 
         return peer;
     }
@@ -599,15 +612,10 @@ class Manager {
     }
 
     async updatePeers(roomInfo) {
-        console.log('In Manager.updatePeers()');
         // Remove peers not in room
         let roomClientIds = roomInfo.clients.map(({id, username}) => id);
         let peerClientIds = Array.from(this.videoPeers.keys());
         let removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
-
-        console.log('roomClientIds: ', roomClientIds);
-        console.log('peerClientIds: ', peerClientIds);
-        console.log('removeIds: ', removeIds);
 
         removeIds.forEach(async (clientId) => {
             let peer = this.videoPeers.get(clientId);
@@ -627,8 +635,10 @@ class Manager {
         this.videoPeers.forEach((peer, peer_id) => {
             let oldUsername = peer.username;
             let client = roomInfo.clients.find(client => client.id === peer_id);
-            peer.username = client.username;
-            console.log('Set peer username from ' + oldUsername + ' to ' + peer.username);
+            if (client) {
+                peer.username = client.username;
+                console.log('Set peer username from ' + oldUsername + ' to ' + peer.username);
+            }
         });
     }
 
@@ -650,37 +660,18 @@ class Manager {
     }
 
     async start() {
-        const groundControlPromise = this.establishGroundControl();
+        await this.establishGroundControl();
 
-        const constraints = {
-            audio: true,
-            video: true
-        };
-        //const constraints = {
-        //    audio: true,
-        //    video: {
-        //        width: {max: 640},
-        //        height: {max: 480},
-        //        frameRate: {max: 10}
-        //    }
-        //}
-        const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
-
-        await groundControlPromise;
+        // Set up message handler
         this.groundControl.datachannel.addEventListener('message', (evt) => {
             this.messageHandler.handleMessage(JSON.parse(evt.data));
         });
-
-        this.localVideoStream = await streamPromise;
-        this.videoTrack = this.localVideoStream.getTracks().find(track => track.kind === 'video');
-        this.audioTrack = this.localVideoStream.getTracks().find(track => track.kind === 'audio');
-        createVideoElement('local', this.username);
-        attachVideoElement('local', this.localVideoStream);  // TODO: move to ui.js
 
         // Wait for data channel to open
         while (this.groundControl.datachannel.readyState != 'open') {
             await new Promise(r => setTimeout(r, 100));
         }
+
         this.id = await get_self_id();
         let peers = await this.findPeers();
     }
@@ -692,8 +683,8 @@ window.addEventListener('beforeunload', async function(event) {
 
 
 async function start() {
+    await startUI();
     await manager.start();
-    startUI();
 }
 
 var manager = new Manager();
