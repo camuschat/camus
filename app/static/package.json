@@ -35,6 +35,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "babel-loader": "^8.1.0"
+    "babel-loader": "^8.1.0",
+    "webrtc-adapter": "^7.6.2"
   }
 }

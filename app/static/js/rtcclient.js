@@ -1,5 +1,7 @@
 'use strict';
 
+import adapter from 'webrtc-adapter';
+
 class EventEmitter {
     constructor() {
         this.events = new Map();
