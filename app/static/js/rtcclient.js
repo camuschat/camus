@@ -1,14 +1,5 @@
 'use strict';
 
-window.addEventListener('unhandledrejection', function(event) {
-    console.log('An unhandled error occurred');
-    console.log(event.promise);
-    console.log(event.reason);
-
-    //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
-});
-
-
 class EventEmitter {
     constructor() {
         this.events = new Map();
@@ -34,11 +25,12 @@ class EventEmitter {
 
 
 class VideoPeer extends EventEmitter {
-    constructor(client, groundControl) {
+    constructor(client, groundControl, polite) {
         super();
         this.client_id = client.id;
         this.username = client.username;
         this.groundControl = groundControl;
+        this.polite = polite;
         this.connection = null;
         this.makingOffer = false;
     }
@@ -143,12 +135,11 @@ class VideoPeer extends EventEmitter {
         }
 
         try {
-            const polite = manager.id < this.client_id;
             const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
-            console.log('? Polite: ', polite);
+            console.log('? Polite: ', this.polite);
 
             if (offerCollision) {
-                if (!polite) {
+                if (!this.polite) {
                     return;
                 }
 
@@ -259,8 +250,8 @@ class GroundControl {
         });
 
         this.datachannel = this.connection.createDataChannel('data');
-        this.datachannel.onopen = function(evt) {
-            greeting();
+        this.datachannel.onopen = (evt) => {
+            this.greeting();
         };
 
         console.log('Connection for Ground Control created');
@@ -332,6 +323,13 @@ class GroundControl {
         });
     }
 
+    async greeting() {
+        const data = {"receiver": "ground control",
+                      "type": "greeting",
+                      "data": "This is Major Tom to Ground Control: I'm stepping through the door. And the stars look very different today."};
+        this.sendMessage(data);
+    }
+
     async shutdown() {
         // Stop media tracks
         this.connection.getReceivers().forEach(receiver => {
@@ -353,44 +351,6 @@ class GroundControl {
         console.log('Shutdown connection with Ground Control ');
     }
 }
-
-async function ping() {
-    const time = new Date().getTime();
-    const data = {"receiver": "ground control",
-                  "type": "ping",
-                  "data": time};
-    manager.groundControl.sendMessage(data);
-}
-
-async function get_self_id() {
-    const time = new Date().getTime();
-    let data = {"receiver": "ground control",
-                "type": "ping",
-                "data": time};
-    let responseParams = {"sender": "ground control",
-                          "type": "pong",
-                          "data": time};
-    let response = await manager.groundControl.sendReceiveMessage(data, responseParams);
-    return response.receiver;
-
-}
-
-async function get_room_info() {
-    let data = {"receiver": "ground control",
-                "type": "get-room-info"};
-    let responseParams = {"sender": "ground control",
-                          "type": "room-info"};
-    let response = await manager.groundControl.sendReceiveMessage(data, responseParams);
-    return response.data;
-}
-
-async function greeting() {
-    const data = {"receiver": "ground control",
-                  "type": "greeting",
-                  "data": "This is Major Tom to Ground Control: I'm stepping through the door. And the stars look very different today."};
-    manager.groundControl.sendMessage(data);
-}
-
 
 class MessageHandler {
     constructor(manager, signaler) {
@@ -580,7 +540,7 @@ class Manager extends EventEmitter {
     }
 
     async createVideoPeer(client) {
-        let peer = new VideoPeer(client, this.groundControl);
+        let peer = new VideoPeer(client, this.groundControl, this.id < client.id);
         this.videoPeers.set(client.id, peer);
         await peer.createPeerConnection();
 
@@ -607,7 +567,7 @@ class Manager extends EventEmitter {
     }
 
     async findPeers() {
-        let roomInfo = await get_room_info();
+        let roomInfo = await this.get_room_info();
         await this.updatePeers(roomInfo);
     }
 
@@ -654,6 +614,28 @@ class Manager extends EventEmitter {
         this.videoPeers.clear();
     }
 
+    async get_self_id() {
+        const time = new Date().getTime();
+        let data = {"receiver": "ground control",
+                    "type": "ping",
+                    "data": time};
+        let responseParams = {"sender": "ground control",
+                            "type": "pong",
+                            "data": time};
+        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        return response.receiver;
+
+    }
+
+    async get_room_info() {
+        let data = {"receiver": "ground control",
+                    "type": "get-room-info"};
+        let responseParams = {"sender": "ground control",
+                              "type": "room-info"};
+        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        return response.data;
+    }
+
     async shutdown() {
         await this.shutdownVideoPeers();
         await this.groundControl.shutdown();
@@ -672,20 +654,9 @@ class Manager extends EventEmitter {
             await new Promise(r => setTimeout(r, 100));
         }
 
-        this.id = await get_self_id();
+        this.id = await this.get_self_id();
         let peers = await this.findPeers();
     }
 }
 
-window.addEventListener('beforeunload', async function(event) {
-    await manager.shutdown();
-});
-
-
-async function start() {
-    await startUI();
-    await manager.start();
-}
-
-var manager = new Manager();
-start();
+export {Manager, GroundControl, VideoPeer};

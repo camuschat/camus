@@ -27,33 +27,13 @@
                 <div id="video-stage">
                 </div>
                 <div id="control-bar">
-                    <button class="btn" id="toggle-video" onclick="toggleVideo()">
+                    <button class="btn" id="toggle-video">
                         <i id="toggle-video-icon" class="material-icons">videocam</i></button>
-                    <button class="btn" id="toggle-audio" onclick="toggleAudio()">
+                    <button class="btn" id="toggle-audio">
                         <i id="toggle-audio-icon" class="material-icons">mic</i></button>
-                    <button class="btn" id="toggle-display" onclick="toggleDisplay()">
+                    <button class="btn" id="toggle-display">
                         <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
-                    <!-- button class="btn" id="toggle-messages" onclick="toggleMessageBar()">
-                        <i id="toggle-messages-icon" class="material-icons">chat</i></button-->
                 </div>
-                <div id="debug-bar">
-                    <hr>
-                    <button class="btn" data-toggle="collapse" data-target="#debug-collapse">
-                        Debug
-                    </button>
-                    <div class="collapse" id="debug-collapse">
-                        <p>[Hint: open the console for logging]</p>
-                        <button class="btn" id="debug-media-info" onclick="mediaInfo()">Media info</button>
-                        <button class="btn" id="debug-ping" onclick="ping()">Ping</button>
-                        <button class="btn" id="debug-get_room_info" onclick="get_room_info()">Room info</button>
-                        <button class="btn" id="debug-greeting" onclick="greeting()">Greeting</button>
-                        <button class="btn" id="debug-desktop" onclick="streamDisplay()">Share Desktop</button>
-                        <button class="btn" id="debug-webcam" onclick="streamVideo()">Webcam on</button>
-                        <button class="btn" id="debug-restart-ice" onclick="restartIce()">Restart ICE</button>
-                        <button class="btn" id="debug-shutdown" onclick="shutdown()">Shutdown</button>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -132,6 +112,5 @@
 </template>
 
 
-<script src="{{ url_for('static', filename='ui.js') }}"></script>
-<script src="{{ url_for('static', filename='rtcclient.js') }}"></script>
+<script src="{{ url_for('static', filename='dist/chat.js') }}"></script>
 {% endblock %}
