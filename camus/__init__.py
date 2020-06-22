@@ -21,7 +21,7 @@ import quart.flask_patch
 from quart import Quart
 from flask_bootstrap import Bootstrap
 
-from config import Config
+from .config import Config
 
 app = Quart(__name__)
 app.config.from_object(Config)

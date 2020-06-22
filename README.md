@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/mrgnr/camus.svg?branch=master)](https://travis-ci.org/mrgnr/camus)
+![PyPI](https://img.shields.io/pypi/v/camus-chat)
 [![License](https://img.shields.io/github/license/mrgnr/camus)](LICENSE)
 
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/mrgnr/donate)
@@ -37,15 +38,8 @@ Camus requires [Python 3.7][python-37-whatsnew] or higher since it makes use of 
 
 As usual, it's best to use a virtual environment.
 
-Install dependencies:
-
-```
-$ pip install -r requirements.txt
-```
-
-If the installation fails, you may be missing system packages required by the `av` package (a dependency of aiortc).
-On Ubuntu, try installing the following packages:
-
+Make sure you have system packages required by the `av` package (a dependency of aiortc) installed.
+On Ubuntu/Debian:
 
 ```
 $ sudo apt-get install -y \
@@ -58,10 +52,16 @@ $ sudo apt-get install -y \
     python-dev
 ```
 
-Run using Quart:
+Install Camus:
 
 ```
-$ quart run
+$ pip install camus-chat
+```
+
+Run Camus:
+
+```
+$ camus
 ```
 
 Go to `localhost:5000` in your browser. For local testing, you can visit the same room in multiple tabs and each tab

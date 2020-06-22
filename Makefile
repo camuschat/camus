@@ -29,7 +29,7 @@ test: test-server test-client  ## Run all tests, both server-side and client-sid
 test-server:  ## Run server tests
 	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus"\
-		--workdir="/opt/camus" \
+        --workdir="/opt/camus" \
         -e QUART_APP=camus \
         -e QUART_ENV=development \
 		camus:test-server \
@@ -48,7 +48,7 @@ serve: clean-containers  ## Run development server
 	@docker run --rm -d \
         --name camus-dev \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
-		--workdir="/opt/camus" \
+        --workdir="/opt/camus" \
         -e QUART_APP=camus \
         -e QUART_ENV=development \
         -p 5000:5000 \
@@ -59,15 +59,19 @@ serve: clean-containers  ## Run development server
 shell:  ## Run development environment shell
 	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
-		--workdir="/opt/camus" \
+        --workdir="/opt/camus" \
         -w /opt/camus \
         -e QUART_APP=camus \
         -e QUART_ENV=development \
 		camus:dev \
         /bin/bash
 
+.PHONY: package
+package:  ## Build Python source and wheel packages
+	@python3 setup.py sdist bdist_wheel
+
 .PHONY: clean
-clean: clean-containers clean-images  ## Remove Docker containers and images
+clean: clean-containers clean-images clean-files  ## Remove Docker containers & images and other files
 
 .PHONY: clean-containers
 clean-containers:  ## Remove Docker containers
@@ -77,3 +81,8 @@ clean-containers:  ## Remove Docker containers
 .PHONY: clean-images
 clean-images:  ## Remove Docker images
 	@docker image rm $(images) 2>/dev/null || true
+
+.PHONY:
+clean-files:  ## Remove __pycache__ and files produced by packaging
+	@rm -rf __pycache__ test/__pycache__ camus/__pycache__
+	@rm -rf *.egg-info build dist
