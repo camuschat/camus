@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from app.chat import ChatClient, ChatManager, ChatRoom, get_chat_manager
+from camus.chat import ChatClient, ChatManager, ChatRoom, get_chat_manager
 
 
 def test_get_chat_manager():

@@ -9,7 +9,7 @@ from slugify import slugify
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.util import MTimer, time_ms
+from camus.util import MTimer, time_ms
 
 
 _chat_manager = None

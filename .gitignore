@@ -1,11 +1,16 @@
 # python
 __pycache__/
 *.egg-info/
+dist/
+build/
 
 # node
-app/static/node_modules
+camus/static/node_modules
 
 # cypress
 test/cypress/plugins/
 test/cypress/support/
 test/cypress/videos/
+
+# scratch/development
+.scratch

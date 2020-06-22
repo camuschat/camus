@@ -18,7 +18,7 @@ RUN pip install -r /app/requirements.txt
 # prod
 FROM base AS prod
 ADD . /app
-ENV QUART_APP /app/app.py
+ENV QUART_APP camus
 ENV QUART_ENV production
 RUN pip install -r /app/requirements/production.txt
 CMD /usr/local/bin/quart run --host 0.0.0.0

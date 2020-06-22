@@ -1,10 +1,10 @@
 from quart import flash, jsonify, redirect, render_template, request
 
-from app import app
-from app.forms import RoomCreate, RoomJoin
+from camus import app
+from camus.forms import RoomCreate, RoomJoin
 
-from app import chat
-from app.chat import ChatException
+from camus import chat
+from camus.chat import ChatException
 
 
 @app.route('/')

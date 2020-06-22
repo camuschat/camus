@@ -6,8 +6,9 @@ setup(
     description='Peer-to-peer video chat using WebRTC',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    url='https://github.com/mrgnr/rtc-chat',
+    url='https://github.com/mrgnr/camus',
     author='Morgan Robertson',
+    author_email='mrgnr@pm.me',
     license='GPL-3.0',
     packages=find_packages(),
     include_package_data=True,
@@ -28,4 +29,6 @@ setup(
         'Topic :: Communications :: Conferencing',
         'Topic :: Multimedia :: Video',
     ],
+    python_requires='>=3.7',
+    scripts=['bin/camus'],
 )

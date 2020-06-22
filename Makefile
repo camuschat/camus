@@ -29,7 +29,8 @@ test: test-server test-client  ## Run all tests, both server-side and client-sid
 test-server:  ## Run server tests
 	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus"\
-        -e QUART_APP=/opt/camus/app.py \
+		--workdir="/opt/camus" \
+        -e QUART_APP=camus \
         -e QUART_ENV=development \
 		camus:test-server \
         /bin/bash -c "pip install -e /opt/camus && python -m pytest /opt/camus"
@@ -46,8 +47,9 @@ test-client: clean-containers serve  ## Run client tests
 serve: clean-containers  ## Run development server
 	@docker run --rm -d \
         --name camus-dev \
-        --mount type=bind,source="$(CURDIR)",target="/opt/camus"\
-        -e QUART_APP=/opt/camus/app.py \
+        --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
+		--workdir="/opt/camus" \
+        -e QUART_APP=camus \
         -e QUART_ENV=development \
         -p 5000:5000 \
         camus:dev \
@@ -56,9 +58,10 @@ serve: clean-containers  ## Run development server
 .PHONY: shell
 shell:  ## Run development environment shell
 	@docker run --rm -it \
-        --mount type=bind,source="$(CURDIR)",target="/opt/camus"\
+        --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
+		--workdir="/opt/camus" \
         -w /opt/camus \
-        -e QUART_APP=/opt/camus/app.py \
+        -e QUART_APP=camus \
         -e QUART_ENV=development \
 		camus:dev \
         /bin/bash
