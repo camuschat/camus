@@ -1,11 +1,11 @@
-[![Build Status](https://travis-ci.org/mrgnr/rtc-chat.svg?branch=master)](https://travis-ci.org/mrgnr/rtc-chat)
-[![License](https://img.shields.io/github/license/mrgnr/rtc-chat)](LICENSE)
+[![Build Status](https://travis-ci.org/mrgnr/camus.svg?branch=master)](https://travis-ci.org/mrgnr/camus)
+[![License](https://img.shields.io/github/license/mrgnr/camus)](LICENSE)
 
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/mrgnr/donate)
 
-# RTC-Chat
+# Camus
 
-RTC-Chat is a video chat app that implements the core features you'd expect from any such an app:
+Camus is a video chat app that implements the core features you'd expect from any such an app:
 webcam streaming, desktop sharing, text messaging, and rooms (public or private, password-protected or not).
 Media and data streaming are implemented using [WebRTC][webrtc-api],
 which allows for direct peer-to-peer connections between clients.
@@ -33,7 +33,7 @@ You can find a live demo at [https://chat.mrgnr.io/rtc](https://chat.mrgnr.io/rt
 
 ### Using Python
 
-RTC-Chat requires [Python 3.7][python-37-whatsnew] or higher since it makes use of Quart and async syntax.
+Camus requires [Python 3.7][python-37-whatsnew] or higher since it makes use of Quart and async syntax.
 
 As usual, it's best to use a virtual environment.
 
@@ -72,7 +72,7 @@ will act as a separate client.
 Build the image:
 
 ```
-$ docker build -t rtc-chat .
+$ docker build -t camus .
 ```
 
 Run a container:

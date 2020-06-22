@@ -51,7 +51,7 @@ You can run a development server available at `localhost:5000` using `make serve
 to tail the logs while the server is running:
 
 ```
-$ make serve && docker logs -f rtc-chat-dev
+$ make serve && docker logs -f camus-dev
 ```
 
 You can run a development shell using `make shell`. This launches an interactive Docker container that
