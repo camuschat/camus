@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/mrgnr/camus.svg?branch=master)](https://travis-ci.org/mrgnr/camus)
-![PyPI](https://img.shields.io/pypi/v/camus-chat)
+[![PyPI](https://img.shields.io/pypi/v/camus-chat)](https://pypi.org/project/camus-chat)
 [![License](https://img.shields.io/github/license/mrgnr/camus)](LICENSE)
 
 [![Donate using Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/mrgnr/donate)
