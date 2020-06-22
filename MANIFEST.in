@@ -4,3 +4,4 @@ include camus/static/css/*
 include camus/static/dist/*
 include camus/static/fonts/*
 include camus/static/js/*
+include camus/templates/*
