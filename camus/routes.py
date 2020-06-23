@@ -10,11 +10,14 @@ from camus.chat import ChatException
 @app.route('/')
 @app.route('/index')
 async def index():
-    return await render_template('index.html')
+    return redirect('/chat')
 
+@app.route('/about')
+async def about():
+    return await render_template('about.html')
 
-@app.route('/rtc', methods=['GET', 'POST'])
-async def rtc():
+@app.route('/chat', methods=['GET', 'POST'])
+async def chat_create():
     manager = chat.get_chat_manager()
 
     form_create = RoomCreate()
@@ -29,18 +32,18 @@ async def rtc():
         try:
             room = manager.create_room(room_name, password=password, guest_limit=guest_limit,
                                        admin_list=admin_list, is_public=is_public)
-            return redirect('/rtc/{}'.format(room.id))
+            return redirect('/chat/{}'.format(room.id))
         except ChatException as e:
             await flash('Room name not available')
 
     form_join = RoomJoin()
     public_rooms = manager.get_public_rooms()
-    return await render_template('rtc.html', title='rtc', form_create=form_create,
+    return await render_template('chat.html', form_create=form_create,
                                  form_join=form_join, public_rooms=public_rooms)
 
 
-@app.route('/rtc/<room_id>', methods=['GET', 'POST'])
-async def rtc_room(room_id):
+@app.route('/chat/<room_id>', methods=['GET', 'POST'])
+async def chat_room(room_id):
     manager = chat.get_chat_manager()
     room = manager.get_room(room_id)
 
@@ -51,7 +54,7 @@ async def rtc_room(room_id):
         return 'Guest limit already reached', 418
 
     if room.authenticate():  # i.e. a password is not required
-        return await render_template('rtcroom.html', title='rtc')
+        return await render_template('chatroom.html', title='Camus - {}'.format(room.name))
 
     form = RoomJoin()
     if form.validate_on_submit():
@@ -60,15 +63,15 @@ async def rtc_room(room_id):
 
         if room.authenticate(password):
             # TODO: Generate token to be used with offer
-            return await render_template('rtcroom.html', title='rtc')
+            return await render_template('chatroom.html', title='Camus - {}'.format(room.name))
         else:
             await flash('Invalid password')
 
     return await render_template('join-room.html', title='Join a room', form=form, room_id=room_id)
 
 
-@app.route('/rtc/<room_id>/offer', methods=['POST'])
-async def rtc_room_offer(room_id):
+@app.route('/chat/<room_id>/offer', methods=['POST'])
+async def chat_room_offer(room_id):
     manager = chat.get_chat_manager()
     room = manager.get_room(room_id)
 

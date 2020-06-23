@@ -27,7 +27,7 @@ The client is implemented in Javascript and makes use of the WebRTC web APIs.
 
 ## Demo
 
-You can find a live demo at [https://chat.mrgnr.io/rtc](https://chat.mrgnr.io/rtc).
+You can find a live demo at [https://camus.chat](https://camus.chat).
 
 
 ## Running

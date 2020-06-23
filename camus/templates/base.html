@@ -1,8 +1,7 @@
 {% extends 'bootstrap-base.html' %}
 
 {% block title %}
-    {% if title %}
-    {{ title }} - Camus{% else %}Camus{% endif %}
+    {% if title %}{{ title }}{% else %}Camus Video Chat{% endif %}
 {% endblock %}
 
 
@@ -17,8 +16,8 @@
             </div>
             <div class="collapse navbar-collapse" id="navbar-content">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('rtc') }}">Chat</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('chat_create') }}">Chat</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                 </ul>

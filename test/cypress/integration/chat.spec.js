@@ -3,7 +3,7 @@ describe('Create room', () => {
     it('Should create and enter a public room', () => {
         const roomName = 'public-room';
 
-        cy.visit('/rtc');
+        cy.visit('/chat');
 
         // Create a room
         const form = cy.get('form[id="create-room-form"]');
@@ -21,14 +21,14 @@ describe('Create room', () => {
         cy.url().should('include', roomName)
 
         // Check that room is in the public list
-        cy.visit('/rtc');
+        cy.visit('/chat');
         cy.get('#room-link-public-room')
     });
 
     it('Should create and enter a non-public room', () => {
         const roomName = 'nonpublic-room';
 
-        cy.visit('/rtc');
+        cy.visit('/chat');
 
         // Create a room
         const form = cy.get('form[id="create-room-form"]');
@@ -43,7 +43,7 @@ describe('Create room', () => {
         cy.url().should('include', roomName)
 
         // Check that room is not in the public list
-        cy.visit('/rtc');
+        cy.visit('/chat');
         cy.get('#room-link-nonpublic-room').should('not.exist');
     });
 
@@ -51,7 +51,7 @@ describe('Create room', () => {
         const roomName = 'password-room';
         const password = 'secret password';
 
-        cy.visit('/rtc');
+        cy.visit('/chat');
 
         // Create a room
         const createForm = cy.get('form[id="create-room-form"]');

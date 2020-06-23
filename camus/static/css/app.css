@@ -31,11 +31,11 @@ video:hover {
     color: darkslategray;
 }
 
-a {
+a.list-group-item {
     color: darkslategray;
 }
 
-a:hover {
+a.list-group-item:hover {
     color: darkslategray;
     text-shadow: 0.5px 0.5px 0px slategray;
     text-decoration: none;
