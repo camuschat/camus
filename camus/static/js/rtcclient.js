@@ -70,9 +70,11 @@ class VideoPeer extends EventEmitter {
 
             try {
                 this.makingOffer = true;
-                await this.connection.setLocalDescription();
+                const offer = await this.connection.createOffer();
+                if (this.connection.signalingState !== 'stable') return;
+                await this.connection.setLocalDescription(offer);
                 const description = this.connection.localDescription.toJSON();
-                await this.groundControl.sendMessage({
+                this.groundControl.sendMessage({
                     receiver: this.client_id,
                     type: description.type,
                     data: description
@@ -88,7 +90,7 @@ class VideoPeer extends EventEmitter {
         this.connection.onicecandidate = async ({candidate}) => {
             if (candidate) {
                 //console.log('Gathered ICE candidate: ', candidate);
-                await this.groundControl.sendMessage({
+                this.groundControl.sendMessage({
                     receiver: this.client_id,
                     type: 'icecandidate',
                     data: candidate.toJSON()
@@ -127,8 +129,9 @@ class VideoPeer extends EventEmitter {
          * 1. If we are ready to accept the offer (i.e. we're not in the process of making our
          *    own offer), then set the remote description with the offer.
          * 2. Otherwise, there is an "offer collision". If we are the impolite peer, ignore the
-         *    offer. If we are polite, roll back the local description, set the remote description
-         *    with the offer, and finally respond to the peer with an answer.
+         *    offer. If we are polite, roll back the local description and set the remote
+         *    description with the offer.
+         * 3. If we aren't ignoring the offer, respond to the peer with an answer.
          */
 
         console.log('Processing offer: ', offer);
@@ -137,7 +140,7 @@ class VideoPeer extends EventEmitter {
         }
 
         try {
-            const offerCollision = this.makingOffer || this.connection.signalingState != 'stable';
+            const offerCollision = this.makingOffer || this.connection.signalingState !== 'stable';
             console.log('? Polite: ', this.polite);
 
             if (offerCollision) {
@@ -151,21 +154,22 @@ class VideoPeer extends EventEmitter {
                     this.connection.setRemoteDescription(offer)
                 ]);
 
-                // Polite peer creates an answer to the remote offer and sends it
-                const answer = await this.connection.createAnswer();
-                await this.connection.setLocalDescription(answer);
-
-                const description = this.connection.localDescription.toJSON();
-                console.log('Respond to offer: ', this.connection.localDescription);
-                await this.groundControl.sendMessage({
-                    receiver: this.client_id,
-                    type: description.type,
-                    data: description
-                });
             } else {
                 // No collision, so accept the remote offer
                 await this.connection.setRemoteDescription(offer);
             }
+
+            // Create an answer to the remote offer and send it
+            const answer = await this.connection.createAnswer();
+            await this.connection.setLocalDescription(answer);
+
+            const description = this.connection.localDescription.toJSON();
+            console.log('Respond to offer: ', this.connection.localDescription);
+            this.groundControl.sendMessage({
+                receiver: this.client_id,
+                type: description.type,
+                data: description
+            });
         } catch(err) {
             console.error(err);
         }
@@ -222,7 +226,7 @@ class VideoPeer extends EventEmitter {
         const data = {"receiver": this.client_id,
                       "type": "bye",
                       "data": time};
-        await this.groundControl.sendMessage(data);
+        this.groundControl.sendMessage(data);
 
         this.emit('shutdown');
 
@@ -290,7 +294,7 @@ class GroundControl {
         await this.connection.setRemoteDescription(answer);
     }
 
-    async sendMessage(data) {
+    sendMessage(data) {
         this.datachannel.send(JSON.stringify(data));
         if (data.type === 'offer' || data.type === 'answer' || data.type === 'icecandidate') {
             console.log(`>> Sent ${data.type}: `, data);
@@ -343,7 +347,7 @@ class GroundControl {
         const data = {"receiver": "ground control",
                     "type": "bye",
                     "data": time};
-        await this.sendMessage(data);
+        this.sendMessage(data);
 
         // Shutdown connections
         this.connection.close();
@@ -396,7 +400,7 @@ class MessageHandler {
         response.receiver = message.sender;
         response.type = 'pong';
         response.data = message.data;
-        await this.signaler.sendMessage(response);
+        this.signaler.sendMessage(response);
     }
 
     async pong(message) {
@@ -504,7 +508,7 @@ class Manager extends EventEmitter {
                       type: 'profile',
                       data: {username: this.username}
         };
-        await this.groundControl.sendMessage(data);
+        this.groundControl.sendMessage(data);
         console.log('Set username in manager: ', this.username);
     }
 
