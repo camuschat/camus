@@ -146,8 +146,8 @@ class UI {
         this.createVideoElement('local', this.manager.username);
         this.attachVideoElement('local', stream);
         this.manager.localVideoStream = stream;
-        this.manager.setVideoTrack(videoTrack);
-        this.manager.setAudioTrack(audioTrack);
+        await this.manager.setVideoTrack(videoTrack);
+        await this.manager.setAudioTrack(audioTrack);
 
         // Update ui
         document.getElementById('toggle-video-icon').innerHTML = 'videocam';
@@ -174,7 +174,7 @@ class UI {
         let newTrack = stream.getTracks().find(track => track.kind === 'video');
         document.getElementById('video-local').srcObject = stream;
         this.manager.localVideoStream = stream;
-        this.manager.setVideoTrack(newTrack);
+        await this.manager.setVideoTrack(newTrack);
 
         // Update ui
         document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
@@ -259,7 +259,6 @@ class UI {
     }
 
     async start() {
-
         await new Promise(r => setTimeout(r, 200)); // allow manager to start up
         await this.streamVideo();
         let messageParams = {"type": "text"};
@@ -328,10 +327,10 @@ function connectionInfoNode(peer) {
     infoDiv.id = 'connection-info-collapse-' + peer.client_id;
     infoDiv.querySelector('.info-username').innerHTML = peer.username;
     infoDiv.querySelector('.info-client-id').innerHTML = peer.client_id;
-    infoDiv.querySelector('.info-connection-state').innerHTML = peer.connectionState();
-    infoDiv.querySelector('.info-ice-connection-state').innerHTML = peer.iceConnectionState();
-    infoDiv.querySelector('.info-ice-gathering-state').innerHTML = peer.iceGatheringState();
-    infoDiv.querySelector('.info-signaling-state').innerHTML = peer.signalingState();
+    infoDiv.querySelector('.info-connection-state').innerHTML = peer.connectionState;
+    infoDiv.querySelector('.info-ice-connection-state').innerHTML = peer.iceConnectionState;
+    infoDiv.querySelector('.info-ice-gathering-state').innerHTML = peer.iceGatheringState;
+    infoDiv.querySelector('.info-signaling-state').innerHTML = peer.signalingState;
     //infoDiv.querySelector('.info-remote-description').innerHTML = peer.remoteDescription();
 
     return clone;
