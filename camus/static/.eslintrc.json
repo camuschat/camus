@@ -1,0 +1,23 @@
+{
+    "env": {
+        "browser": true,
+        "es2020": true,
+        "cypress/globals": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:cypress/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 11,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "cypress"
+    ],
+    "rules": {
+        "no-promise-executor-return": "error",
+        "require-atomic-updates": "error",
+        "require-await": "error"
+    }
+}

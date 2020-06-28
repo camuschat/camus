@@ -1,6 +1,6 @@
 'use strict';
 
-import adapter from 'webrtc-adapter';
+import adapter from 'webrtc-adapter';  // eslint-disable-line no-unused-vars
 
 class EventEmitter {
     constructor() {
