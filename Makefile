@@ -30,8 +30,7 @@ test-server:  ## Run server tests
 	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus"\
         --workdir="/opt/camus" \
-        -e QUART_APP=camus \
-        -e QUART_ENV=development \
+		--env-file dev.env \
 		camus:test-server \
         /bin/bash -c "pip install -e /opt/camus && python -m pytest /opt/camus"
 
@@ -49,8 +48,7 @@ serve: clean-containers  ## Run development server
         --name camus-dev \
         --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
         --workdir="/opt/camus" \
-        -e QUART_APP=camus \
-        -e QUART_ENV=development \
+		--env-file dev.env \
         -p 5000:5000 \
         camus:dev \
         /usr/local/bin/quart run --host 0.0.0.0
@@ -61,8 +59,7 @@ shell:  ## Run development environment shell
         --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
         --workdir="/opt/camus" \
         -w /opt/camus \
-        -e QUART_APP=camus \
-        -e QUART_ENV=development \
+		--env-file dev.env \
 		camus:dev \
         /bin/bash
 

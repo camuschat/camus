@@ -1,7 +1,11 @@
 import asyncio
+import hmac
 import json
 import logging
 import uuid
+
+from base64 import b64encode
+from time import time
 
 from aiortc import RTCPeerConnection, RTCSessionDescription
 from pyee import AsyncIOEventEmitter
@@ -9,6 +13,7 @@ from slugify import slugify
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from camus import app
 from camus.util import MTimer, time_ms
 
 
@@ -20,6 +25,15 @@ def get_chat_manager():
     if _chat_manager is None:
         _chat_manager = ChatManager()
     return _chat_manager
+
+
+def generate_turn_creds(key, client_id):
+    expiration = int(time()) + 6 * 60 * 60  # creds expire after 6 hrs
+    username = '{}:{}'.format(expiration, client_id)
+    token = hmac.new(key.encode(), msg=username.encode(), digestmod='SHA1')
+    password = b64encode(token.digest()).decode()
+
+    return username, password
 
 
 class ChatException(Exception):
@@ -277,6 +291,9 @@ class ChatManager:
         elif message.type == 'get-room-info':
             reply.type = 'room-info'
             reply.data = client.room.info
+        elif message.type == 'get-ice-servers':
+            reply.type = 'ice-servers'
+            reply.data = self.get_ice_servers(client.id)
         elif message.type == 'greeting':
             logging.info('Greeting received from client {}: {}'.format(message.sender, message.data))
             return
@@ -396,3 +413,20 @@ class ChatManager:
                 await self.remove_client(client)
 
         return client
+
+    def get_ice_servers(self, client_id):
+        stun_host = app.config['STUN_HOST']
+        stun_port = app.config['STUN_PORT']
+        stun_url = 'stun:{}:{}'.format(stun_host, stun_port)
+        servers = [{'urls': [stun_url]}]
+
+        turn_host = app.config['TURN_HOST']
+        turn_port = app.config['TURN_PORT']
+        turn_key = app.config['TURN_STATIC_AUTH_SECRET']
+
+        if turn_host and turn_port and turn_key:
+            turn_url = 'turn:{}:{}'.format(turn_host, turn_port)
+            username, password = generate_turn_creds(turn_key, client_id)
+            servers.append({'urls': [turn_url], 'username': username, 'credential': password})
+
+        return servers

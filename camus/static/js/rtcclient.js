@@ -27,7 +27,7 @@ class EventEmitter {
 
 
 class VideoPeer extends EventEmitter {
-    constructor(client, groundControl, polite) {
+    constructor(client, groundControl, polite, iceServers=[]) {
         super();
         this.client_id = client.id;
         this.username = client.username;
@@ -36,13 +36,13 @@ class VideoPeer extends EventEmitter {
         this.connection = null;
         this.makingOffer = false;
 
-        this.createPeerConnection();
+        this.createPeerConnection(iceServers);
     }
 
-    createPeerConnection() {
+    createPeerConnection(iceServers) {
         const config = {
             sdpSemantics: 'unified-plan',
-            iceServers: [{urls: ['stun:stun.l.google.com:19302']}]
+            iceServers: iceServers,
         };
         this.connection = new RTCPeerConnection(config);
 
@@ -399,6 +399,8 @@ class MessageHandler {
                          'text': this.text,
                          'get-room-info': this.getRoomInfo,
                          'room-info': this.roomInfo,
+                         'get-ice-servers': this.getIceServers,
+                         'ice-servers': this.iceServers,
                          'profile': this.profile,
                          'offer': this.offer,
                          'answer': this.answer,
@@ -450,6 +452,14 @@ class MessageHandler {
     async roomInfo(message) {
         console.log('<< Received room-info: ', message);
         await this.manager.updatePeers(message.data);
+    }
+
+    async getIceServers(message) {
+        console.log('<< Received get-ice-servers: ', message);
+    }
+
+    async iceServers(message) {
+        console.log('<< Received ice-servers: ', message);
     }
 
     async profile(message) {
@@ -528,6 +538,7 @@ class Manager extends EventEmitter {
         this.messageHandler = new MessageHandler(this, this.groundControl);
         this.outbox = [];
         this.id = null;
+        this.iceServers = [];
     }
 
     async setUsername(username) {
@@ -575,7 +586,7 @@ class Manager extends EventEmitter {
     }
 
     async createVideoPeer(client) {
-        let peer = new VideoPeer(client, this.groundControl, this.id < client.id);
+        const peer = new VideoPeer(client, this.groundControl, this.id < client.id, this.iceServers);
         this.videoPeers.set(client.id, peer);
         peer.connect();
 
@@ -671,6 +682,19 @@ class Manager extends EventEmitter {
         return response.data;
     }
 
+    async getIceServers() {
+        const data = {
+            'receiver': 'ground control',
+            'type': 'get-ice-servers'
+        }
+        const responseParams = {
+            'sender': 'ground control',
+            'type': 'ice-servers'
+        }
+        const response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        return response.data;
+    }
+
     async shutdown() {
         this.shutdownVideoPeers();
         await this.groundControl.shutdown();
@@ -690,6 +714,7 @@ class Manager extends EventEmitter {
         }
 
         this.id = await this.get_self_id();
+        this.iceServers = await this.getIceServers();
         await this.findPeers();
     }
 }
