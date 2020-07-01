@@ -37,7 +37,7 @@ test-server:  ## Run server tests
 .PHONY: test-client
 test-client: clean-containers serve  ## Run client tests
 	@docker run --rm -it \
-        --mount type=bind,source="$(CURDIR)/test",target="/e2e" \
+        --mount type=bind,source="$(CURDIR)/camus/static",target="/e2e" \
 		--net host \
 		-w /e2e \
 		cypress/included:4.5.0
