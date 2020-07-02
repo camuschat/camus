@@ -3,7 +3,7 @@
 import {Manager} from './rtcclient.js';
 import {UI} from './ui.js';
 
-window.addEventListener('unhandledrejection', function(event) {
+window.addEventListener('unhandledrejection', (event) => {
     console.log('An unhandled error occurred');
     console.log(event.promise);
     console.log(event.reason);
@@ -11,7 +11,7 @@ window.addEventListener('unhandledrejection', function(event) {
     //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
 });
 
-window.addEventListener('load', function () {
+window.addEventListener('load', () => {
     const profileForm = document.querySelector('#user-profile-modal form');
     profileForm.addEventListener('submit', (evt) => {
         evt.preventDefault();
@@ -25,8 +25,8 @@ window.addEventListener('load', function () {
     });
 });
 
-window.addEventListener('beforeunload', async function(event) {
-    await manager.shutdown();
+window.addEventListener('beforeunload', () => {
+    manager.shutdown();
 });
 
 

@@ -198,7 +198,7 @@ class UI {
                              time: time,
                              text: message}
                     };
-        await this.manager.groundControl.sendMessage(data);
+        await this.manager.signaler.send(data);
         messageInput.value = '';
         console.log('Sent message: ', message);
     }

@@ -8,9 +8,9 @@ build/
 camus/static/node_modules
 
 # cypress
-test/cypress/plugins/
-test/cypress/support/
-test/cypress/videos/
+camus/static/cypress/plugins/
+camus/static/cypress/support/
+camus/static/cypress/videos/
 
 # scratch/development
 .scratch

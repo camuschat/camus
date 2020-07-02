@@ -7,12 +7,24 @@ class EventEmitter {
         this.events = new Map();
     }
 
+    listeners(event) {
+        return this.events.get(event) || [];
+    }
+
     on(event, callback) {
         if (!this.events.has(event)) {
             this.events.set(event, []);
         }
 
         this.events.get(event).push(callback);
+    }
+
+    removeListener(event, callback) {
+        const listeners = this.events.get(event);
+        if (listeners && listeners.includes(callback)) {
+            const index = listeners.indexOf(callback);
+            listeners.splice(index, 1);
+        }
     }
 
     emit(event, ...args) {
@@ -27,11 +39,11 @@ class EventEmitter {
 
 
 class VideoPeer extends EventEmitter {
-    constructor(client, groundControl, polite, iceServers=[]) {
+    constructor(client, signaler, polite, iceServers=[]) {
         super();
         this.client_id = client.id;
         this.username = client.username;
-        this.groundControl = groundControl;
+        this.signaler = signaler;
         this.polite = polite;
         this.connection = null;
         this.makingOffer = false;
@@ -85,7 +97,7 @@ class VideoPeer extends EventEmitter {
                 if (this.connection.signalingState !== 'stable') return;
                 await this.connection.setLocalDescription(offer);
                 const description = this.connection.localDescription.toJSON();
-                this.groundControl.sendMessage({
+                this.signaler.send({
                     receiver: this.client_id,
                     type: description.type,
                     data: description
@@ -101,7 +113,7 @@ class VideoPeer extends EventEmitter {
         this.connection.onicecandidate = ({candidate}) => {
             if (candidate) {
                 //console.log('Gathered ICE candidate: ', candidate);
-                this.groundControl.sendMessage({
+                this.signaler.send({
                     receiver: this.client_id,
                     type: 'icecandidate',
                     data: candidate.toJSON()
@@ -183,7 +195,7 @@ class VideoPeer extends EventEmitter {
 
             const description = this.connection.localDescription.toJSON();
             console.log(`[${this.client_id}] Respond to offer`);
-            this.groundControl.sendMessage({
+            this.signaler.send({
                 receiver: this.client_id,
                 type: description.type,
                 data: description
@@ -257,7 +269,7 @@ class VideoPeer extends EventEmitter {
         const data = {"receiver": this.client_id,
                       "type": "bye",
                       "data": time};
-        this.groundControl.sendMessage(data);
+        this.signaler.send(data);
 
         this.emit('shutdown');
 
@@ -265,77 +277,56 @@ class VideoPeer extends EventEmitter {
     }
 }
 
-class GroundControl {
+class Signaler extends EventEmitter {
     constructor() {
-        this.connection = null;
-        this.datachannel = null;
-        this.createConnection();
-    }
+        super();
 
-    createConnection() {
-        let config = {
-            sdpSemantics: 'unified-plan'
-        };
-        config.iceServers = [{urls: ['stun:stun.l.google.com:19302']}];
-        this.connection = new RTCPeerConnection(config);
+        const protocol = (location.protocol === 'https') ? 'wss' : 'ws';
+        const url = `${protocol}://${location.host}/${location.pathname}/ws`;
+        this.socket = new WebSocket(url);
 
-        this.connection.addEventListener('iceconnectionstatechange', () => {
-            console.log("Ice connection state:", this.connection.iceConnectionState);
-            if (this.connection.iceConnectionState === "failed") {
-                this.connection.restartIce();
-            }
-        });
-
-        this.datachannel = this.connection.createDataChannel('data');
-        this.datachannel.onopen = (evt) => {
-            this.greeting();
+        this.socket.onopen = () => {
+            this.emit('open');
         };
 
-        console.log('Connection for Ground Control created');
+        this.socket.onclose = () => {
+            this.emit('close');
+        };
+
+        this.socket.onerror = (event) => {
+            this.emit('error', event);
+        };
+
+        this.socket.onmessage = (event) => {
+            this.emit('message', JSON.parse(event.data));
+        };
     }
 
-    connectionState() {
-        return this.connection.iceConnectionState;
-    }
-
-    async offer() {
-        console.log('In groundControl.offer()');
-        // Create offer for Ground Control
-        const offer = await this.connection.createOffer();
-        console.log('created offer', offer);
-        await this.connection.setLocalDescription(offer);
-        console.log('set local description', this.connection.localDescription);
-
-        // Wait for ice gathering to complete
-        while (this.connection.iceGatheringState != 'complete') {
-            await new Promise(r => {setTimeout(r, 100)});
+    get connectionState() {
+        switch (this.socket.readyState) {
+            case WebSocket.CONNECTING:
+                return "connecting";
+            case WebSocket.OPEN:
+                return "open";
+            case WebSocket.CLOSING:
+                return "closing";
+            case WebSocket.CLOSED:
+                return "closed";
+            default:
+                return "unknown";
         }
-
-        console.log('ice gathering complete');
-
-        // Send the offer and wait for the answer
-        console.log('Posting offer to ' + document.URL + '/offer');
-        const response = await fetch(document.URL + '/offer', {
-            body: JSON.stringify({sdp: this.connection.localDescription.sdp,
-                                  type: this.connection.localDescription.type}),
-            headers: {'Content-Type': 'application/json'},
-            method: 'POST'
-        });
-        const answer = await response.json();
-        await this.connection.setRemoteDescription(answer);
     }
 
-    sendMessage(data) {
-        this.datachannel.send(JSON.stringify(data));
+    send(data) {
+        this.socket.send(JSON.stringify(data));
         if (data.type === 'offer' || data.type === 'answer' || data.type === 'icecandidate') {
             console.log(`>> Sent ${data.type}: `, data);
         }
     }
 
-    async sendReceiveMessage(data, responseParams) {
+    sendReceive(data, responseParams) {
         // return a Promise that resolves when an appropriate response is received
-        return new Promise((resolve, reject) => {
-            // TODO: use message handler?
+        return new Promise((resolve) => {
             function matchResponse(message) {
                 for (const key in responseParams) {
                     if (!(message.hasOwnProperty(key) && message[key] === responseParams[key])) {
@@ -345,49 +336,44 @@ class GroundControl {
                 return true;
             }
 
-            let dc = this.datachannel;  // needed to access the datachannel inside the closure
-            function onMessage(evt) {
-                let message = JSON.parse(evt.data);
+            const signaler = this;
+            function onMessage(message) {
                 if (matchResponse(message)) {
-                    console.log(`Response matched: `, responseParams);
-                    dc.removeEventListener('message', onMessage);
+                    signaler.removeListener('message', onMessage);
                     resolve(message);
                 }
             }
 
-            this.datachannel.addEventListener('message', onMessage);
-            this.sendMessage(data);
+            signaler.on('message', onMessage);
+            this.send(data);
         });
     }
 
     greeting() {
-        const data = {"receiver": "ground control",
-                      "type": "greeting",
-                      "data": "This is Major Tom to Ground Control: I'm stepping through the door. And the stars look very different today."};
-        this.sendMessage(data);
+        const data = {'receiver': 'ground control',
+                      'type': 'greeting',
+                      'data': 'This is Major Tom to Ground Control: ' +
+                              'I\'m stepping through the door. ' +
+                              'And the stars look very different today.'};
+        this.send(data);
     }
 
     shutdown() {
-        // Stop media tracks
-        this.connection.getReceivers().forEach(receiver => {
-            receiver.track.stop();
-        });
-
         // Say bye to Ground Control
         const time = new Date().getTime();
-        const data = {"receiver": "ground control",
-                    "type": "bye",
-                    "data": time};
-        this.sendMessage(data);
+        const data = {'receiver': 'ground control',
+                      'type': 'bye',
+                      'data': time};
+        this.send(data);
 
-        // Shutdown connections
-        this.connection.close();
-        this.connection = null;
-        this.datachannel = null;
+        // Shutdown socket
+        this.socket.close(1000, 'goodbye');
 
+        this.emit('shutdown');
         console.log('Shutdown connection with Ground Control ');
     }
 }
+
 
 class MessageHandler {
     constructor(manager, signaler) {
@@ -433,7 +419,7 @@ class MessageHandler {
         response.receiver = message.sender;
         response.type = 'pong';
         response.data = message.data;
-        this.signaler.sendMessage(response);
+        this.signaler.send(response);
     }
 
     async pong(message) {
@@ -529,13 +515,13 @@ class Manager extends EventEmitter {
     constructor() {
         super();
         this.username = 'Major Tom';
-        this.groundControl = new GroundControl();
+        this.signaler = new Signaler();
         this.videoPeers = new Map();
         this.localVideoStream = null;
         this.videoTrack = null;
         this.audioTrack = null;
         this.textMessages = [];
-        this.messageHandler = new MessageHandler(this, this.groundControl);
+        this.messageHandler = new MessageHandler(this, this.signaler);
         this.outbox = [];
         this.id = null;
         this.iceServers = [];
@@ -548,7 +534,7 @@ class Manager extends EventEmitter {
                       type: 'profile',
                       data: {username: this.username}
         };
-        this.groundControl.sendMessage(data);
+        this.signaler.send(data);
         console.log('Set username in manager: ', this.username);
     }
 
@@ -580,13 +566,8 @@ class Manager extends EventEmitter {
         return this.audioTrack && this.audioTrack.enabled;
     }
 
-    async establishGroundControl() {
-        await this.groundControl.offer();
-        return this.groundControl;
-    }
-
     async createVideoPeer(client) {
-        const peer = new VideoPeer(client, this.groundControl, this.id < client.id, this.iceServers);
+        const peer = new VideoPeer(client, this.signaler, this.id < client.id, this.iceServers);
         this.videoPeers.set(client.id, peer);
         peer.connect();
 
@@ -668,7 +649,7 @@ class Manager extends EventEmitter {
         let responseParams = {"sender": "ground control",
                             "type": "pong",
                             "data": time};
-        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        let response = await this.signaler.sendReceive(data, responseParams);
         return response.receiver;
 
     }
@@ -678,7 +659,7 @@ class Manager extends EventEmitter {
                     "type": "get-room-info"};
         let responseParams = {"sender": "ground control",
                               "type": "room-info"};
-        let response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        let response = await this.signaler.sendReceive(data, responseParams);
         return response.data;
     }
 
@@ -691,25 +672,23 @@ class Manager extends EventEmitter {
             'sender': 'ground control',
             'type': 'ice-servers'
         }
-        const response = await this.groundControl.sendReceiveMessage(data, responseParams);
+        const response = await this.signaler.sendReceive(data, responseParams);
         return response.data;
     }
 
-    async shutdown() {
+    shutdown() {
         this.shutdownVideoPeers();
-        await this.groundControl.shutdown();
+        this.signaler.shutdown();
     }
 
     async start() {
-        await this.establishGroundControl();
-
         // Set up message handler
-        this.groundControl.datachannel.addEventListener('message', (evt) => {
-            this.messageHandler.handleMessage(JSON.parse(evt.data));
+        this.signaler.on('message', (message) => {
+            this.messageHandler.handleMessage(message);
         });
 
-        // Wait for data channel to open
-        while (this.groundControl.datachannel.readyState != 'open') {
+        // Wait for websocket to open
+        while (this.signaler.connectionState != 'open') {
             await new Promise(r => {setTimeout(r, 100)});
         }
 
@@ -719,4 +698,4 @@ class Manager extends EventEmitter {
     }
 }
 
-export {Manager, GroundControl, VideoPeer};
+export {Manager, Signaler, VideoPeer, EventEmitter};

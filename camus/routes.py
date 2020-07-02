@@ -1,4 +1,7 @@
-from quart import flash, jsonify, redirect, render_template, request
+import asyncio
+
+from quart import (copy_current_websocket_context, flash, jsonify, redirect, render_template,
+                   request, websocket)
 
 from camus import app
 from camus.forms import RoomCreate, RoomJoin
@@ -70,22 +73,37 @@ async def chat_room(room_id):
     return await render_template('join-room.html', title='Join a room', form=form, room_id=room_id)
 
 
-@app.route('/chat/<room_id>/offer', methods=['POST'])
-async def chat_room_offer(room_id):
+@app.websocket('/chat/<room_id>/ws')
+async def chat_room_ws(room_id):
     manager = chat.get_chat_manager()
     room = manager.get_room(room_id)
 
     if room is None:
-        return 'Invalid room id', 404
+        return # close the websocket
 
-    params = await request.json
-    if params['type'] == 'offer':
-        sdp = params['sdp']
-        client = manager.create_client()
-        room.add_client(client)
-        answer = await client.setup_peer_connection(sdp)
-        return jsonify(answer)
+    client = manager.create_client()
+    room.add_client(client)
 
-    if params['type'] == 'icecandidate':
-        # TODO: support trickle ice
-        return '404', 404
+    send_task = asyncio.ensure_future(
+        copy_current_websocket_context(ws_send)(client.outbox),
+    )
+    receive_task = asyncio.ensure_future(
+        copy_current_websocket_context(ws_receive)(client.inbox),
+    )
+    try:
+        await asyncio.gather(send_task, receive_task)
+    finally:
+        send_task.cancel()
+        receive_task.cancel()
+
+
+async def ws_send(queue):
+    while True:
+        message = await queue.get()
+        await websocket.send(message)
+
+
+async def ws_receive(queue):
+    while True:
+        message = await websocket.receive()
+        await queue.put(message)

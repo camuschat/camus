@@ -7,7 +7,6 @@ import uuid
 from base64 import b64encode
 from time import time
 
-from aiortc import RTCPeerConnection, RTCSessionDescription
 from pyee import AsyncIOEventEmitter
 from slugify import slugify
 
@@ -128,63 +127,36 @@ class ChatRoom(AsyncIOEventEmitter):
             await client.shutdown()
 
 
-class ChatClient:
-    def __init__(self, id, username=None, room=None, pc=None, is_admin=False):
+class ChatClient(AsyncIOEventEmitter):
+    def __init__(self, id, username=None, room=None, is_admin=False):
+        super().__init__()
+
         logging.info('Create client {}'.format(id))
         self.id = id
         self.username = username if username is not None else 'Major Tom'
         self.room = room
-        self.datachannel = None
         self.is_admin = is_admin
+        self.inbox = asyncio.Queue()
+        self.outbox = asyncio.Queue()
+        self._inbox_task = asyncio.ensure_future(
+            self._process_inbox()
+        )
 
         # Used by ChatManager for reaping
         # TODO: there is probably a cleaner solution
         self.last_seen = time_ms()
         self.timer = None
 
-        if pc is not None:
-            self.pc = pc
-        self.pc = self.create_peer_connection()
-
-    def create_peer_connection(self):
-        '''
-        Create a peer connection for use between the client and server.
-        '''
-
-        logging.info('Create peer connection for {}'.format(self.id))
-        self.pc = RTCPeerConnection()
-
-        #@self.pc.on("track")
-        #def on_track(track):
-        #    logging.info("{} track received: {}".format(track.kind, track.id))
-        #    pc.addTrack(track)
-
-        #self.datachannel = self.pc.createDataChannel('data')
-        @self.pc.on("datachannel")
-        def on_datachannel(channel):
-            logging.info('Data channel created for client {}'.format(self.id))
-            self.datachannel = channel
-
-            @channel.on("message")
-            async def on_message(message):
-                self.last_seen = time_ms()
-
-        return self.pc
-
-    async def setup_peer_connection(self, sdp):
-        logging.info('Setup peer connection')
-        offer = RTCSessionDescription(sdp=sdp, type='offer')
-        await self.pc.setRemoteDescription(offer)
-
-        answer = await self.pc.createAnswer()
-        await self.pc.setLocalDescription(answer)
-
-        return {"sdp": self.pc.localDescription.sdp, "type": self.pc.localDescription.type}
+    async def _process_inbox(self):
+        while True:
+            message = await self.inbox.get()
+            self.last_seen = time_ms()
+            self.emit('message', message)
 
     def send(self, data):
         try:
             logging.info('ChatClient.send({})'.format(data))
-            self.datachannel.send(data)
+            self.outbox.put_nowait(data)
         except Exception as e:
             logging.info('Couldn\'t send message to client {}: {}'
                          .format(self.id, e))
@@ -208,12 +180,6 @@ class ChatClient:
         if self.timer is not None:
             self.timer.cancel()
             self.timer = None
-
-        if self.datachannel is not None:
-            self.datachannel.close()
-
-        if self.pc is not None:
-            await self.pc.close()
 
         logging.info('Finished shutting down client {}'.format(self.id))
 
@@ -250,11 +216,11 @@ class ChatManager:
         return {client.id: client for room in self.rooms.values()
                 for client in room.clients.values()}
 
-    async def _handle_message(self, message, client, channel):
+    async def _handle_message(self, message, client):
         chat_message = self._parse_message(message, client)
 
         if chat_message.receiver == self._message_address:
-            await self._handle_local_message(chat_message, client, channel)
+            await self._handle_local_message(chat_message, client)
             return
 
         if chat_message.receiver == 'room':
@@ -270,7 +236,7 @@ class ChatManager:
         to_client.send(chat_message.json())
         logging.info('Sending message to client {}'.format(to_client.id))
 
-    async def _handle_local_message(self, message, client, channel):
+    async def _handle_local_message(self, message, client):
         reply = ChatMessage()
         reply.sender = self._message_address
         reply.receiver = client.id
@@ -305,7 +271,7 @@ class ChatManager:
             reply.data = 'Unknown message type: {}'.format(message.type)
 
         logging.info('Sending response: {}'.format(reply.json()))
-        channel.send(reply.json())
+        client.send(reply.json())
 
     def _handle_room_message(self, message, client):
         logging.info('Room message from {}: {}'.format(client.username, message))
@@ -384,33 +350,24 @@ class ChatManager:
         client = ChatClient(client_id)
         client.timer = MTimer(self._reap_timeout, self._reap, client=client)
 
-        @client.pc.on("datachannel")
-        async def on_datachannel(channel):
-            logging.info('Sending greeting to client {}'.format(client.id))
-            greeting = ChatMessage()
-            greeting.sender = self._message_address
-            greeting.receiver = client.id
-            greeting.type = 'greeting'
-            greeting.data = 'This is Ground Control to Major Tom: You\'ve really made the grade. Now it\'s time to leave the capsule if you dare.'
-            channel.send(greeting.json())
+        logging.info('Sending greeting to client {}'.format(client.id))
+        greeting = ChatMessage()
+        greeting.sender = self._message_address
+        greeting.receiver = client.id
+        greeting.type = 'greeting'
+        greeting.data = 'This is Ground Control to Major Tom: You\'ve really made the grade. Now it\'s time to leave the capsule if you dare.'
+        client.send(greeting.json())
 
-            @channel.on("message")
-            async def on_message(message):
-                logging.info('Received message: {}'.format(message))
+        @client.on("message")
+        async def on_message(message):
+            logging.info('Received message: {}'.format(message))
 
-                # Reap this client if we haven't seen it for too long
-                if client.timer is not None:
-                    client.timer.cancel()
-                client.timer = MTimer(self._reap_timeout, self._reap, client=client)
+            # Reap this client if we haven't seen it for too long
+            if client.timer is not None:
+                client.timer.cancel()
+            client.timer = MTimer(self._reap_timeout, self._reap, client=client)
 
-                await self._handle_message(message, client, channel)
-
-        @client.pc.on('iceconnectionstatechange')
-        async def on_iceconnectionstatechange():
-            state = client.pc.iceConnectionState
-            logging.info('ICE connection state for client %s changed to %s', client.id, state)
-            if state in ('failed', 'closed'):
-                await self.remove_client(client)
+            await self._handle_message(message, client)
 
         return client
 

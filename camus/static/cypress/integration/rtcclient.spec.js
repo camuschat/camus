@@ -1,4 +1,25 @@
-import {Manager, GroundControl, VideoPeer} from '../../js/rtcclient.js';
+import {EventEmitter, VideoPeer} from '../../js/rtcclient.js';
+
+describe('Test EventEmitter', () => {
+    it('can add a listener', () => {
+        const ee = new EventEmitter();
+        const callback = () => {};
+
+        ee.on('event', callback);
+
+        expect(ee.listeners('event')).to.include(callback);
+    });
+
+    it('can remove a listener', () => {
+        const ee = new EventEmitter();
+        const callback = () => {};
+
+        ee.on('event', callback);
+        ee.removeListener('event', callback);
+
+        expect(ee.listeners('event')).not.to.include(callback);
+    });
+});
 
 describe('Test VideoPeer', () => {
     it('can initialize a connection', () => {
@@ -57,7 +78,7 @@ describe('Test VideoPeer', () => {
 function createSignaler() {
     const signaler =  {
         peers: new Map(),
-        sendMessage: ({receiver, type, data}) => {
+        send: ({receiver, type, data}) => {
             if (type === 'offer') {
                 signaler.peers.get(receiver).onOffer(data).then();
             }

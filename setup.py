@@ -13,7 +13,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'aiortc==0.9.28',
         'quart==0.11.5',
         'bootstrap-flask==1.3.1',
         'flask-wtf==0.14.3',
