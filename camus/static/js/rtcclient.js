@@ -281,8 +281,8 @@ class Signaler extends EventEmitter {
     constructor() {
         super();
 
-        const protocol = (location.protocol === 'https') ? 'wss' : 'ws';
-        const url = `${protocol}://${location.host}/${location.pathname}/ws`;
+        const protocol = (location.protocol.startsWith('https')) ? 'wss' : 'ws';
+        const url = `${protocol}://${location.host}${location.pathname}/ws`;
         this.socket = new WebSocket(url);
 
         this.socket.onopen = () => {
