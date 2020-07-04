@@ -1,4 +1,26 @@
-# Messaging Protocol
+# Technical overview
+
+When a user enters a room, the client establishes a [WebSocket][websocket-docs] connection with the server,
+which is used to exchange JSON-encoded [messages][messaging-docs].
+For example, a `room-info` message provides the client with information about other
+clients connected to the room. This communication channel is also used for [signaling][signaling-docs], in
+which clients exchange [offers][createoffer-docs] and [answers][createanswer-docs] to negotiate WebRTC peer connections for streaming
+audio and video.
+
+
+## Server-side components
+- ChatRoom -- manages clients and room information for a given room
+- ChatClient -- represents a client which is connected to a room
+- ChatManager -- manages chat rooms and handles message relaying
+
+
+## Client-side componenets
+- Signaler -- passes messages between the client and server using a WebSocket
+- VideoPeer -- represents another client in the room and streams media using [RTCPeerConnection][rtcpeerconnection-docs]
+- Manager -- manages the Signaler and all VideoPeers
+
+
+## Messaging Protocol
 
 Clients exchange messages with the server using a JSON-based protocol.
 Different message types allow various types of data to be exchanged, for example a simple ping/pong or
@@ -13,7 +35,7 @@ Most messages contain a few common headers, which are keys in the JSON message o
   - `data` -- the payload, whose structure depends on `type`
 
 
-## Message Types
+### Message Types
 
 - ping -- a simple message to which a `pong` reply is expected
 
@@ -60,7 +82,7 @@ Most messages contain a few common headers, which are keys in the JSON message o
      receiver: '',
      type: 'room-info',
      data: {room_id: '',
-            clients: [{id: '', username: ''}]}
+            clients: [{id: '', username: ''}]}}
     ```
 
 - profile -- an information update about a client, such as the client's username
@@ -70,6 +92,24 @@ Most messages contain a few common headers, which are keys in the JSON message o
      receiver: '',
      type: 'profile',
      data: {username: ''}}
+    ```
+
+- get-ice-servers -- request information about available STUN and TURN servers
+
+    ```
+    {sender: '',
+     receiver: '',
+     type: 'get-ice-servers'}
+    ```
+
+- ice-servers -- supply information about available STUN and TURN servers
+
+    ```
+    {sender: '',
+     receiver: '',
+     type: 'ice-servers',
+     data: [{urls: ['']},
+            {urls: [''], username: '', credential: ''}]}
     ```
 
 - offer -- an offer to establish an RTCPeerConnection, to which an `answer` is expected
@@ -107,3 +147,9 @@ Most messages contain a few common headers, which are keys in the JSON message o
      type: 'bye',
      data: ''}
     ```
+[websocket-docs]: https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
+[signaling-docs]: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+[createoffer-docs]: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createOffer
+[createanswer-docs]: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createAnswer
+[messaging-docs]: #messaging-protocol
+[rtcpeerconnection-docs]: https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection
