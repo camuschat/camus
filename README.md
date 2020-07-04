@@ -35,22 +35,7 @@ You can find a live demo at [https://camus.chat](https://camus.chat).
 ### Using Python
 
 Camus requires [Python 3.7][python-37-whatsnew] or higher since it makes use of Quart and async syntax.
-
 As usual, it's best to use a virtual environment.
-
-Make sure you have system packages required by the `av` package (a dependency of aiortc) installed.
-On Ubuntu/Debian:
-
-```
-$ sudo apt-get install -y \
-    gcc \
-    libavdevice-dev \
-    libavfilter-dev \
-    libopus-dev \
-    libvpx-dev \
-    pkg-config \
-    python-dev
-```
 
 Install Camus:
 
