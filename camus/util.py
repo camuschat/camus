@@ -7,7 +7,7 @@ class MTimer:
     def __init__(self, timeout, callback, **kwargs):
         self._timeout = timeout
         self._callback = callback
-        self._task = asyncio.ensure_future(self._run())
+        self._task = asyncio.create_task(self._run())
         self._kwargs = kwargs
 
     async def _run(self):

@@ -84,10 +84,10 @@ async def chat_room_ws(room_id):
     client = manager.create_client()
     room.add_client(client)
 
-    send_task = asyncio.ensure_future(
+    send_task = asyncio.create_task(
         copy_current_websocket_context(ws_send)(client.outbox),
     )
-    receive_task = asyncio.ensure_future(
+    receive_task = asyncio.create_task(
         copy_current_websocket_context(ws_receive)(client.inbox),
     )
     try:

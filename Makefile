@@ -32,7 +32,7 @@ test-server:  ## Run server tests
         --workdir="/opt/camus" \
 		--env-file dev.env \
 		camus:test-server \
-        /bin/bash -c "pip install -e /opt/camus && python -m pytest /opt/camus"
+        /bin/bash -c "pip install -e /opt/camus && python -m pytest /opt/camus/test"
 
 .PHONY: test-client
 test-client: clean-containers serve  ## Run client tests

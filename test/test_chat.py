@@ -4,12 +4,13 @@ import pytest
 
 from camus.chat import ChatClient, ChatManager, ChatRoom, get_chat_manager
 
+pytestmark = pytest.mark.asyncio
 
 def test_get_chat_manager():
     assert get_chat_manager() is not None
 
 class TestChatRoom:
-    def test_add_client(self):
+    async def test_add_client(self):
         client_id = uuid.uuid4().hex
         client = ChatClient(client_id)
         room = ChatRoom('junk')
@@ -17,7 +18,7 @@ class TestChatRoom:
         assert client_id in room.clients
         assert client in room.clients.values()
 
-    def test_remove_client(self):
+    async def test_remove_client(self):
         client_id = uuid.uuid4().hex
         client = ChatClient(client_id)
         room = ChatRoom('garbage')
@@ -26,7 +27,7 @@ class TestChatRoom:
         assert client_id not in room.clients
         assert client not in room.clients.values()
 
-    def test_get_clients(self):
+    async def test_get_clients(self):
         client1 = ChatClient(uuid.uuid4().hex)
         client2 = ChatClient(uuid.uuid4().hex)
         room = ChatRoom('trash')
@@ -36,7 +37,7 @@ class TestChatRoom:
         assert client1 in clients
         assert client2 in clients
 
-    def test_info(self):
+    async def test_info(self):
         client_id = uuid.uuid4().hex
         client_username = 'Mr. Bill'
         client = ChatClient(client_id, username=client_username)
@@ -50,7 +51,7 @@ class TestChatRoom:
         assert client_id in [item['id'] for item in room_info['clients']]
         assert client_username in [item['username'] for item in room_info['clients']]
 
-    def test_is_full(self):
+    async def test_is_full(self):
         client1 = ChatClient(uuid.uuid4().hex)
         client2 = ChatClient(uuid.uuid4().hex)
         room = ChatRoom('clutter', guest_limit=2)
@@ -64,13 +65,13 @@ class TestChatRoom:
         assert not room.is_full()
 
 class TestChatManager:
-    def test_add_room(self):
+    async def test_add_room(self):
         manager = get_chat_manager()
         room = ChatRoom('waste')
         manager.add_room(room)
         assert room.id in manager.rooms
 
-    def test_create_client(self):
+    async def test_create_client(self):
         manager = get_chat_manager()
         client = manager.create_client()
         assert client is not None
@@ -81,7 +82,7 @@ class TestChatManager:
         assert client is not None
         assert client.id == client_id
 
-    def test_create_room(self):
+    async def test_create_room(self):
         manager = get_chat_manager()
         room_id = uuid.uuid4().hex
         room = manager.create_room(room_id)
@@ -90,7 +91,6 @@ class TestChatManager:
         assert room_id in manager.rooms
         assert manager.rooms[room_id] == room
 
-    @pytest.mark.asyncio
     async def test_remove_client(self):
         manager = get_chat_manager()
         client = manager.create_client()
@@ -100,13 +100,13 @@ class TestChatManager:
         assert client.id not in manager.clients
         assert client not in manager.clients.values()
 
-    def test_get_room(self):
+    async def test_get_room(self):
         manager = get_chat_manager()
         room = manager.create_room('refuse')
         got_room = manager.get_room(room.id)
         assert room == got_room
 
-    def test_get_public_rooms(self):
+    async def test_get_public_rooms(self):
         manager = get_chat_manager()
         public_room = manager.create_room('public', is_public=True)
         assert public_room in manager.get_public_rooms()

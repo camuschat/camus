@@ -138,7 +138,7 @@ class ChatClient(AsyncIOEventEmitter):
         self.is_admin = is_admin
         self.inbox = asyncio.Queue()
         self.outbox = asyncio.Queue()
-        self._inbox_task = asyncio.ensure_future(
+        self._inbox_task = asyncio.create_task(
             self._process_inbox()
         )
 
@@ -181,6 +181,10 @@ class ChatClient(AsyncIOEventEmitter):
             self.timer.cancel()
             self.timer = None
 
+        if self._inbox_task is not None:
+            self._inbox_task.cancel()
+            self._inbox_task = None
+
         logging.info('Finished shutting down client {}'.format(self.id))
 
 class ChatMessage:
@@ -206,8 +210,6 @@ class ChatManager:
     def __init__(self):
         logging.info('Create ChatManager')
         self.rooms = {}
-        self._stop = False
-        self._message_forwarder_task = None
         self._message_address = "ground control"
         self._reap_timeout = 60
 
