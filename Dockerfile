@@ -12,6 +12,7 @@ ADD . /app
 ENV QUART_APP camus
 ENV QUART_ENV production
 RUN pip install -r /app/requirements/production.txt
+WORKDIR /app
 CMD /usr/local/bin/quart run --host 0.0.0.0
 
 

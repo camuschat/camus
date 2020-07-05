@@ -48,16 +48,11 @@ will act as a separate client.
 
 ### Using Docker
 
-Build the image:
+You can find a [pre-built Docker image][camus-dockerhub] on Docker Hub.
+Use the following command to pull the image and run a container:
 
 ```
-$ docker build -t camus .
-```
-
-Run a container:
-
-```
-$ ./docker-run.sh
+$ docker run -d -p 5000:5000 mrgnr/camus
 ```
 
 Go to `localhost:5000` in your browser. For local testing, you can visit the same room in multiple tabs and each tab
@@ -100,6 +95,7 @@ See the [development documentation][development-docs] for build & test instructi
 [webrtc-api]: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 [quart-gitlab]: https://gitlab.com/pgjones/quart
 [python-37-whatsnew]: https://docs.python.org/3.7/whatsnew/3.7.html
+[camus-dockerhub]: https://hub.docker.com/r/mrgnr/camus
 [technical-docs]: https://github.com/mrgnr/camus/blob/master/docs/technical-overview.md
 [development-docs]: https://github.com/mrgnr/camus/blob/master/docs/development.md
 [babel-github]: https://github.com/babel/babel
