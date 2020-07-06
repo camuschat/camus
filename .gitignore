@@ -4,6 +4,9 @@ __pycache__/
 dist/
 build/
 
+# sphinx
+docs/_build/
+
 # node
 camus/static/node_modules
 
