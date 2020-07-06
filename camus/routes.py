@@ -17,7 +17,7 @@ async def index():
 
 @app.route('/about')
 async def about():
-    return await render_template('about.html')
+    return await render_template('about.html', title='Camus Video Chat | About')
 
 @app.route('/chat', methods=['GET', 'POST'])
 async def chat_create():
@@ -57,7 +57,7 @@ async def chat_room(room_id):
         return 'Guest limit already reached', 418
 
     if room.authenticate():  # i.e. a password is not required
-        return await render_template('chatroom.html', title='Camus - {}'.format(room.name))
+        return await render_template('chatroom.html', title='Camus | {}'.format(room.name))
 
     form = RoomJoin()
     if form.validate_on_submit():
@@ -66,11 +66,11 @@ async def chat_room(room_id):
 
         if room.authenticate(password):
             # TODO: Generate token to be used with offer
-            return await render_template('chatroom.html', title='Camus - {}'.format(room.name))
+            return await render_template('chatroom.html', title='Camus | {}'.format(room.name))
         else:
             await flash('Invalid password')
 
-    return await render_template('join-room.html', title='Join a room', form=form, room_id=room_id)
+    return await render_template('join-room.html', title='Camus | Join a room', form=form, room_id=room_id)
 
 
 @app.websocket('/chat/<room_id>/ws')
