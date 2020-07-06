@@ -1,7 +1,7 @@
 Camus
 =====
 
-|Build Status| |PyPI| |License|
+|Build Status| |docs| |PyPI| |License|
 
 |Donate using Liberapay|
 
@@ -103,6 +103,8 @@ v0.3+
 
 .. |Build Status| image:: https://travis-ci.org/mrgnr/camus.svg?branch=master
    :target: https://travis-ci.org/mrgnr/camus
+.. |docs| image:: https://img.shields.io/readthedocs/camus/latest
+   :target: https://docs.camus.chat
 .. |PyPI| image:: https://img.shields.io/pypi/v/camus-chat
    :target: https://pypi.org/project/camus-chat
 .. |License| image:: https://img.shields.io/github/license/mrgnr/camus

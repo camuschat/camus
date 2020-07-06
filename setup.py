@@ -4,7 +4,7 @@ setup(
     name='camus-chat',
     version='0.1.dev5',
     description='Peer-to-peer video chat using WebRTC',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     long_description_content_type="text/markdown",
     url='https://github.com/mrgnr/camus',
     author='Morgan Robertson',
