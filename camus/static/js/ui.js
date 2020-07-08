@@ -47,13 +47,12 @@ class UI {
             allowVideoDrop(evt);
         };
 
-        videoBox.addEventListener('click', (evt) => {
-            console.log('Click on videoBox', videoBox);
-            // Move video box in and out of center stage on click
-            let stage = document.getElementById('video-stage');
-            let thumbs = document.getElementById('video-thumbs');
+        videoBox.addEventListener('dblclick', (evt) => {
+            // Move video box in and out of center stage on double click
+            const stage = document.getElementById('video-stage');
+            const thumbs = document.getElementById('video-thumbs');
 
-            let stageVideo = stage.firstElementChild;
+            const stageVideo = stage.firstElementChild;
             if (stageVideo != null) {
                 thumbs.append(stageVideo);
             }
