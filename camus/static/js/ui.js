@@ -29,9 +29,9 @@ class UI {
         videoElement.autoplay = 'true';
         videoElement.style.width = '100%';
         videoElement.playsinline = 'true';
-        //videoElement.draggable = 'true';
         if (id === 'local') {videoElement.muted = 'true';}
-        let videoThumbs = document.getElementById('video-thumbs');
+        const videoThumbs = document.getElementById('video-thumbs');
+        const videoStage = document.getElementById('video-stage');
 
         let videoBox = document.createElement('div');
         videoBox.className = 'video-box';
@@ -75,7 +75,12 @@ class UI {
 
         videoBox.appendChild(videoTag);
         videoBox.appendChild(videoElement);
-        videoThumbs.appendChild(videoBox);
+
+        if (videoStage.firstElementChild === null) {
+            videoStage.appendChild(videoBox);
+        } else {
+            videoThumbs.appendChild(videoBox);
+        }
     }
 
     removeVideoElement(id) {
