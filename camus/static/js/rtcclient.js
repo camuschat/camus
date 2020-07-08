@@ -252,16 +252,11 @@ class VideoPeer extends EventEmitter {
     shutdown() {
         // Clean up RTCPeerConnection
         if (this.connection !== null) {
-            this.connection.getSenders().forEach(sender => {
-                if(sender.track) sender.track.stop();
-            });
-
             this.connection.getReceivers().forEach(receiver => {
                 if(receiver.track) receiver.track.stop();
             });
 
             this.connection.close();
-            this.connection = null;
         }
 
         // Say bye to peer
@@ -522,7 +517,6 @@ class Manager extends EventEmitter {
         this.audioTrack = null;
         this.textMessages = [];
         this.messageHandler = new MessageHandler(this, this.signaler);
-        this.outbox = [];
         this.id = null;
         this.iceServers = [];
     }
@@ -555,15 +549,40 @@ class Manager extends EventEmitter {
         });
     }
 
-    toggleAudio() {
+    get audioEnabled() {
+        return this.audioTrack && this.audioTrack.enabled;
+    }
+
+    set audioEnabled(enabled) {
+        if (this.audioTrack) this.audioTrack.enabled = enabled;
+    }
+
+    get videoEnabled() {
+        return this.videoTrack && this.videoTrack.enabled;
+    }
+
+    set videoEnabled(enabled) {
+        if (this.videoTrack) this.videoTrack.enabled = enabled;
+    }
+
+    stopAudio() {
         if (this.audioTrack) {
-            this.audioTrack.enabled = !this.audioTrack.enabled;
-            console.log(this.audioTrack.kind + ' enabled: ' + this.audioTrack.enabled);
+            this.audioTrack.enabled = false;
+            this.audioTrack.stop();
         }
     }
 
-    audioEnabled() {
-        return this.audioTrack && this.audioTrack.enabled;
+    stopVideo() {
+        if (this.videoTrack) {
+            this.videoTrack.enabled = false;
+            this.videoTrack.stop();
+        }
+    }
+
+    toggleAudio() {
+        if (this.audioTrack) {
+            this.audioTrack.enabled = !this.audioTrack.enabled;
+        }
     }
 
     async createVideoPeer(client) {

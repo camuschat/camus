@@ -6,6 +6,7 @@ class UI {
     constructor(manager) {
         this.manager = manager;
         this.videoMode = 'camera';
+        this.audioMode = 'on';
     }
 
     attachVideoElement(id, stream) {
@@ -86,13 +87,13 @@ class UI {
 
     async toggleVideo() {
         if (this.videoMode == 'camera') {
-            // Stop the current video track
-            let currentVideoTrack = this.manager.localVideoStream.getTracks().find(track => track.kind === 'video');
-            currentVideoTrack.stop();
-
-            // Update ui
+            this.manager.videoEnabled = false;
             document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
-            this.videoMode = 'off';
+            this.videoMode = 'camera-off';
+        } else if (this.videoMode == 'camera-off') {
+            this.manager.videoEnabled = true;
+            document.getElementById('toggle-video-icon').innerHTML = 'videocam';
+            this.videoMode = 'camera';
         } else {
             await this.streamVideo();
         }
@@ -100,39 +101,28 @@ class UI {
 
     async toggleDisplay() {
         if (this.videoMode == 'display') {
-            // Stop the current video track
-            let currentVideoTrack = this.manager.localVideoStream.getTracks().find(track => track.kind === 'video');
-            currentVideoTrack.stop();
-
-            // Update ui
+            this.manager.stopVideo();
             document.getElementById('toggle-display-icon').innerHTML = 'stop_screen_share';
-            this.videoMode = 'off';
+            this.videoMode = 'display-off';
         } else {
             await this.streamDisplay();
         }
     }
 
     toggleAudio() {
-        console.log('Toggle audio', this.manager.audioTrack);
         this.manager.toggleAudio();
 
         let icon = document.getElementById('toggle-audio-icon');
-        if (this.manager.audioEnabled()) {
+        if (this.manager.audioEnabled) {
             icon.innerHTML = 'mic';
+            this.audioMode = 'on';
         } else {
             icon.innerHTML = 'mic_off';
+            this.audioMode = 'off';
         }
     }
 
     async streamVideo() {
-        // Stop the current video track
-        if (this.manager.localVideoStream) {
-            const currentVideoTrack = this.manager.localVideoStream.getTracks().find(track => track.kind === 'video');
-            if (currentVideoTrack) {
-                currentVideoTrack.stop();
-            }
-        }
-
         // Get stream from cam and mic
         const constraints = {
             audio: true,
@@ -140,7 +130,11 @@ class UI {
         };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-        // Update everything with new video track
+        // Stop the current audio and video tracks
+        this.manager.stopAudio();
+        this.manager.stopVideo();
+
+        // Update everything with new audio and video tracks
         const videoTrack = stream.getTracks().find(track => track.kind === 'video');
         const audioTrack = stream.getTracks().find(track => track.kind === 'audio');
         this.createVideoElement('local', this.manager.username);
@@ -148,6 +142,7 @@ class UI {
         this.manager.localVideoStream = stream;
         await this.manager.setVideoTrack(videoTrack);
         await this.manager.setAudioTrack(audioTrack);
+        this.manager.audioEnabled = this.audioMode === 'on';
 
         // Update ui
         document.getElementById('toggle-video-icon').innerHTML = 'videocam';
@@ -167,8 +162,7 @@ class UI {
         let stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
         // Stop the current video track
-        let currentVideoTrack = this.manager.localVideoStream.getTracks().find(track => track.kind === 'video');
-        currentVideoTrack.stop();
+        this.manager.stopVideo();
 
         // Update everything with new video track
         let newTrack = stream.getTracks().find(track => track.kind === 'video');
