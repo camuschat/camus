@@ -5,8 +5,8 @@ import {Manager} from './rtcclient.js';
 class UI {
     constructor(manager) {
         this.manager = manager;
-        this.videoMode = 'camera';
-        this.audioMode = 'on';
+        this.videoMode = 'off';
+        this.audioMode = 'off';
     }
 
     attachVideoElement(id, stream) {
@@ -90,94 +90,154 @@ class UI {
     }
 
     async toggleVideo() {
+        const videoIcon = document.getElementById('toggle-video-icon');
+        const displayIcon = document.getElementById('toggle-display-icon');
+
         if (this.videoMode == 'camera') {
             this.manager.videoEnabled = false;
-            document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
-            this.videoMode = 'camera-off';
-        } else if (this.videoMode == 'camera-off') {
+            videoIcon.innerHTML = 'videocam_off';
+            this.videoMode = 'camera-disabled';
+        } else if (this.videoMode == 'camera-disabled') {
             this.manager.videoEnabled = true;
-            document.getElementById('toggle-video-icon').innerHTML = 'videocam';
+            videoIcon.innerHTML = 'videocam';
             this.videoMode = 'camera';
         } else {
-            await this.streamVideo();
+            const {video} = await this.streamUserMedia(false, true);
+            if (video) {
+                videoIcon.innerHTML = 'videocam';
+                displayIcon.innerHTML = 'stop_screen_share';
+                this.videoMode = 'camera';
+            }
         }
     }
 
     async toggleDisplay() {
+        const videoIcon = document.getElementById('toggle-video-icon');
+        const displayIcon = document.getElementById('toggle-display-icon');
+
         if (this.videoMode == 'display') {
             this.manager.stopVideo();
-            document.getElementById('toggle-display-icon').innerHTML = 'stop_screen_share';
-            this.videoMode = 'display-off';
+            displayIcon.innerHTML = 'stop_screen_share';
+            this.videoMode = 'off';
         } else {
-            await this.streamDisplay();
+            const video = await this.streamDisplay();
+            if (video) {
+                videoIcon.innerHTML = 'videocam_off';
+                displayIcon.innerHTML = 'screen_share';
+                this.videoMode = 'display';
+            }
         }
     }
 
-    toggleAudio() {
-        this.manager.toggleAudio();
+    async toggleAudio() {
+        const audioIcon = document.getElementById('toggle-audio-icon');
 
-        let icon = document.getElementById('toggle-audio-icon');
-        if (this.manager.audioEnabled) {
-            icon.innerHTML = 'mic';
-            this.audioMode = 'on';
+        if (this.audioMode == 'mic') {
+            this.manager.audioEnabled = false;
+            audioIcon.innerHTML = 'mic_off';
+            this.audioMode = 'mic-disabled';
+        } else if (this.audioMode == 'mic-disabled') {
+            this.manager.audioEnabled = true;
+            audioIcon.innerHTML = 'mic';
+            this.audioMode = 'mic';
         } else {
-            icon.innerHTML = 'mic_off';
-            this.audioMode = 'off';
+            const {audio} = await this.streamUserMedia(true, false);
+            if (audio) {
+                audioIcon.innerHTML = 'mic';
+                this.audioMode = 'mic';
+            }
         }
     }
 
-    async streamVideo() {
-        // Get stream from cam and mic
+    async getCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter(device => device.kind === 'videoinput');
+        } catch(err) {
+            console.error(err);
+            return [];
+        }
+    }
+
+    async getMics() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter(device => device.kind === 'audioinput');
+        } catch(err) {
+            console.error(err);
+            return [];
+        }
+    }
+
+    async hasCamera() {
+        const cameras = await this.getCameras();
+        return cameras.length > 0;
+    }
+
+    async hasMic() {
+        const mics = await this.getMics();
+        return mics.length > 0;
+    }
+
+    async streamUserMedia(audio=true, video=true) {
+        const hasMic = await this.hasMic();
+        const hasCamera = await this.hasCamera();
         const constraints = {
-            audio: true,
-            video: true
+            audio: audio && hasMic,
+            video: video && hasCamera
         };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-        // Stop the current audio and video tracks
-        this.manager.stopAudio();
-        this.manager.stopVideo();
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            if (!this.manager.localVideoStream) this.manager.localVideoStream = stream;
+        } catch(err) {
+            console.error(err);
+            return {audio: null, video: null};
+        }
 
-        // Update everything with new audio and video tracks
         const videoTrack = stream.getTracks().find(track => track.kind === 'video');
         const audioTrack = stream.getTracks().find(track => track.kind === 'audio');
-        this.createVideoElement('local', this.manager.username);
-        this.attachVideoElement('local', stream);
-        this.manager.localVideoStream = stream;
-        await this.manager.setVideoTrack(videoTrack);
-        await this.manager.setAudioTrack(audioTrack);
-        this.manager.audioEnabled = this.audioMode === 'on';
 
-        // Update ui
-        document.getElementById('toggle-video-icon').innerHTML = 'videocam';
-        document.getElementById('toggle-display-icon').innerHTML = 'stop_screen_share';
-        this.videoMode = 'camera';
+        if (audioTrack) {
+            this.manager.stopAudio();
+            await this.manager.setAudioTrack(audioTrack);
+        }
+
+        if (videoTrack) {
+            this.manager.stopVideo();
+            await this.manager.setVideoTrack(videoTrack);
+            this.createVideoElement('local', this.manager.username);
+            this.attachVideoElement('local', stream);
+        }
+
+        return {audio: audioTrack, video: videoTrack}
     }
 
     async streamDisplay() {
-        // Get display stream
         const constraints = {
-            'video': {
-                cursor: 'always',
-                displaySurface: 'application'
-            },
+            'video': {cursor: 'always'},
             'audio': false
         };
-        let stream = await navigator.mediaDevices.getDisplayMedia(constraints);
 
-        // Stop the current video track
-        this.manager.stopVideo();
+        let stream;
+        try {
+            stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+            if (!this.manager.localVideoStream) this.manager.localVideoStream = stream;
+        } catch(err) {
+            console.error(err);
+            return null;
+        }
 
-        // Update everything with new video track
-        let newTrack = stream.getTracks().find(track => track.kind === 'video');
-        document.getElementById('video-local').srcObject = stream;
-        this.manager.localVideoStream = stream;
-        await this.manager.setVideoTrack(newTrack);
+        const videoTrack = stream.getTracks().find(track => track.kind === 'video');
+        if (videoTrack) {
+            this.manager.stopVideo();
+            await this.manager.setVideoTrack(videoTrack);
+            this.createVideoElement('local', this.manager.username);
+            this.attachVideoElement('local', stream);
+        }
 
-        // Update ui
-        document.getElementById('toggle-video-icon').innerHTML = 'videocam_off';
-        document.getElementById('toggle-display-icon').innerHTML = 'screen_share';
-        this.videoMode = 'display';
+        return videoTrack;
     }
 
     async sendMessage() {
@@ -256,21 +316,38 @@ class UI {
         });
     }
 
+    async startUserMedia() {
+        const {audio, video} = await this.streamUserMedia(true, true);
+        const videoIcon = document.getElementById('toggle-video-icon');
+        const displayIcon = document.getElementById('toggle-display-icon');
+        const audioIcon = document.getElementById('toggle-audio-icon');
+
+        if (video) {
+            videoIcon.innerHTML = 'videocam';
+            displayIcon.innerHTML = 'stop_screen_share';
+            this.videoMode = 'camera';
+        }
+
+        if (audio) {
+            audioIcon.innerHTML = 'mic';
+            this.audioMode = 'mic';
+        }
+    }
+
     async start() {
-        await new Promise(r => setTimeout(r, 200)); // allow manager to start up
-        await this.streamVideo();
+        await new Promise(r => {setTimeout(r, 200)}); // allow manager to start up
+        await this.startUserMedia();
+
         let messageParams = {"type": "text"};
         this.manager.addMessageListener(messageParams, this.updateMessageBar);
 
         this.manager.on('videopeer', (peer) => {
             // Display video when a track is received from a peer
             peer.on('track', (track, streams) => {
-                if (track.kind === 'video') {
-                    track.onunmute = () => {
-                        this.createVideoElement(peer.client_id, peer.username);
-                        this.attachVideoElement(peer.client_id, streams[0]);
-                    };
-                }
+                track.onunmute = () => {
+                    this.createVideoElement(peer.client_id, peer.username);
+                    this.attachVideoElement(peer.client_id, streams[0]);
+                };
             });
 
             // Remove video when a peer disconnects

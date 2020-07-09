@@ -579,12 +579,6 @@ class Manager extends EventEmitter {
         }
     }
 
-    toggleAudio() {
-        if (this.audioTrack) {
-            this.audioTrack.enabled = !this.audioTrack.enabled;
-        }
-    }
-
     async createVideoPeer(client) {
         const peer = new VideoPeer(client, this.signaler, this.id < client.id, this.iceServers);
         this.videoPeers.set(client.id, peer);
