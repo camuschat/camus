@@ -64,7 +64,7 @@ class VideoPeer extends EventEmitter {
             this.emit('track', track, streams);
         };
 
-        this.connection.onconnectionstatechange = (evt) => {
+        this.connection.onconnectionstatechange = () => {
             console.log(`[${this.client_id}] Connection state: ${this.connection.connectionState}`);
             this.emit('connectionstatechange', this.connection.connectionState);
         };
@@ -112,7 +112,6 @@ class VideoPeer extends EventEmitter {
         // Send ICE candidates as they are gathered
         this.connection.onicecandidate = ({candidate}) => {
             if (candidate) {
-                //console.log('Gathered ICE candidate: ', candidate);
                 this.signaler.send({
                     receiver: this.client_id,
                     type: 'icecandidate',
@@ -145,7 +144,7 @@ class VideoPeer extends EventEmitter {
     }
 
     remoteDescription() {
-        let description = this.connection.remoteDescription;
+        const description = this.connection.remoteDescription;
         if (description) {
             return description.sdp;
         } else {
@@ -365,7 +364,6 @@ class Signaler extends EventEmitter {
         this.socket.close(1000, 'goodbye');
 
         this.emit('shutdown');
-        console.log('Shutdown connection with Ground Control ');
     }
 }
 
@@ -400,7 +398,6 @@ class MessageHandler {
 
         this.messageListeners.forEach(([messageParams, listener]) => {
             if (this.match(message, messageParams)) {
-                console.log('Calling listener for message: ', message);
                 listener(message);
             }
 
@@ -410,7 +407,7 @@ class MessageHandler {
     async ping(message) {
         console.log('<< Received ping: ', message);
 
-        let response = this.emptyMessage();
+        const response = this.emptyMessage();
         response.receiver = message.sender;
         response.type = 'pong';
         response.data = message.data;
@@ -482,7 +479,7 @@ class MessageHandler {
     async bye(message) {
         console.log('<< Received bye: ', message);
 
-        let client_id = message.sender;
+        const client_id = message.sender;
         if (this.manager.videoPeers.has(client_id)) {
             this.manager.videoPeers.get(client_id).shutdown();
             this.manager.videoPeers.delete(client_id);
@@ -521,7 +518,7 @@ class Manager extends EventEmitter {
         this.iceServers = [];
     }
 
-    async setUsername(username) {
+    setUsername(username) {
         this.username = username;
 
         const data = {receiver: 'ground control',
@@ -529,7 +526,6 @@ class Manager extends EventEmitter {
                       data: {username: this.username}
         };
         this.signaler.send(data);
-        console.log('Set username in manager: ', this.username);
     }
 
     async setAudioTrack(track) {
@@ -543,10 +539,9 @@ class Manager extends EventEmitter {
     }
 
     async setTrack(track) {
-        this.videoPeers.forEach(async (peer, peer_id) => {
-            console.log('Replace ' + track.kind + ' track for peer ' + peer_id);
+        for (let peer of this.videoPeers.values()) {
             await peer.setTrack(track, this.localVideoStream);
-        });
+        }
     }
 
     get audioEnabled() {
@@ -607,37 +602,36 @@ class Manager extends EventEmitter {
     }
 
     async findPeers() {
-        let roomInfo = await this.get_room_info();
+        const roomInfo = await this.get_room_info();
         await this.updatePeers(roomInfo);
     }
 
     async updatePeers(roomInfo) {
         // Remove peers not in room
-        let roomClientIds = roomInfo.clients.map(({id, username}) => id);
-        let peerClientIds = Array.from(this.videoPeers.keys());
-        let removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
+        const roomClientIds = roomInfo.clients.map(({id}) => id);
+        const peerClientIds = Array.from(this.videoPeers.keys());
+        const removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
 
-        removeIds.forEach(async (clientId) => {
-            let peer = this.videoPeers.get(clientId);
+        removeIds.forEach((clientId) => {
+            const peer = this.videoPeers.get(clientId);
             peer.shutdown();
             this.videoPeers.delete(clientId);
             console.log('Removed client ', clientId);
         });
 
         // Add peers in room
-        roomInfo.clients.forEach(async (client) => {
+        for (const client of roomInfo.clients) {
             if (client.id !== this.id) {
                 await this.getOrCreateVideoPeer(client);
             }
-        });
+        }
 
         // Update information for each peer
         this.videoPeers.forEach((peer, peer_id) => {
-            let oldUsername = peer.username;
-            let client = roomInfo.clients.find(client => client.id === peer_id);
+            const oldUsername = peer.username;
+            const client = roomInfo.clients.find(client => client.id === peer_id);
             if (client) {
                 peer.username = client.username;
-                console.log('Set peer username from ' + oldUsername + ' to ' + peer.username);
             }
         });
     }
@@ -647,7 +641,7 @@ class Manager extends EventEmitter {
     }
 
     shutdownVideoPeers() {
-        this.videoPeers.forEach((peer, peer_id) => {
+        this.videoPeers.forEach((peer) => {
             peer.shutdown();
         });
 
@@ -656,23 +650,23 @@ class Manager extends EventEmitter {
 
     async get_self_id() {
         const time = new Date().getTime();
-        let data = {"receiver": "ground control",
+        const data = {"receiver": "ground control",
                     "type": "ping",
                     "data": time};
-        let responseParams = {"sender": "ground control",
+        const responseParams = {"sender": "ground control",
                             "type": "pong",
                             "data": time};
-        let response = await this.signaler.sendReceive(data, responseParams);
+        const response = await this.signaler.sendReceive(data, responseParams);
         return response.receiver;
 
     }
 
     async get_room_info() {
-        let data = {"receiver": "ground control",
+        const data = {"receiver": "ground control",
                     "type": "get-room-info"};
-        let responseParams = {"sender": "ground control",
+        const responseParams = {"sender": "ground control",
                               "type": "room-info"};
-        let response = await this.signaler.sendReceive(data, responseParams);
+        const response = await this.signaler.sendReceive(data, responseParams);
         return response.data;
     }
 

@@ -1,7 +1,5 @@
 'use strict';
 
-import {Manager} from './rtcclient.js';
-
 class UI {
     constructor(manager) {
         this.manager = manager;
@@ -10,7 +8,7 @@ class UI {
     }
 
     attachVideoElement(id, stream) {
-        let videoElement = document.getElementById('video-' + id);
+        const videoElement = document.getElementById('video-' + id);
         videoElement.srcObject = stream;
     }
 
@@ -20,20 +18,20 @@ class UI {
             return;
         }
 
-        let videoTag = document.createElement('p');
+        const videoTag = document.createElement('p');
         videoTag.className = 'video-tag';
         videoTag.innerHTML = username;
 
-        let videoElement = document.createElement('video');
+        const videoElement = document.createElement('video');
         videoElement.id = 'video-' + id;
         videoElement.autoplay = 'true';
         videoElement.style.width = '100%';
         videoElement.playsinline = 'true';
-        if (id === 'local') {videoElement.muted = 'true';}
+        if (id === 'local') videoElement.muted = 'true';
         const videoThumbs = document.getElementById('video-thumbs');
         const videoStage = document.getElementById('video-stage');
 
-        let videoBox = document.createElement('div');
+        const videoBox = document.createElement('div');
         videoBox.className = 'video-box';
         videoBox.id = 'video-box-' + id;
         videoBox.draggable = 'true';
@@ -47,7 +45,7 @@ class UI {
             allowVideoDrop(evt);
         };
 
-        videoBox.addEventListener('dblclick', (evt) => {
+        videoBox.addEventListener('dblclick', () => {
             // Move video box in and out of center stage on double click
             const stage = document.getElementById('video-stage');
             const thumbs = document.getElementById('video-thumbs');
@@ -62,7 +60,7 @@ class UI {
             }
         });
 
-        videoElement.addEventListener('mouseover', (evt) => {
+        videoElement.addEventListener('mouseover', () => {
             if (id === 'local') {
                 videoTag.innerHTML = this.manager.username;
                 return;
@@ -241,9 +239,8 @@ class UI {
     }
 
     async sendMessage() {
-        let messageLog = document.getElementById('message-log');
-        let messageInput = document.getElementById('message-input');
-        let message = messageInput.value;
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value;
 
         if (!message) {
             return;
@@ -258,23 +255,22 @@ class UI {
                     };
         await this.manager.signaler.send(data);
         messageInput.value = '';
-        console.log('Sent message: ', message);
     }
 
     updateMessageBar(message) {
-        let time = document.createElement('p');
+        const time = document.createElement('p');
         time.setAttribute('class', 'message-time');
         time.innerHTML = new Date(message.data.time).toLocaleTimeString("en-US");
 
-        let from = document.createElement('p');
+        const from = document.createElement('p');
         from.setAttribute('class', 'message-from');
         from.innerHTML = message.data.from;
 
-        let text = document.createElement('p');
+        const text = document.createElement('p');
         text.setAttribute('class', 'message-text');
         text.innerHTML = message.data.text;
 
-        let messageLog = document.getElementById('message-log');
+        const messageLog = document.getElementById('message-log');
         messageLog.appendChild(from);
         messageLog.appendChild(time);
         messageLog.appendChild(text);
@@ -284,34 +280,19 @@ class UI {
         $('#user-profile-modal').modal('show');
     }
 
-    async saveUserProfile() {
+    saveUserProfile() {
         const username = document.querySelector('#username-input').value;
-        await this.manager.setUsername(username);
+        this.manager.setUsername(username);
 
         $('#user-profile-modal').modal('hide');
     }
 
-    restartIce() {
-        this.manager.videoPeers.forEach((peer, peer_id) => {
-            peer.restartIce();
-        });
-    }
-
-    mediaInfo() {
-        let videoSettings = this.manager.videoTrack.getSettings();
-        console.log('Device ID: ', videoSettings.deviceId);
-        console.log('Framerate: ', videoSettings.frameRate);
-        console.log('Height: ', videoSettings.height);
-        console.log('Width: ', videoSettings.width);
-    }
-
     updateTechnical() {
-        let technicalBar = document.querySelector('#technical-bar');
+        const technicalBar = document.querySelector('#technical-bar');
         technicalBar.textContent = '';
 
-        this.manager.videoPeers.forEach((peer, peer_id) => {
-            console.log('Update technical for client ' + peer_id);
-            let info = connectionInfoNode(peer);
+        this.manager.videoPeers.forEach((peer) => {
+            const info = connectionInfoNode(peer);
             technicalBar.appendChild(info);
         });
     }
@@ -335,12 +316,25 @@ class UI {
     }
 
     async start() {
-        await new Promise(r => {setTimeout(r, 200)}); // allow manager to start up
-        await this.startUserMedia();
+        // Listner for user profile dialog
+        const profileForm = document.querySelector('#user-profile-modal form');
+        profileForm.addEventListener('submit', (evt) => {
+            evt.preventDefault();
+            this.saveUserProfile();
+        });
 
-        let messageParams = {"type": "text"};
+        // Listener for sending text messages
+        const messageForm = document.querySelector('#message-bar form');
+        messageForm.addEventListener('submit', (evt) => {
+            evt.preventDefault();
+            this.sendMessage();
+        });
+
+        // Listener for receiving text messages
+        const messageParams = {"type": "text"};
         this.manager.addMessageListener(messageParams, this.updateMessageBar);
 
+        // Listener for new peers
         this.manager.on('videopeer', (peer) => {
             // Display video when a track is received from a peer
             peer.on('track', (track, streams) => {
@@ -365,7 +359,7 @@ class UI {
             });
         });
 
-        // Set up button listeners
+        // Button listeners
         document.querySelector('#toggle-video').addEventListener('click', () => {
             this.toggleVideo();
         });
@@ -380,25 +374,22 @@ class UI {
         });
 
         this.promptUserName();
-    }
-
-    shutdown() {
-        this.manager.shutdown();
+        await this.startUserMedia();
     }
 }
 
 function connectionInfoNode(peer) {
-    let template = document.querySelector('#connection-info-template');
-    let clone = template.content.cloneNode(true);
+    const template = document.querySelector('#connection-info-template');
+    const clone = template.content.cloneNode(true);
 
-    let div = clone.querySelector('div');
+    const div = clone.querySelector('div');
     div.id = 'connection-info-' + peer.client_id;
 
-    let button = clone.querySelector('button');
+    const button = clone.querySelector('button');
     button.dataset.target = '#connection-info-collapse-' + peer.client_id;
     button.innerHTML = peer.username;
 
-    let infoDiv = clone.querySelector('div.collapse');
+    const infoDiv = clone.querySelector('div.collapse');
     infoDiv.id = 'connection-info-collapse-' + peer.client_id;
     infoDiv.querySelector('.info-username').innerHTML = peer.username;
     infoDiv.querySelector('.info-client-id').innerHTML = peer.client_id;
@@ -406,13 +397,11 @@ function connectionInfoNode(peer) {
     infoDiv.querySelector('.info-ice-connection-state').innerHTML = peer.iceConnectionState;
     infoDiv.querySelector('.info-ice-gathering-state').innerHTML = peer.iceGatheringState;
     infoDiv.querySelector('.info-signaling-state').innerHTML = peer.signalingState;
-    //infoDiv.querySelector('.info-remote-description').innerHTML = peer.remoteDescription();
 
     return clone;
 }
 
 function dragVideo(evt) {
-    console.log('dragVideo');
     evt.dataTransfer.setData('id', evt.target.id);
 }
 
@@ -421,23 +410,20 @@ function allowVideoDrop(evt) {
 }
 
 function dropVideo(evt, myId) {
-    console.log('dropVideo');
     evt.preventDefault();
 
-    let otherId = evt.dataTransfer.getData('id');
-    let me = document.getElementById(myId);
-    let other = document.getElementById(otherId);
+    const otherId = evt.dataTransfer.getData('id');
+    const me = document.getElementById(myId);
+    const other = document.getElementById(otherId);
     swapNodes(me, other);
-
-    console.log('Drop ' + other.id + ' on me!!!');
 }
 
 function swapNodes(node1, node2) {
-    let parent1 = node1.parentNode;
-    let parent2 = node2.parentNode;
+    const parent1 = node1.parentNode;
+    const parent2 = node2.parentNode;
 
-    let temp1 = document.createElement('span');
-    let temp2 = document.createElement('span');
+    const temp1 = document.createElement('span');
+    const temp2 = document.createElement('span');
 
     parent1.insertBefore(temp1, node1);
     parent2.insertBefore(temp2, node2);
