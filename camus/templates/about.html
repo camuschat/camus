@@ -2,18 +2,47 @@
 
 {% block app_content %}
 <div class="row">
-    <div class="col-sm-12">
-        <h4>Project page</h4>
-        <p>
-        Documentation and source code can be found at <a href="https://github.com/mrgnr/camus">https://github.com/mrgnr/camus</a>.
-        </p>
-
+    <div class="col-sm-8">
+        <br/>
+        <h4>Using Camus</h4>
+            <p>Camus is a video chat app that uses
+                <a href="https://en.wikipedia.org/wiki/WebRTC">WebRTC</a>, which allows you to
+                stream media like audio and video directly to another user's web browser. To get
+                started, <a href="/chat"> create a room</a> and invite others to join by sharing
+                the link. To keep out unwanted visitors, it's recommended that you give your room
+                a long unguessable name and/or protect it with a strong password.</p>
+            <p>Once you join a room, you will be prompted to allow access to your camera and
+                microphone (if detected). If you want others to be able to see and hear you,
+                you must allow access, but it's also possible to receive media from other users
+                and use the desktop sharing and text chat features if you choose to deny access.</p>
+            <p>To turn your camera, microphone, or screen sharing on or off, click on the
+                <i id="toggle-video-icon" class="material-icons">videocam</i></button>,
+                <i id="toggle-audio-icon" class="material-icons">mic</i></button>, and
+                <i id="toggle-display-icon" class="material-icons">screen_share</i></button>
+                buttons.</p>
+            <p>The main video area is located in the center of the screen. As other users join the
+                room, new video feeds are added under the "Video Feeds" section in the accordion
+                menu on the right-hand side of the screen. You can move a video feed in and out
+                of the main video area either by double-clicking on it, or dragging it onto another
+                video feed.</p>
+            <p>To view and send text messages to other users in the room, click on the "Messages"
+                tab of the accordion menu. When you send a message, it will be sent to all users
+                currently connected to the room.</p>
+        <br/>
+        <h4>Project</h4>
+        <p>Camus is <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software">free and
+            open-source</a> software. You can find the source code on
+            <a href="https://github.com/mrgnr/camus">GitHub</a>.</p>
+        <p>Additional links:
+            <ul>
+                <li><a href="https://docs.camus.chat">Official documentation</a></li>
+                <li><a href="https://pypi.org/project/camus-chat/">Python package</a></li>
+                <li><a href="https://hub.docker.com/r/mrgnr/camus">Docker image</a></li>
+            </ul></p>
         <br/>
         <h4>Support the project :)</h4>
-        <p>
-        You can support the project by <a href="https://github.com/mrgnr/camus/issues">reporting bugs</a>
-        or making a <a href="https://liberapay.com/mrgnr">donation</a> to the author. Thanks!
-        </p>
+        <p>You can support the project by <a href="https://github.com/mrgnr/camus/issues">reporting bugs</a>
+            or making a <a href="https://liberapay.com/mrgnr">donation</a> to the author. Thanks!</p>
     </div>
 </div>
 {% endblock %}

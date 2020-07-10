@@ -3,8 +3,6 @@ Camus
 
 |Build Status| |docs| |PyPI| |License|
 
-|Donate using Liberapay|
-
 Camus is a video chat app that uses `WebRTC`_ for direct peer-to-peer
 communication. Users can create public or private rooms, optionally protected
 by a password. In addition to streaming audio and video from a webcam and
@@ -91,7 +89,9 @@ v0.2
 ~~~~
 
 -  [ ] Rewrite the UI using `React`_
+-  [ ] Make the UI accessible
 -  [ ] Configurable TURN server in the client
+-  [ ] Controls for video quality
 -  [ ] Debian package
 
 v0.3+
@@ -109,8 +109,6 @@ v0.3+
    :target: https://pypi.org/project/camus-chat
 .. |License| image:: https://img.shields.io/github/license/mrgnr/camus
    :target: LICENSE
-.. |Donate using Liberapay| image:: https://liberapay.com/assets/widgets/donate.svg
-   :target: https://liberapay.com/mrgnr/donate
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
