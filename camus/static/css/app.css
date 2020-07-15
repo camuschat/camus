@@ -1,67 +1,35 @@
-video {
-    width: 100%;
-    max-height: 750px;
+/* --- General element styles --- */
+
+html {
+    min-height: 100%;  /* Allow background to fill entire screen */
 }
 
-video:hover {
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    transition-delay: 0.2s;
-    transition-timing-function: ease;
-}
 
-.video-box {
-    position: relative;
-}
+/* --- Bootstrap overrides --- */
 
-.video-box:hover .video-tag {
-    display: inline;
-    text-shadow: 2px 2px 5px floralwhite;
-    text-overflow: ellipsis;
-}
-
-.video-tag {
-    display: none;
-    position: absolute;
-    left: 20px;
-    top: 10px;
-    z-index: 9;
-    max-width: 200px;
-    text-overflow: ellipsis;
-    color: darkslategray;
-}
-
-a.list-group-item {
-    color: darkslategray;
-}
-
-a.list-group-item:hover {
-    color: darkslategray;
-    text-shadow: 0.5px 0.5px 0px slategray;
-    text-decoration: none;
-}
-
-.btn:hover {
-    background-color: #eeeeee;
-}
-
-.btn:focus {
-    outline: none;
+.form-control:focus {
     box-shadow: none;
+    border-color: darkgray;
 }
 
-.btn:active {
-    background-color: #dddddd;
+
+/* --- Camus specific --- */
+
+#control-bar {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 #video-stage {
-    min-height: 500px;
+    border: 1px dotted lightgray;
+    border-radius: 0.5em;
+    min-height: 480px;
 }
 
 #video-thumbs {
     max-height: 600;
     overflow-y: auto;
-
     text-overflow: ellipsis;
 }
 
@@ -74,6 +42,80 @@ a.list-group-item:hover {
     min-height: 200px;
     max-height: 400px;
     overflow-y: auto;
+}
+
+.content {
+    margin-top: 20px;
+}
+
+.boldlink {
+    color: darkslategray;
+}
+
+.boldlink:hover,
+.boldlink:focus {
+    color: darkslategray;
+    text-shadow: 0.1px 0.1px 0px gray,
+                 -0.1px -0.1px 0px gray,
+                 0.1px -0.1px 0px gray,
+                 -0.1px 0.1px 0px gray;
+    text-decoration: none;
+}
+
+.icon-button:hover,
+.icon-button:focus {
+    background-color: #eeeeee;
+    outline: none;
+    box-shadow: none;
+}
+
+.icon-button:active {
+    background-color: #dddddd;
+}
+
+.video-box {
+    position: relative;
+    box-shadow: inset 0 0 4em 2em #000000;
+    border-radius: 0.5em;
+}
+
+.video-box video {
+    /* Fill the video-box */
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    max-height: 750px;
+    background-color: #000;
+    border-radius: 0.5em;
+}
+
+.video-box:hover video {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    transition-delay: 0.2s;
+    transition-timing-function: ease;
+}
+
+.video-box .video-tag {
+    display: none;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    z-index: 9;
+    max-width: 80%;
+    text-overflow: ellipsis;
+    font-size: 1.5em;
+}
+
+.video-box:hover .video-tag {
+    display: inline;
+    color: #000;
+    text-shadow: 1px 1px 4px #fff,
+                 -1px -1px 4px #fff;
+                 1px -1px 4px #fff;
+                 -1px 1px 4px #fff;
+    text-overflow: ellipsis;
 }
 
 .message-time {
@@ -96,19 +138,32 @@ a.list-group-item:hover {
     margin-top: 0px;
 }
 
-p.tech-info {
+.tech-info {
     font-variant-caps: all-small-caps;
     font-weight: bold;
     margin-bottom: 0px;
 }
 
-p.tech-info > span {
+.tech-info > span {
     font-variant-caps: normal;
     font-weight: normal;
     font-size: small;
     font-style: italic;
 }
 
-#control-bar {
-    margin: 0 auto;
+.about a {
+    color: #004B6B;
+    text-decoration: none;
+    border-bottom: 1px dotted #999;
+}
+
+.about a:hover {
+    color: #6B6000;
+    text-decoration: none;
+    border-bottom: 1px solid #999;
+}
+
+.about i {
+    /* Consistent sizing for material icons */
+    font-size: 1em;
 }

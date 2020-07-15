@@ -25,7 +25,6 @@ class UI {
         const videoElement = document.createElement('video');
         videoElement.id = 'video-' + id;
         videoElement.autoplay = 'true';
-        videoElement.style.width = '100%';
         videoElement.playsinline = 'true';
         if (id === 'local') videoElement.muted = 'true';
         const videoThumbs = document.getElementById('video-thumbs');

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block robots %}<meta name=”robots” content="noindex, nofollow">{% endblock robots %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock robots %}
 
 {% block app_content %}
 <div class="modal" id="user-profile-modal" tabindex="-1" data-backdrop='static' data-keyboard=false role="dialog">
@@ -14,7 +14,7 @@
                     <div class="input-group">
                         <input type="text" class="form-control" id="username-input">
                         <div class="input-group-append">
-                            <button class="btn btn-primary" id="user-profile-save" type="submit">Save</button>
+                            <button class="btn btn-secondary" id="user-profile-save" type="submit">Save</button>
                         </div>
                     </div>
                 </form>
@@ -29,11 +29,11 @@
                 <div id="video-stage">
                 </div>
                 <div id="control-bar">
-                    <button class="btn" id="toggle-video">
+                    <button class="btn icon-button" id="toggle-video">
                         <i id="toggle-video-icon" class="material-icons">videocam_off</i></button>
-                    <button class="btn" id="toggle-audio">
+                    <button class="btn icon-button" id="toggle-audio">
                         <i id="toggle-audio-icon" class="material-icons">mic_off</i></button>
-                    <button class="btn" id="toggle-display">
+                    <button class="btn icon-button" id="toggle-display">
                         <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
                 </div>
             </div>
@@ -42,7 +42,7 @@
     <div class="col-md-4" id="accordion">
         <div class="card">
             <div class="card-header">
-                <button class="btn btn-link" data-toggle="collapse" data-target="#video-thumbs-collapse">
+                <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#video-thumbs-collapse">
                     Video Feeds
                 </button>
             </div>
@@ -55,7 +55,7 @@
 
         <div class="card">
             <div class="card-header">
-                <button class="btn btn-link" data-toggle="collapse" data-target="#message-bar-collapse">
+                <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#message-bar-collapse">
                     Messages
                 </button>
             </div>
@@ -68,7 +68,7 @@
                         <div class="input-group">
                             <input type="text" class="form-control" id="message-input" placeholder="Type a message">
                             <div class="input-group-append">
-                                <button class="btn" id="send-message" type="submit">
+                                <button class="btn icon-button" id="send-message" type="submit">
                                     <i id="send-message-icon" class="material-icons">send</i>
                                 </button>
                             </div>
@@ -80,7 +80,7 @@
 
         <div class="card">
             <div class="card-header">
-                <button class="btn btn-link" id="technical-button" data-toggle="collapse" data-target="#technical-bar-collapse">
+                <button class="btn btn-link boldlink" id="technical-button" data-toggle="collapse" data-target="#technical-bar-collapse">
                     Connections
                 </button>
             </div>
@@ -98,7 +98,7 @@
 
 <template id="connection-info-template">
     <div id="connection-info-clientid">
-        <button class="btn" data-toggle="collapse" data-target="#clientid-collapse">
+        <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#clientid-collapse">
             Client Name
         </button>
         <div class="collapse" id="connection-info-collapse-clientid">
