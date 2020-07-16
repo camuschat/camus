@@ -43,7 +43,6 @@ class ChatRoom(AsyncIOEventEmitter):
     def __init__(self, name, password=None, guest_limit=None, admin_list=None, is_public=False):
         super().__init__()
 
-        logging.info('Create ChatRoom {}'.format(id))
         self.name = name
         self.id = slugify(name)
         self.clients = {}
@@ -58,7 +57,7 @@ class ChatRoom(AsyncIOEventEmitter):
             last_active = self.last_active / 1000
 
             if now - last_active > self._reap_timeout:
-                logging.info('Room %s is expiring', self.id)
+                logging.info('Room %s expired', self.id)
                 self.emit('expire')
             else:
                 new_timeout = last_active + self._reap_timeout - now
@@ -66,6 +65,8 @@ class ChatRoom(AsyncIOEventEmitter):
 
         self._reap_timeout = 3600
         self._timer = MTimer(self._reap_timeout, check_expire)
+
+        logging.info('Created room %s', self.id)
 
 
     @property
@@ -112,7 +113,6 @@ class ChatRoom(AsyncIOEventEmitter):
         return self.clients.values()
 
     def broadcast(self, message):
-        logging.info('Broadcasting to room {}: {}'.format(self.id, message.json()))
         for client in self.get_clients():
             message.receiver = client.id
             client.send(message.json())
@@ -131,7 +131,6 @@ class ChatClient(AsyncIOEventEmitter):
     def __init__(self, id, username=None, room=None, is_admin=False):
         super().__init__()
 
-        logging.info('Create client {}'.format(id))
         self.id = id
         self.username = username if username is not None else 'Major Tom'
         self.room = room
@@ -147,6 +146,8 @@ class ChatClient(AsyncIOEventEmitter):
         self.last_seen = time_ms()
         self.timer = None
 
+        logging.info('Created client %s', self.id)
+
     async def _process_inbox(self):
         while True:
             message = await self.inbox.get()
@@ -155,8 +156,10 @@ class ChatClient(AsyncIOEventEmitter):
 
     def send(self, data):
         try:
-            logging.info('ChatClient.send({})'.format(data))
             self.outbox.put_nowait(data)
+            message_type = json.loads(data)['type']
+            logging.info('Sent %s to client %s', message_type, self.id)
+
         except Exception as e:
             logging.info('Couldn\'t send message to client {}: {}'
                          .format(self.id, e))
@@ -185,7 +188,7 @@ class ChatClient(AsyncIOEventEmitter):
             self._inbox_task.cancel()
             self._inbox_task = None
 
-        logging.info('Finished shutting down client {}'.format(self.id))
+        logging.info('Shut down client %s', self.id)
 
 class ChatMessage:
     def __init__(self, message=None):
@@ -208,7 +211,6 @@ class ChatMessage:
 
 class ChatManager:
     def __init__(self):
-        logging.info('Create ChatManager')
         self.rooms = {}
         self._message_address = "ground control"
         self._reap_timeout = 60
@@ -230,13 +232,12 @@ class ChatManager:
             return
 
         if chat_message.receiver not in self.clients:
-            logging.info('Message recipient does not exist for message: {}'.format(chat_message.json()))
+            logging.info('Message recipient %s does not exist', chat_message.receiver)
             # TODO: reply with error
             return
 
         to_client = self.clients[chat_message.receiver]
         to_client.send(chat_message.json())
-        logging.info('Sending message to client {}'.format(to_client.id))
 
     async def _handle_local_message(self, message, client):
         reply = ChatMessage()
@@ -253,7 +254,6 @@ class ChatManager:
             username = message.data.get('username')
             if username:
                 client.username = username
-            logging.info('Set username for client {}: {}'.format(client.id, username))
             self.broadcast_room_info(client.room)
             return
         elif message.type == 'get-room-info':
@@ -272,11 +272,9 @@ class ChatManager:
             reply.type = 'error'
             reply.data = 'Unknown message type: {}'.format(message.type)
 
-        logging.info('Sending response: {}'.format(reply.json()))
         client.send(reply.json())
 
     def _handle_room_message(self, message, client):
-        logging.info('Room message from {}: {}'.format(client.username, message))
         room = client.room
         for c in room.clients.values():
             c.send(message.json())
@@ -336,13 +334,11 @@ class ChatManager:
         return room
 
     async def remove_room(self, room):
-        logging.info('Removing room %s', room.id)
         self.rooms.pop(room.id, None)
         await room.shutdown()
+        logging.info('Removed room %s', room.id)
 
     def create_client(self, client_id=None):
-        logging.info('create_client()')
-
         if client_id is None:
             client_id = uuid.uuid4().hex
 
@@ -352,7 +348,6 @@ class ChatManager:
         client = ChatClient(client_id)
         client.timer = MTimer(self._reap_timeout, self._reap, client=client)
 
-        logging.info('Sending greeting to client {}'.format(client.id))
         greeting = ChatMessage()
         greeting.sender = self._message_address
         greeting.receiver = client.id
@@ -362,8 +357,6 @@ class ChatManager:
 
         @client.on("message")
         async def on_message(message):
-            logging.info('Received message: {}'.format(message))
-
             # Reap this client if we haven't seen it for too long
             if client.timer is not None:
                 client.timer.cancel()

@@ -1,7 +1,5 @@
 import asyncio
-import logging
 from time import time
-import traceback
 
 class MTimer:
     def __init__(self, timeout, callback, **kwargs):
