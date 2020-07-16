@@ -2,11 +2,17 @@ from setuptools import setup, find_packages
 
 setup(
     name='camus-chat',
-    version='0.1.dev6',
+    version='0.1.dev7',
     description='Peer-to-peer video chat using WebRTC',
     long_description=open('README.rst').read(),
-    long_description_content_type="text/markdown",
-    url='https://github.com/mrgnr/camus',
+    long_description_content_type="text/x-rst; charset=UTF-8",
+    url='https://camus.chat/',
+    download_url='https://pypi.org/project/camus-chat/',
+    project_urls={
+        'Code': 'https://github.com/mrgnr/camus',
+        'Issue tracker': 'https://github.com/mrgnr/camus/issues',
+        'Documentation': 'https://docs.camus.chat/',
+    },
     author='Morgan Robertson',
     author_email='mrgnr@pm.me',
     license='GPL-3.0',
