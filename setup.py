@@ -13,11 +13,11 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'quart==0.11.5',
+        'quart==0.13.0',
         'bootstrap-flask==1.3.1',
         'flask-wtf==0.14.3',
         'pyee==7.0.2',
-        'python-slugify==4.0.0',
+        'python-slugify==4.0.1',
         'werkzeug==1.0.1',
     ],
     classifiers=[
