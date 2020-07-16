@@ -1,7 +1,7 @@
 Camus
 =====
 
-|Build Status| |docs| |PyPI| |License|
+|Build Status| |docs| |PyPI| |Docker Hub| |License|
 
 Camus is a video chat app that uses `WebRTC`_ for direct peer-to-peer
 communication. Users can create public or private rooms, optionally protected
@@ -105,17 +105,19 @@ v0.3+
    :target: https://travis-ci.org/mrgnr/camus
 .. |docs| image:: https://img.shields.io/readthedocs/camus/latest
    :target: https://docs.camus.chat
-.. |PyPI| image:: https://img.shields.io/pypi/v/camus-chat
+.. |PyPI| image:: https://img.shields.io/pypi/v/camus-chat?color=blue
    :target: https://pypi.org/project/camus-chat
-.. |License| image:: https://img.shields.io/github/license/mrgnr/camus
-   :target: LICENSE
+.. |Docker Hub| image:: https://img.shields.io/docker/pulls/mrgnr/camus
+   :target: https://hub.docker.com/r/mrgnr/camus
+.. |License| image:: https://img.shields.io/github/license/mrgnr/camus?color=green
+   :target: https://github.com/mrgnr/camus/blob/master/LICENSE
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
-.. _technical overview: https://github.com/mrgnr/camus/blob/master/docs/technical-overview.md
-.. _development documentation: https://github.com/mrgnr/camus/blob/master/docs/development.md
+.. _technical overview: https://docs.camus.chat/en/latest/technical-overview.html
+.. _development documentation: https://docs.camus.chat/en/latest/development.html
 .. _Babel: https://github.com/babel/babel
 .. _Adapter: https://github.com/webrtcHacks/adapter
 .. _TURN: https://webrtc.org/getting-started/turn-server
