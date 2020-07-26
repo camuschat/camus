@@ -15,7 +15,7 @@ setup(
     },
     author='Morgan Robertson',
     author_email='mrgnr@pm.me',
-    license='GPL-3.0',
+    license='AGPL-3.0-or-later',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
@@ -27,7 +27,7 @@ setup(
         'werkzeug==1.0.1',
     ],
     classifiers=[
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Environment :: Web Environment',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
