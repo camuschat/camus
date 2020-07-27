@@ -1,0 +1,19 @@
+# python
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# sphinx
+docs/_build/
+
+# node
+camus/static/node_modules
+
+# cypress
+camus/static/cypress/plugins/
+camus/static/cypress/support/
+camus/static/cypress/videos/
+
+# scratch/development
+.scratch

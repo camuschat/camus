@@ -1,0 +1,21 @@
+# base
+FROM python:3.8-slim-buster AS base
+ADD requirements.txt /app/
+ADD ./requirements/ /app/requirements/
+RUN pip install -r /app/requirements.txt
+
+
+# test (server)
+FROM base AS test-server
+ADD . /app
+ENV QUART_APP camus
+ENV QUART_ENV development
+RUN pip install -r /app/requirements/test.txt
+
+
+# dev
+FROM test-server AS dev
+RUN apt-get update && apt-get install -y \
+    vim
+ENV QUART_ENV development
+RUN pip install -r /app/requirements/dev.txt

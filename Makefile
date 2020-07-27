@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-images = camus:prod camus:latest camus:test-server camus:test-client camus:dev
+images = camus:prod camus:latest camus:test-server camus:dev
 containers = camus-dev
 
 .PHONY: help
@@ -16,11 +16,11 @@ build-prod:  ## Build Docker image for production
 
 .PHONY: build-test-server
 build-test-server:  ## Build Docker image for testing the server
-	docker build --target test-server -t camus:test-server -t camus:latest .
+	docker build -f Dockerfile.dev --target test-server -t camus:test-server .
 
 .PHONY: build-dev
 build-dev:  ## Build Docker image for development environment
-	docker build --target dev -t camus:dev .
+	docker build -f Dockerfile.dev --target dev -t camus:dev .
 
 .PHONY: test
 test: test-server test-client  ## Run all tests, both server-side and client-side
