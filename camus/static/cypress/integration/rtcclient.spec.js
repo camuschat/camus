@@ -32,7 +32,7 @@ describe('Test VideoPeer', () => {
         expect(peer.connection).to.be.instanceOf(RTCPeerConnection);
     });
 
-    it('can negotiate a connection', () => {
+    it('can negotiate a connection', {defaultCommandTimeout: 10000}, () => {
         const signaler = createSignaler();
         const peer1 = new VideoPeer({id: 'abc', username: 'Bill'}, signaler, false);
         const peer2 = new VideoPeer({id: 'def', username: 'Ted'}, signaler, true);

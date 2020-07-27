@@ -353,12 +353,14 @@ class Signaler extends EventEmitter {
     }
 
     shutdown() {
-        // Say bye to Ground Control
-        const time = new Date().getTime();
-        const data = {'receiver': 'ground control',
-                      'type': 'bye',
-                      'data': time};
-        this.send(data);
+        if (this.socket.readyState === WebSocket.OPEN) {
+            // Say bye to Ground Control
+            const time = new Date().getTime();
+            const data = {'receiver': 'ground control',
+                        'type': 'bye',
+                        'data': time};
+            this.send(data);
+        }
 
         // Shutdown socket
         this.socket.close(1000, 'goodbye');
