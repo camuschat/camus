@@ -58,6 +58,14 @@ command to pull the image and run a container:
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
 
+Using Heroku
+~~~~~~~~~~~~
+
+|Deploy to Heroku|
+
+Simply click the button above or see the `deployment documentation`_ for
+detailed instructions.
+
 How it works
 ------------
 
@@ -111,11 +119,14 @@ v0.3+
    :target: https://hub.docker.com/r/mrgnr/camus
 .. |License| image:: https://img.shields.io/github/license/mrgnr/camus?color=green
    :target: https://github.com/mrgnr/camus/blob/master/LICENSE
+.. |Deploy to Heroku| image:: https://www.herokucdn.com/deploy/button.svg
+   :target: https://heroku.com/deploy?template=https://github.com/mrgnr/camus
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
+.. _deployment documentation: https://docs.camus.chat/en/latest/deployment.html
 .. _technical overview: https://docs.camus.chat/en/latest/technical-overview.html
 .. _development documentation: https://docs.camus.chat/en/latest/development.html
 .. _Babel: https://github.com/babel/babel
