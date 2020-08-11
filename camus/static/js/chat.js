@@ -1,7 +1,11 @@
 'use strict';
 
+import React from "react";
+import ReactDOM from "react-dom";
+
 import {Manager} from './rtcclient.js';
 import {UI} from './ui.js';
+import App from './components/App.js';
 
 var manager = new Manager();
 var ui = new UI(manager);
@@ -22,3 +26,12 @@ window.addEventListener('load', async () => {
 window.addEventListener('beforeunload', () => {
     manager.shutdown();
 });
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App
+        manager={manager}
+    />
+  </React.StrictMode>,
+  document.getElementById('react-root')
+);
