@@ -482,10 +482,7 @@ class MessageHandler {
         console.log('<< Received bye: ', message);
 
         const client_id = message.sender;
-        if (this.manager.videoPeers.has(client_id)) {
-            this.manager.videoPeers.get(client_id).shutdown();
-            this.manager.videoPeers.delete(client_id);
-        }
+        this.manager.removeVideoPeer(client_id);
     }
 
     emptyMessage() {
@@ -603,6 +600,15 @@ class Manager extends EventEmitter {
         return this.videoPeers.get(client.id);
     }
 
+    removeVideoPeer(id) {
+        const peer = this.videoPeers.get(id);
+        if (peer) {
+            peer.shutdown();
+            this.videoPeers.delete(id);
+            this.emit('videopeerremoved', peer);
+        }
+    }
+
     async findPeers() {
         const roomInfo = await this.get_room_info();
         await this.updatePeers(roomInfo);
@@ -614,10 +620,8 @@ class Manager extends EventEmitter {
         const peerClientIds = Array.from(this.videoPeers.keys());
         const removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
 
-        removeIds.forEach((clientId) => {
-            const peer = this.videoPeers.get(clientId);
-            peer.shutdown();
-            this.videoPeers.delete(clientId);
+        removeIds.forEach((id) => {
+            this.removeVideoPeer(id);
             console.log('Removed client ', clientId);
         });
 
