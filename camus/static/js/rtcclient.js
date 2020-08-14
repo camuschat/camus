@@ -508,7 +508,7 @@ class Manager extends EventEmitter {
         this.username = 'Major Tom';
         this.signaler = new Signaler();
         this.videoPeers = new Map();
-        this.localVideoStream = null;
+        this.localVideoStream = new MediaStream();
         this.videoTrack = null;
         this.audioTrack = null;
         this.textMessages = [];

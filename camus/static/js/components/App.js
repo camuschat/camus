@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import ChatMessageBar from './ChatMessageBar.js';
 import VideoStage from './VideoStage.js';
+import MediaControlBar from './MediaControlBar.js';
 
 export default class App extends Component {
     constructor(props) {
@@ -15,7 +16,8 @@ export default class App extends Component {
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
         this.onVideoPeer = this.onVideoPeer.bind(this);
         this.onVideoPeerRemoved = this.onVideoPeerRemoved.bind(this);
-
+        this.onLocalVideoTrack = this.onLocalVideoTrack.bind(this);
+        this.onLocalAudioTrack = this.onLocalAudioTrack.bind(this);
     }
 
     componentDidMount() {
@@ -26,12 +28,16 @@ export default class App extends Component {
 
     render() {
         return (<>
+            <VideoStage
+                feeds={this.state.feeds}
+            />
+            <MediaControlBar
+                onVideoTrack={this.onLocalVideoTrack}
+                onAudioTrack={this.onLocalAudioTrack}
+            />
             <ChatMessageBar
                 messages={this.state.chatMessages}
                 onSend={this.onSendChatMessage}
-            />
-            <VideoStage
-                feeds={this.state.feeds}
             />
         </>)
     }
@@ -101,5 +107,21 @@ export default class App extends Component {
                 feeds: feeds
             };
         });
+    }
+
+    onLocalVideoTrack(track) {
+        if (track) {
+            this.manager.setVideoTrack(track).then();
+        } else {
+            this.manager.stopVideo();
+        }
+    }
+
+    onLocalAudioTrack(track) {
+        if (track) {
+            this.manager.setAudioTrack(track).then();
+        } else {
+            this.manager.stopAudio();
+        }
     }
 }
