@@ -42,13 +42,22 @@ class VideoPeer extends EventEmitter {
     constructor(client, signaler, polite, iceServers=[]) {
         super();
         this.client_id = client.id;
-        this.username = client.username;
+        this._username = client.username;
         this.signaler = signaler;
         this.polite = polite;
         this.connection = null;
         this.makingOffer = false;
 
         this.createPeerConnection(iceServers);
+    }
+
+    set username(username) {
+        this._username = username;
+        this.emit('usernamechange', username);
+    }
+
+    get username() {
+        return this._username;
     }
 
     createPeerConnection(iceServers) {
@@ -81,10 +90,12 @@ class VideoPeer extends EventEmitter {
 
         this.connection.onsignalingstatechange = () => {
             console.log(`[${this.client_id}] Signaling state: ${this.connection.signalingState}`);
+            this.emit('signalingstatechange', this.connection.signalingState);
         };
 
         this.connection.onicegatheringstatechange = () => {
             console.log(`[${this.client_id}] Ice gathering state: ${this.connection.iceGatheringState}`);
+            this.emit('icegatheringstatechange', this.connection.iceGatheringState);
         };
 
         // Handle (re)negotiation of the connection

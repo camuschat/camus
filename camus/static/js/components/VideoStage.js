@@ -6,6 +6,14 @@ export default class VideoStage extends Component {
     }
 
     render() {
+        // Associate each feed with the corresponding username
+        const feeds = this.props.feeds;
+        const users = this.props.users;
+        feeds.forEach(feed => {
+            const user = users.find(user => user.id === feed.id);
+            feed.username = user ? user.username : 'Major Tom';
+        });
+
         return (
             <ul className='video-stage'>
                 {this.props.feeds.map((feed) =>
