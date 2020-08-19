@@ -322,58 +322,7 @@ class UI {
             this.saveUserProfile();
         });
 
-        // Listener for sending text messages
-        const messageForm = document.querySelector('#message-bar form');
-        messageForm.addEventListener('submit', (evt) => {
-            evt.preventDefault();
-            this.sendMessage();
-        });
-
-        // Listener for receiving text messages
-        const messageParams = {"type": "text"};
-        this.manager.addMessageListener(messageParams, this.updateMessageBar);
-
-        // Listener for new peers
-        this.manager.on('videopeer', (peer) => {
-            // Display video when a track is received from a peer
-            peer.on('track', (track, streams) => {
-                track.onunmute = () => {
-                    this.createVideoElement(peer.client_id, peer.username);
-                    this.attachVideoElement(peer.client_id, streams[0]);
-                };
-            });
-
-            // Remove video when a peer disconnects
-            peer.on('shutdown', () => {
-                this.removeVideoElement(peer.client_id);
-            });
-            peer.on('connectionstatechange', (connectionState) => {
-                switch(connectionState) {
-                    case 'disconnected':
-                    case 'failed':
-                    case 'closed':
-                        this.removeVideoElement(peer.client_id);
-                        break;
-                }
-            });
-        });
-
-        // Button listeners
-        document.querySelector('#toggle-video').addEventListener('click', () => {
-            this.toggleVideo();
-        });
-        document.querySelector('#toggle-audio').addEventListener('click', () => {
-            this.toggleAudio();
-        });
-        document.querySelector('#toggle-display').addEventListener('click', () => {
-            this.toggleDisplay();
-        });
-        document.querySelector('#technical-button').addEventListener('click', () => {
-            this.updateTechnical();
-        });
-
         this.promptUserName();
-        await this.startUserMedia();
     }
 }
 

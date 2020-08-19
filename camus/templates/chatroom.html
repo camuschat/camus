@@ -2,7 +2,7 @@
 
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock robots %}
 
-{% block app_content %}
+{% block content %}
 <div id="react-root">
 </div>
 <div class="modal" id="user-profile-modal" tabindex="-1" data-backdrop='static' data-keyboard=false role="dialog">
@@ -24,97 +24,6 @@
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-8">
-        <div class="row">
-            <div class="col">
-                <div id="video-stage">
-                </div>
-                <div id="control-bar">
-                    <button class="btn icon-button" id="toggle-video">
-                        <i id="toggle-video-icon" class="material-icons">videocam_off</i></button>
-                    <button class="btn icon-button" id="toggle-audio">
-                        <i id="toggle-audio-icon" class="material-icons">mic_off</i></button>
-                    <button class="btn icon-button" id="toggle-display">
-                        <i id="toggle-display-icon" class="material-icons">stop_screen_share</i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4" id="accordion">
-        <div class="card">
-            <div class="card-header">
-                <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#video-thumbs-collapse">
-                    Video Feeds
-                </button>
-            </div>
-            <div id="video-thumbs-collapse" class="collapse show" data-parent="#accordion">
-                <div id="video-thumbs">
-                    <!-- Populated via createVideoElement() -->
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#message-bar-collapse">
-                    Messages
-                </button>
-            </div>
-            <div id="message-bar-collapse" class="collapse" data-parent="#accordion">
-                <div class="card-body" id="message-bar">
-                    <div id="message-log">
-                        <!-- Populated via updateMessageBar() -->
-                    </div>
-                    <form>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="message-input" placeholder="Type a message">
-                            <div class="input-group-append">
-                                <button class="btn icon-button" id="send-message" type="submit">
-                                    <i id="send-message-icon" class="material-icons">send</i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <button class="btn btn-link boldlink" id="technical-button" data-toggle="collapse" data-target="#technical-bar-collapse">
-                    Connections
-                </button>
-            </div>
-            <div id="technical-bar-collapse" class="collapse" data-parent="#accordion">
-                <div class="card-body" id="technical-bar">
-                    <!-- Populated using #connection-info-template -->
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-<div class="row">
-</div>
-
-<template id="connection-info-template">
-    <div id="connection-info-clientid">
-        <button class="btn btn-link boldlink" data-toggle="collapse" data-target="#clientid-collapse">
-            Client Name
-        </button>
-        <div class="collapse" id="connection-info-collapse-clientid">
-            <p class="tech-info">Username: <span class="info-username"></span></p>
-            <p class="tech-info">Client ID: <span class="info-client-id"></span></p>
-            <p class="tech-info">Connection state: <span class="info-connection-state"></span></p>
-            <p class="tech-info">Ice connection state: <span class="info-ice-connection-state"></span></p>
-            <p class="tech-info">Ice gathering state: <span class="info-ice-gathering-state"></span></p>
-            <p class="tech-info">Signaling state: <span class="info-signaling-state"></span></p>
-            <!-- <p>Remote description: <span class="info-remote-description"></span></p> -->
-        </div>
-    </div>
-</template>
-
 
 <script src="{{ url_for('static', filename='dist/chat.js') }}"></script>
 {% endblock %}

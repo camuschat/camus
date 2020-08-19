@@ -1,8 +1,16 @@
-import React, {Component} from "react";
+import React, {Component} from 'react';
 
 export default class VideoStage extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            videoHeightAspect: 9,
+            videoWidthAspect: 16,
+            videoScaleFactor: 1.0
+        };
+
+        this.updateScaleFactor = this.updateScaleFactor.bind(this);
     }
 
     render() {
@@ -14,15 +22,101 @@ export default class VideoStage extends Component {
             feed.username = user ? user.username : 'Major Tom';
         });
 
+        const feedHeight = Math.floor(this.state.videoScaleFactor * this.state.videoHeightAspect);
+        const feedWidth = Math.floor(this.state.videoScaleFactor * this.state.videoWidthAspect);
+        const videoFeedStyle = {
+            height: `${feedHeight}px`,
+            width: `${feedWidth}px`,
+        };
+
         return (
-            <ul className='video-stage'>
+            <ul id='video-stage' className='video-stage'>
                 {this.props.feeds.map((feed) =>
-                    <li key={feed.id}>
-                        <VideoFeed feed={feed} />
-                    </li>
+                        <VideoFeed
+                            key={feed.id}
+                            feed={feed}
+                            style={videoFeedStyle}
+                        />
                 )}
             </ul>
         );
+    }
+
+    componentDidMount() {
+        // Dynamically update the size of displayed video feeds when the
+        // window is resized
+        window.addEventListener('resize', this.updateScaleFactor)
+        this.updateScaleFactor();
+    }
+
+    componentDidUpdate() {
+        const videoScaleFactor = this.calculateScaleFactor(
+            this.props.feeds.length, this.state.videoHeightAspect, this.state.videoWidthAspect);
+        if (videoScaleFactor !== this.state.videoScaleFactor) {
+            this.setState({
+                videoScaleFactor: videoScaleFactor
+            });
+        }
+    }
+
+    updateScaleFactor() {
+        console.log('updateScaleFactor()');
+
+        this.setState((state, props)  => {
+            const videoScaleFactor = this.calculateScaleFactor(
+                props.feeds.length, state.videoHeightAspect, state.videoWidthAspect);
+
+            return {
+                videoScaleFactor: videoScaleFactor
+            };
+        });
+    }
+
+    calculateScaleFactor(nItems, heightAspect, widthAspect, minWidth=0) {
+        const container = document.querySelector('#video-stage');
+
+        // "Normalize" the height and width of the container relative to the
+        // aspect ratio of the contained items
+        const normHeight = container.clientHeight / heightAspect;
+        const normWidth = container.clientWidth / widthAspect;
+
+        // The ratio of columns to rows should approximately match the 
+        // normalized aspect ratio of the container
+        let rows = (Math.sqrt(nItems * (normHeight / normWidth)));
+        let columns = (Math.sqrt(nItems * (normWidth / normHeight)));
+
+        // The product of rows and columns should be minimized such that it still
+        // fits all the items
+        const rowsFloor = Math.floor(rows);
+        const rowsCeiling = Math.ceil(rows);
+        const columnsFloor = Math.floor(columns);
+        const columnsCeiling = Math.ceil(columns);
+        const gridOptions = [
+            [rowsFloor, columnsFloor],
+            [rowsCeiling, columnsFloor],
+            [rowsFloor, columnsCeiling],
+            [rowsCeiling, columnsCeiling]
+        ].filter(([rows, columns]) => rows * columns >= nItems);
+
+        // Compute the maximum scaling factor based on the remaining grid options
+        const scaleFactors = gridOptions.map(([rows, columns]) => {
+            // The -2 provides a small amount of slack to account for numerical
+            // imprecision. Without this slack, occasionally the items are slightly
+            // too wide and pushed into a new row, causing overflow.
+            const xScale = (container.clientWidth - 2) / (columns * widthAspect);
+            const yScale = (container.clientHeight - 2) / (rows * heightAspect);
+            return Math.min(xScale, yScale);
+        });
+        let scale = Math.max(...scaleFactors);
+
+        // If the computed scaling factor would cause the width of an item to
+        // be less than the specified minimum, recompute the scaling factor to
+        // conform to the minimum
+        if (scale * widthAspect < minWidth) {
+            scale = minWidth / widthAspect;
+        }
+
+        return scale;
     }
 }
 
@@ -37,15 +131,15 @@ class VideoFeed extends Component {
 
     render() {
         return (
-            <div className='video-feed'>
-                <p>{this.props.feed.username}</p>
+            <li className='video-feed' style={this.props.style}>
+                <p className='video-tag'>{this.props.feed.username}</p>
                 <video
                     ref={this.video}
                     id={this.props.feed.id}
                     autoPlay={true}
                     playsInline={true}
                 />
-            </div>
+            </li>
         );
     }
 

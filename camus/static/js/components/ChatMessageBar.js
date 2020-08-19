@@ -27,7 +27,7 @@ export default class ChatMessageBar extends Component {
 
     render() {
         return (
-            <div className='message-bar'>
+            <div className='chat-message-bar'>
                 <ChatMessageLog messages={this.props.messages} />
                 <form>
                     <input
@@ -36,7 +36,7 @@ export default class ChatMessageBar extends Component {
                         onChange={this.handleChange}
                     />
                     <button onClick={this.handleSubmit}>
-                        <i id="send-message-icon" className="material-icons">send</i>
+                        <i className='material-icons'>send</i>
                     </button>
                 </form>
             </div>
@@ -47,7 +47,7 @@ export default class ChatMessageBar extends Component {
 class ChatMessageLog extends Component {
     render() {
         return (
-            <ul className='message-log'>
+            <ul className='chat-message-log'>
                 {this.props.messages.map((message) =>
                     <li key={message.timestamp}>
                         <ChatMessage
@@ -65,14 +65,14 @@ class ChatMessageLog extends Component {
 class ChatMessage extends Component {
     render() {
         return (
-            <div className='message'>
-                <p className='message-from'>
+            <div className='chat-message'>
+                <p className='chat-message-from'>
                     {this.props.from}
                 </p>
-                <p className='message-time'>
+                <p className='chat-message-time'>
                     {new Date(this.props.timestamp).toLocaleTimeString("en-US")}
                 </p>
-                <p className='message-text'>
+                <p className='chat-message-text'>
                     {this.props.text}
                 </p>
             </div>

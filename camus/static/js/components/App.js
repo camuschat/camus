@@ -9,9 +9,9 @@ export default class App extends Component {
         super(props);
         this.manager = this.props.manager;
         this.state = {
-            users: [],
+            users: [{id: 'local', username: 'Me'}],
             chatMessages: [],
-            feeds: [],
+            feeds: [{id: 'local', stream: null}],
             connections: []
         }
 
@@ -148,6 +148,16 @@ export default class App extends Component {
     onLocalVideoTrack(track) {
         if (track) {
             this.manager.setVideoTrack(track).then();
+
+            // Add local video to video feeds
+            this.setState(state => {
+                const feeds = state.feeds.slice();
+                const feed = feeds.find(feed => feed.id === 'local');
+                feed.stream = new MediaStream([track]);
+                return {
+                    feeds: feeds
+                };
+            });
         } else {
             this.manager.stopVideo();
         }
