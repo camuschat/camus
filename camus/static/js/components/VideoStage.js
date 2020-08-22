@@ -59,8 +59,6 @@ export default class VideoStage extends Component {
     }
 
     updateScaleFactor(scaleFactor=null) {
-        console.log('updateScaleFactor()');
-
         this.setState((state, props)  => {
             const videoScaleFactor = (scaleFactor ?
                 scaleFactor :
@@ -151,6 +149,8 @@ class VideoFeed extends Component {
     }
 
     componentDidUpdate() {
-        this.video.current.srcObject = this.props.feed.stream;
+        if (this.video.current.srcObject !== this.props.feed.stream) {
+            this.video.current.srcObject = this.props.feed.stream;
+        }
     }
 }
