@@ -32,6 +32,7 @@ export default class ChatMessageBar extends Component {
                 <form>
                     <input
                         type="text"
+                        placeholder="Send a group chat message"
                         value={this.state.value}
                         onChange={this.handleChange}
                     />
