@@ -6,6 +6,7 @@ html {
 
 ul {
   list-style-type: none;
+  padding: 0px;
 }
 
 
@@ -57,15 +58,37 @@ ul {
 
 /* --- React --- */
 
+main {
+
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+    overflow: hidden;
+}
+
+.react-root {
+    display: flex;
+    position: relative;
+    height: 100%;
+}
+
 .video-stage {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+
     padding: 0;
-    border: 1px dotted lightgray;
+    /*border: 1px dotted lightgray;*/
     border-radius: 0.5em;
     height: 80vh;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
     overflow-y: auto;
 }
 
@@ -117,7 +140,7 @@ ul {
 .media-control-bar {
     margin-top: 10px;
     margin-bottom: 10px;
-    border: 1px solid lightgray;
+    /*border: 1px solid lightgray;*/
     display: flex;
     justify-content: center;
 }
@@ -144,6 +167,69 @@ ul {
     background-color: #ddd;
 }
 
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    height: 80vh;
+
+    border: 1px dotted lightgray;
+    border-radius: 0.5em;
+
+    background-color: #fff;
+}
+
+.sidebar.collapsed {
+    width: auto;
+}
+
+.sidebar .icon-button {
+    border: none;
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 6px 12px;
+}
+
+.sidebar .icon-button:hover,
+.sidebar .icon-button:focus {
+    background-color: #eee;
+    outline: none;
+    box-shadow: none;
+}
+
+.sidebar .icon-button:active {
+    background-color: #ddd;
+}
+
+.chat-message-bar {
+    flex: 1;
+
+    /* Allow .chat-message-log to take up as much space as necessary, with
+     * the message form positioned at the bottom of the container */
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-message-bar form {
+    width: 100%;
+    display: flex;
+    padding: 20px;
+}
+
+.chat-message-bar form input {
+    flex: 1;
+}
+
+.chat-message-log {
+    padding: 20px;
+    margin: 0;
+
+    /* flex-basis must be set for overflow to work */
+    flex: 1;
+    flex-basis: 0;
+    overflow-y: auto;
+}
+
 .chat-message-time {
     display: inline-block;
     font-size: small;
@@ -162,6 +248,16 @@ ul {
 
 .chat-message-text {
     margin-top: 0px;
+}
+
+.connection-info-bar {
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.connection-info-node {
+    padding: 10px 20px;
 }
 
 .connection-info-node li {

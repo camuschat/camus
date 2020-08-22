@@ -1,8 +1,9 @@
 import React, { Component } from "react";
 import ChatMessageBar from './ChatMessageBar.js';
-import VideoStage from './VideoStage.js';
-import MediaControlBar from './MediaControlBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
+import MediaControlBar from './MediaControlBar.js';
+import Sidebar from './Sidebar.js';
+import VideoStage from './VideoStage.js';
 
 export default class App extends Component {
     constructor(props) {
@@ -34,23 +35,27 @@ export default class App extends Component {
 
     render() {
         return (<>
-            <VideoStage
-                users={this.state.users}
-                feeds={this.state.feeds}
-            />
-            <MediaControlBar
-                onVideoTrack={this.onLocalVideoTrack}
-                onAudioTrack={this.onLocalAudioTrack}
-            />
-            <ChatMessageBar
-                users={this.state.users}
-                messages={this.state.chatMessages}
-                onSend={this.onSendChatMessage}
-            />
-            <ConnectionInfoBar
-                users={this.state.users}
-                connections={this.state.connections}
-            />
+            <main>
+                <VideoStage
+                    users={this.state.users}
+                    feeds={this.state.feeds}
+                />
+                <MediaControlBar
+                    onVideoTrack={this.onLocalVideoTrack}
+                    onAudioTrack={this.onLocalAudioTrack}
+                />
+            </main>
+            <Sidebar buttonIcons={['message', 'people']}>
+                <ChatMessageBar
+                    users={this.state.users}
+                    messages={this.state.chatMessages}
+                    onSend={this.onSendChatMessage}
+                />
+                <ConnectionInfoBar
+                    users={this.state.users}
+                    connections={this.state.connections}
+                />
+            </Sidebar>
         </>)
     }
 

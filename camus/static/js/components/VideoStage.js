@@ -5,8 +5,8 @@ export default class VideoStage extends Component {
         super(props);
 
         this.state = {
-            videoHeightAspect: 9,
-            videoWidthAspect: 16,
+            videoHeightAspect: 3,
+            videoWidthAspect: 4,
             videoScaleFactor: 1.0
         };
 
@@ -32,11 +32,11 @@ export default class VideoStage extends Component {
         return (
             <ul id='video-stage' className='video-stage'>
                 {this.props.feeds.map((feed) =>
-                        <VideoFeed
-                            key={feed.id}
-                            feed={feed}
-                            style={videoFeedStyle}
-                        />
+                    <VideoFeed
+                        key={feed.id}
+                        feed={feed}
+                        style={videoFeedStyle}
+                    />
                 )}
             </ul>
         );
@@ -52,19 +52,22 @@ export default class VideoStage extends Component {
     componentDidUpdate() {
         const videoScaleFactor = this.calculateScaleFactor(
             this.props.feeds.length, this.state.videoHeightAspect, this.state.videoWidthAspect);
+
         if (videoScaleFactor !== this.state.videoScaleFactor) {
-            this.setState({
-                videoScaleFactor: videoScaleFactor
-            });
+            this.updateScaleFactor(videoScaleFactor);
         }
     }
 
-    updateScaleFactor() {
+    updateScaleFactor(scaleFactor=null) {
         console.log('updateScaleFactor()');
 
         this.setState((state, props)  => {
-            const videoScaleFactor = this.calculateScaleFactor(
-                props.feeds.length, state.videoHeightAspect, state.videoWidthAspect);
+            const videoScaleFactor = (scaleFactor ?
+                scaleFactor :
+                this.calculateScaleFactor(props.feeds.length, state.videoHeightAspect,
+                                            state.videoWidthAspect)
+            );
+
 
             return {
                 videoScaleFactor: videoScaleFactor
