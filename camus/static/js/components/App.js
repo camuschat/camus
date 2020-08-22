@@ -25,6 +25,7 @@ export default class App extends Component {
         this.onPeerTrack = this.onPeerTrack.bind(this);
         this.onPeerConnectionChange = this.onPeerConnectionChange.bind(this);
         this.onPeerUsernameChange = this.onPeerUsernameChange.bind(this);
+        this.onSidebarToggle = this.onSidebarToggle.bind(this);
     }
 
     componentDidMount() {
@@ -45,7 +46,9 @@ export default class App extends Component {
                     onAudioTrack={this.onLocalAudioTrack}
                 />
             </main>
-            <Sidebar buttonIcons={['message', 'people']}>
+            <Sidebar
+                buttonIcons={['message', 'people']}
+                onToggle={this.onSidebarToggle}>
                 <ChatMessageBar
                     users={this.state.users}
                     messages={this.state.chatMessages}
@@ -220,5 +223,13 @@ export default class App extends Component {
                 users: users
             };
         });
+    }
+
+    onSidebarToggle() {
+        // When the sidebar is toggled, VideoStage must be re-rendered to
+        // update the scaling factor of its VideoFeeds. In the future, the
+        // VideoStage should be able to update itself using Resize Observers
+        // (see https://drafts.csswg.org/resize-observer-1/).
+        this.forceUpdate();
     }
 }

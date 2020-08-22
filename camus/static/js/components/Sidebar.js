@@ -58,12 +58,16 @@ export default class Sidebar extends Component {
             currentChild: childIndex,
             isCollapsed: false
         });
+
+        this.props.onToggle('open');
     }
 
     hide() {
         this.setState({
             isCollapsed: true
         });
+
+        this.props.onToggle('close');
     }
 }
 
