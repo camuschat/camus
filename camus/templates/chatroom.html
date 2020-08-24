@@ -5,25 +5,6 @@
 {% block content %}
 <div id="react-root" class="react-root">
 </div>
-<div class="modal" id="user-profile-modal" tabindex="-1" data-backdrop='static' data-keyboard=false role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <p class="modal-title">Enter your display name</p>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="username-input">
-                        <div class="input-group-append">
-                            <button class="btn btn-secondary" id="user-profile-save" type="submit">Save</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script src="{{ url_for('static', filename='dist/chat.js') }}"></script>
 {% endblock %}

@@ -4,9 +4,18 @@ import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 export default class MediaControlBar extends Component {
     constructor(props) {
         super(props);
+
+        const {
+            videoDeviceId,
+            audioDeviceId
+        } = this.props;
+
+        console.log('videoDeviceId', videoDeviceId);
+        console.log('audioDeviceId', audioDeviceId);
+
         this.state = {
-            cameraOn: false,
-            micOn: false,
+            cameraOn: videoDeviceId ? true : false,
+            micOn: audioDeviceId ? true : false,
             displayOn: false
         };
 
@@ -18,6 +27,7 @@ export default class MediaControlBar extends Component {
             <div className='media-control-bar'>
                 <MediaToggleButton
                     kind={'camera'}
+                    deviceId={this.props.videoDeviceId}
                     isOn={this.state.cameraOn}
                     onTrack={this.onTrack}
                     getMedia={getUserVideo}
@@ -25,6 +35,7 @@ export default class MediaControlBar extends Component {
                 />
                 <MediaToggleButton
                     kind={'mic'}
+                    deviceId={this.props.audioDeviceId}
                     isOn={this.state.micOn}
                     onTrack={this.onTrack}
                     getMedia={getUserAudio}
@@ -32,6 +43,7 @@ export default class MediaControlBar extends Component {
                 />
                 <MediaToggleButton
                     kind={'display'}
+                    deviceId={null}
                     isOn={this.state.displayOn}
                     onTrack={this.onTrack}
                     getMedia={getDisplayMedia}
@@ -115,7 +127,7 @@ class MediaToggleButton extends Component {
     }
 
     mediaOn() {
-        this.props.getMedia().then((track) => {
+        this.props.getMedia(this.props.deviceId).then((track) => {
             this.mediaTrack = track;
             this.props.onTrack(this.props.kind, track);
         });

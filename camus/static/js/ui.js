@@ -1,35 +1,5 @@
 'use strict';
 
-class UI {
-    constructor(manager) {
-        this.manager = manager;
-        this.videoMode = 'off';
-        this.audioMode = 'off';
-    }
-
-    promptUserName() {
-        $('#user-profile-modal').modal('show');
-    }
-
-    saveUserProfile() {
-        const username = document.querySelector('#username-input').value;
-        this.manager.setUsername(username);
-
-        $('#user-profile-modal').modal('hide');
-    }
-
-    async start() {
-        // Listner for user profile dialog
-        const profileForm = document.querySelector('#user-profile-modal form');
-        profileForm.addEventListener('submit', (evt) => {
-            evt.preventDefault();
-            this.saveUserProfile();
-        });
-
-        this.promptUserName();
-    }
-}
-
 function dragVideo(evt) {
     evt.dataTransfer.setData('id', evt.target.id);
 }
@@ -62,5 +32,3 @@ function swapNodes(node1, node2) {
     parent1.removeChild(temp1);
     parent2.removeChild(temp2);
 }
-
-export {UI};

@@ -31,11 +31,17 @@ export async function hasMic() {
 }
 
 export async function getUserMedia(audio=true, video=true) {
-    const mic = await hasMic();
-    const camera = await hasCamera();
+    const audioConstraints = (typeof audio === 'string' ?
+        {deviceId: audio} :
+        audio && await hasMic()
+    );
+    const videoConstraints = (typeof video === 'string' ?
+        {deviceId: video} :
+        video && await hasCamera()
+    );
     const constraints = {
-        audio: audio && mic,
-        video: video && camera
+        audio: audioConstraints,
+        video: videoConstraints
     };
 
     let stream;
@@ -52,13 +58,13 @@ export async function getUserMedia(audio=true, video=true) {
     return {audio: audioTrack, video: videoTrack}
 }
 
-export async function getUserVideo() {
-    const {video} = await getUserMedia(false, true);
+export async function getUserVideo(deviceId=null) {
+    const {video} = await getUserMedia(false, deviceId ? deviceId : true);
     return video;
 }
 
-export async function getUserAudio() {
-    const {audio} = await getUserMedia(true, false);
+export async function getUserAudio(deviceId=null) {
+    const {audio} = await getUserMedia(deviceId ? deviceId : true, false);
     return audio;
 }
 

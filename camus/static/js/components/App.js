@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
+import EnterRoomModal from './EnterRoomModal.js';
 import MediaControlBar from './MediaControlBar.js';
 import Sidebar from './Sidebar.js';
 import VideoStage from './VideoStage.js';
@@ -10,12 +11,16 @@ export default class App extends Component {
         super(props);
         this.manager = this.props.manager;
         this.state = {
+            displayEnterRoomModal: true,
+            audioDeviceId: '',
+            videoDeviceId: '',
             users: [{id: 'local', username: 'Me'}],
             chatMessages: [],
             feeds: [{id: 'local', stream: null}],
             connections: []
         }
 
+        this.onSubmitModal = this.onSubmitModal.bind(this);
         this.onSendChatMessage = this.onSendChatMessage.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
         this.onVideoPeer = this.onVideoPeer.bind(this);
@@ -35,6 +40,15 @@ export default class App extends Component {
     }
 
     render() {
+        if (this.state.displayEnterRoomModal) {
+            return (
+                <EnterRoomModal
+                    isVisible={this.state.displayEnterRoomModal}
+                    onSubmit={this.onSubmitModal}
+                />
+            );
+        }
+
         return (<>
             <main>
                 <VideoStage
@@ -42,6 +56,8 @@ export default class App extends Component {
                     feeds={this.state.feeds}
                 />
                 <MediaControlBar
+                    audioDeviceId={this.state.audioDeviceId}
+                    videoDeviceId={this.state.videoDeviceId}
                     onVideoTrack={this.onLocalVideoTrack}
                     onAudioTrack={this.onLocalAudioTrack}
                 />
@@ -60,6 +76,16 @@ export default class App extends Component {
                 />
             </Sidebar>
         </>)
+    }
+
+    onSubmitModal(username, audioDeviceId, videoDeviceId) {
+        console.log('Modal submitted: ', username, audioDeviceId, videoDeviceId);
+        this.manager.setUsername(username);
+        this.setState({
+            displayEnterRoomModal: false,
+            audioDeviceId: audioDeviceId,
+            videoDeviceId: videoDeviceId
+        });
     }
 
     async onSendChatMessage(message) {

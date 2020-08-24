@@ -4,11 +4,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 import {Manager} from './rtcclient.js';
-import {UI} from './ui.js';
 import App from './components/App.js';
 
 var manager = new Manager();
-var ui = new UI(manager);
 
 window.addEventListener('unhandledrejection', (event) => {
     console.log('An unhandled error occurred');
@@ -19,7 +17,6 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 window.addEventListener('load', async () => {
-    await ui.start();
     await manager.start();
 });
 

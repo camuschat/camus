@@ -97,6 +97,68 @@ main {
     height: 100%;
 }
 
+.enter-room-modal {
+    /* Center modal on its own layer above everything else */
+    position: fixed;
+    margin: auto auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    height: min-content;
+    width: 60%;
+    padding: 20px;
+
+    background-color: #fff;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+}
+
+.enter-room-modal form {
+    flex: 1 200px;
+
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.enter-room-modal form input,
+.enter-room-modal form select {
+    display: block;
+    width: 100%;
+}
+
+.enter-room-modal .video-container {
+    flex: 1 200px;
+    margin: 10px;
+
+
+}
+.enter-room-modal .video-container video {
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    background-color: #000;
+    border-radius: 0.5em;
+}
+
+.modal-overlay {
+    position: fixed;
+    z-index: 9998;
+
+    height: 100%;
+    width: 100%;
+
+    background-color: #000;
+    opacity: 0.5;
+}
+
 .video-stage {
     display: flex;
     flex-wrap: wrap;
