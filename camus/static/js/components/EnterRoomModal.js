@@ -61,8 +61,14 @@ export default class EnterRoomModal extends Component {
         </>);
     }
 
+    componentWillUnmount() {
+        this.stopPreviewStream();
+    }
+
     onSelectDevice(kind, deviceId) {
         if (kind === 'Camera') {
+            this.stopPreviewStream();
+
             if (deviceId) {
                 getUserVideo(deviceId).then(track => {
                     const stream = new MediaStream([track]);
@@ -98,6 +104,15 @@ export default class EnterRoomModal extends Component {
             videoDeviceId
         } = this.state;
         this.props.onSubmit(nickname, audioDeviceId, videoDeviceId);
+    }
+
+    stopPreviewStream() {
+        const stream = this.videoPreview.current.srcObject;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        this.videoPreview.current.srcObject = null;
     }
 }
 
