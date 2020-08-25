@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class ConnectionInfoBar extends Component {
     render() {
@@ -32,6 +33,11 @@ export default class ConnectionInfoBar extends Component {
     }
 }
 
+ConnectionInfoBar.propTypes = {
+    users: PropTypes.array.isRequired,
+    connections: PropTypes.array.isRequired
+};
+
 class ConnectionInfoNode extends Component {
     render() {
         const connection = this.props.connection;
@@ -64,3 +70,7 @@ class ConnectionInfoNode extends Component {
         );
     }
 }
+
+ConnectionInfoNode.propTypes = {
+    connection: PropTypes.object.isRequired
+};

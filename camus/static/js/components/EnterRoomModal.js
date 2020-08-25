@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {getCameras, getMics, getUserVideo} from '../mediaUtils.js';
 
 export default class EnterRoomModal extends Component {
@@ -100,6 +101,11 @@ export default class EnterRoomModal extends Component {
     }
 }
 
+EnterRoomModal.propTypes = {
+    isVisible: PropTypes.bool.isRequired,
+    onSubmit: PropTypes.func.isRequired
+};
+
 class DeviceSelect extends Component {
     constructor(props) {
         super(props);
@@ -140,3 +146,9 @@ class DeviceSelect extends Component {
         this.props.onSelectDevice(this.props.label, deviceId);
     }
 }
+
+DeviceSelect.propTypes = {
+    label: PropTypes.string.isRequired,
+    getDevices: PropTypes.func.isRequired,
+    onSelectDevice: PropTypes.func.isRequired
+};

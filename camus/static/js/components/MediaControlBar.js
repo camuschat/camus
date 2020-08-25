@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
 export default class MediaControlBar extends Component {
@@ -78,6 +79,13 @@ export default class MediaControlBar extends Component {
     }
 }
 
+MediaControlBar.propTypes = {
+    audioDeviceId: PropTypes.string.isRequired,
+    videoDeviceId: PropTypes.string.isRequired,
+    onVideoTrack: PropTypes.func.isRequired,
+    onAudioTrack: PropTypes.func.isRequired
+};
+
 class MediaToggleButton extends Component {
     constructor(props) {
         super(props);
@@ -140,3 +148,12 @@ class MediaToggleButton extends Component {
         this.props.onTrack(this.props.kind, null);
     }
 }
+
+MediaToggleButton.propTypes = {
+    kind: PropTypes.string.isRequired,
+    deviceId: PropTypes.string,
+    isOn: PropTypes.bool.isRequired,
+    icons: PropTypes.object.isRequired,
+    getMedia: PropTypes.func.isRequired,
+    onTrack: PropTypes.func.isRequired
+};

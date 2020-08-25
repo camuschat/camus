@@ -1,4 +1,6 @@
-import React, { Component } from "react";
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
 import EnterRoomModal from './EnterRoomModal.js';
@@ -274,3 +276,7 @@ export default class App extends Component {
         });
     }
 }
+
+App.propTypes = {
+    manager: PropTypes.instanceOf(Manager).isRequired
+};

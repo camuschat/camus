@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class ChatMessageBar extends Component {
     constructor(props) {
@@ -45,6 +46,12 @@ export default class ChatMessageBar extends Component {
     }
 }
 
+ChatMessageBar.propTypes = {
+    users: PropTypes.arrayOf(PropTypes.object).isRequired,
+    messages: PropTypes.arrayOf(PropTypes.object).isRequired,
+    onSend: PropTypes.func.isRequired
+};
+
 class ChatMessageLog extends Component {
     render() {
         return (
@@ -63,6 +70,10 @@ class ChatMessageLog extends Component {
     }
 }
 
+ChatMessageLog.propTypes = {
+    messages: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
+
 class ChatMessage extends Component {
     render() {
         return (
@@ -80,3 +91,9 @@ class ChatMessage extends Component {
         );
     }
 }
+
+ChatMessage.propTypes = {
+    from: PropTypes.string.isRequired,
+    timestamp: PropTypes.number.isRequired,
+    text: PropTypes.string.isRequired
+};

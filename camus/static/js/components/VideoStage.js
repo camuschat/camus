@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class VideoStage extends Component {
     constructor(props) {
@@ -122,6 +123,12 @@ export default class VideoStage extends Component {
     }
 }
 
+VideoStage.propTypes = {
+    feeds: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
+    onSwapFeeds: PropTypes.func.isRequired
+};
+
 class VideoFeed extends Component {
     constructor(props) {
         super(props);
@@ -180,3 +187,9 @@ class VideoFeed extends Component {
         this.props.onDragAndDrop(draggedId, targetId);
     }
 }
+
+VideoFeed.propTypes = {
+    feed: PropTypes.object.isRequired,
+    style: PropTypes.object.isRequired,
+    onDragAndDrop: PropTypes.func.isRequired
+};

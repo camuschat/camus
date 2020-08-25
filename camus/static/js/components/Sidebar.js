@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
 
 export default class Sidebar extends Component {
     constructor(props) {
@@ -71,6 +72,15 @@ export default class Sidebar extends Component {
     }
 }
 
+Sidebar.propTypes = {
+    buttonIcons: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onToggle: PropTypes.func.isRequired,
+    children: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.node),
+        PropTypes.node
+    ]).isRequired
+};
+
 class SidebarToggleButton extends Component {
     constructor(props) {
         super(props);
@@ -91,3 +101,8 @@ class SidebarToggleButton extends Component {
         this.props.onClick(this.props.icon);
     }
 }
+
+SidebarToggleButton.propTypes = {
+    icon: PropTypes.string.isRequired,
+    onClick: PropTypes.func.isRequired
+};
