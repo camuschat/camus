@@ -31,6 +31,7 @@ export default class App extends Component {
         this.onPeerConnectionChange = this.onPeerConnectionChange.bind(this);
         this.onPeerUsernameChange = this.onPeerUsernameChange.bind(this);
         this.onSidebarToggle = this.onSidebarToggle.bind(this);
+        this.onSwapFeeds = this.onSwapFeeds.bind(this);
     }
 
     componentDidMount() {
@@ -54,6 +55,7 @@ export default class App extends Component {
                 <VideoStage
                     users={this.state.users}
                     feeds={this.state.feeds}
+                    onSwapFeeds={this.onSwapFeeds}
                 />
                 <MediaControlBar
                     audioDeviceId={this.state.audioDeviceId}
@@ -257,5 +259,18 @@ export default class App extends Component {
         // VideoStage should be able to update itself using Resize Observers
         // (see https://drafts.csswg.org/resize-observer-1/).
         this.forceUpdate();
+    }
+
+    onSwapFeeds(feedId1, feedId2) {
+        this.setState(state => {
+            const feeds = state.feeds.slice();
+            const idx1 = feeds.findIndex(feed => feed.id === feedId1);
+            const idx2 = feeds.findIndex(feed => feed.id === feedId2);
+            [feeds[idx1], feeds[idx2]] = [feeds[idx2], feeds[idx1]];
+
+            return {
+                feeds: feeds
+            };
+        });
     }
 }

@@ -36,6 +36,7 @@ export default class VideoStage extends Component {
                         key={feed.id}
                         feed={feed}
                         style={videoFeedStyle}
+                        onDragAndDrop={this.props.onSwapFeeds}
                     />
                 )}
             </ul>
@@ -128,11 +129,21 @@ class VideoFeed extends Component {
         // Create a ref for the <video> element so that we can act on the DOM
         // directly to update the stream source
         this.video = React.createRef();
+
+        this.onDragStart = this.onDragStart.bind(this);
+        this.onDragOver = this.onDragOver.bind(this);
+        this.onDrop = this.onDrop.bind(this);
     }
 
     render() {
         return (
-            <li className='video-feed' style={this.props.style}>
+            <li className='video-feed'
+                style={this.props.style}
+                draggable={'true'}
+                onDragStart={this.onDragStart}
+                onDragOver={this.onDragOver}
+                onDrop={this.onDrop}
+            >
                 <p className='video-tag'>{this.props.feed.username}</p>
                 <video
                     ref={this.video}
@@ -152,5 +163,20 @@ class VideoFeed extends Component {
         if (this.video.current.srcObject !== this.props.feed.stream) {
             this.video.current.srcObject = this.props.feed.stream;
         }
+    }
+
+    onDragStart(evt) {
+        evt.dataTransfer.setData('id', this.props.feed.id);
+    }
+
+    onDragOver(evt) {
+        evt.preventDefault();
+    }
+
+    onDrop(evt) {
+        evt.preventDefault();
+        const draggedId = evt.dataTransfer.getData('id');
+        const targetId = this.props.feed.id;
+        this.props.onDragAndDrop(draggedId, targetId);
     }
 }
