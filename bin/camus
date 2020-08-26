@@ -1,4 +1,1 @@
-#!/bin/bash
-
-export QUART_APP=camus
-quart run
+hypercorn camus --log-file - -b 127.0.0.1:5000
