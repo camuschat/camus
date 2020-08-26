@@ -136,6 +136,7 @@ class VideoFeed extends Component {
         // Create a ref for the <video> element so that we can act on the DOM
         // directly to update the stream source
         this.video = React.createRef();
+        this.audio = React.createRef();
 
         this.onDragStart = this.onDragStart.bind(this);
         this.onDragOver = this.onDragOver.bind(this);
@@ -157,6 +158,11 @@ class VideoFeed extends Component {
                     id={this.props.feed.id}
                     autoPlay={true}
                     playsInline={true}
+                    muted={true}
+                />
+                <audio 
+                    ref={this.audio}
+                    autoPlay={true}
                 />
             </li>
         );
@@ -164,11 +170,16 @@ class VideoFeed extends Component {
 
     componentDidMount() {
         this.video.current.srcObject = this.props.feed.stream;
+        this.audio.current.srcObject = this.props.feed.stream;
     }
 
     componentDidUpdate() {
         if (this.video.current.srcObject !== this.props.feed.stream) {
             this.video.current.srcObject = this.props.feed.stream;
+        }
+
+        if (this.audio.current.srcObject !== this.props.feed.stream) {
+            this.audio.current.srcObject = this.props.feed.stream;
         }
     }
 

@@ -40,6 +40,18 @@ export default class App extends Component {
         this.manager.addMessageListener({type: 'text'}, this.onReceiveChatMessage);
         this.manager.on('videopeer', this.onVideoPeer);
         this.manager.on('videopeerremoved', this.onVideoPeerRemoved);
+
+        window.addEventListener('beforeunload', () => {
+            this.manager.shutdown();
+        });
+
+        window.addEventListener('load', async () => {
+            await this.manager.start();
+        });
+    }
+
+    componentWillUnmount() {
+        this.manager.shutdown();
     }
 
     render() {
@@ -83,7 +95,6 @@ export default class App extends Component {
     }
 
     onSubmitModal(username, audioDeviceId, videoDeviceId) {
-        console.log('Modal submitted: ', username, audioDeviceId, videoDeviceId);
         this.manager.setUsername(username);
         this.setState({
             displayEnterRoomModal: false,
@@ -213,7 +224,7 @@ export default class App extends Component {
         track.addEventListener('unmute', () => {
             this.setState(state => {
                 const updatedFeeds = state.feeds.map(feed => {
-                    if (feed.id === peer.client_id) {
+                    if (feed.id === peer.client_id && streams[0]) {
                         feed.stream = streams[0];
                     }
                     return feed;

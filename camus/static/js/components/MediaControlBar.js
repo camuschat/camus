@@ -11,9 +11,6 @@ export default class MediaControlBar extends Component {
             audioDeviceId
         } = this.props;
 
-        console.log('videoDeviceId', videoDeviceId);
-        console.log('audioDeviceId', audioDeviceId);
-
         this.state = {
             cameraOn: videoDeviceId ? true : false,
             micOn: audioDeviceId ? true : false,

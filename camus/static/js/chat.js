@@ -16,14 +16,6 @@ window.addEventListener('unhandledrejection', (event) => {
     //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
 });
 
-window.addEventListener('load', async () => {
-    await manager.start();
-});
-
-window.addEventListener('beforeunload', () => {
-    manager.shutdown();
-});
-
 ReactDOM.render(
   <React.StrictMode>
     <App
