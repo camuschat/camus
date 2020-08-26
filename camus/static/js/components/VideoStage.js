@@ -169,17 +169,17 @@ class VideoFeed extends Component {
     }
 
     componentDidMount() {
-        this.video.current.srcObject = this.props.feed.stream;
-        this.audio.current.srcObject = this.props.feed.stream;
+        this.video.current.srcObject = this.props.feed.videoStream;
+        this.audio.current.srcObject = this.props.feed.audioStream;
     }
 
     componentDidUpdate() {
-        if (this.video.current.srcObject !== this.props.feed.stream) {
-            this.video.current.srcObject = this.props.feed.stream;
+        if (this.video.current.srcObject !== this.props.feed.videoStream) {
+            this.video.current.srcObject = this.props.feed.videoStream;
         }
 
-        if (this.audio.current.srcObject !== this.props.feed.stream) {
-            this.audio.current.srcObject = this.props.feed.stream;
+        if (this.audio.current.srcObject !== this.props.feed.audioStream) {
+            this.audio.current.srcObject = this.props.feed.audioStream;
         }
     }
 

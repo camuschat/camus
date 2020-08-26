@@ -18,7 +18,7 @@ export default class App extends Component {
             videoDeviceId: '',
             users: [{id: 'local', username: 'Me'}],
             chatMessages: [],
-            feeds: [{id: 'local', stream: null}],
+            feeds: [{id: 'local', audioStream: null, videoStream: null}],
             connections: []
         }
 
@@ -202,7 +202,7 @@ export default class App extends Component {
             this.setState(state => {
                 const feeds = state.feeds.slice();
                 const feed = feeds.find(feed => feed.id === 'local');
-                feed.stream = new MediaStream([track]);
+                feed.videoStream = new MediaStream([track]);
                 return {
                     feeds: feeds
                 };
@@ -221,14 +221,41 @@ export default class App extends Component {
     }
 
     onPeerTrack(peer, track, streams) {
+        const stream = streams[0];
+
         track.addEventListener('unmute', () => {
             this.setState(state => {
                 const updatedFeeds = state.feeds.map(feed => {
-                    if (feed.id === peer.client_id && streams[0]) {
-                        feed.stream = streams[0];
+                    if (feed.id === peer.client_id && stream) {
+                        if (track.kind === 'video') {
+                            feed.videoStream = stream;
+                        } else if (track.kind === 'audio') {
+                            feed.audioStream = stream;
+                        }
                     }
                     return feed;
                 });
+
+                return {
+                    feeds: updatedFeeds
+                };
+            });
+        });
+
+        track.addEventListener('mute', () => {
+            console.log('Track muted', track);
+            this.setState(state => {
+                const updatedFeeds = state.feeds.map(feed => {
+                    if (feed.id === peer.client_id && stream) {
+                        if (track.kind === 'video') {
+                            feed.videoStream = null;
+                        } else if (track.kind === 'audio') {
+                            feed.audioStream = null;
+                        }
+                    }
+                    return feed;
+                });
+
                 return {
                     feeds: updatedFeeds
                 };
