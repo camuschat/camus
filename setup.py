@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='camus-chat',
-    version='0.1.0',
+    version='0.1.1',
     description='Peer-to-peer video chat using WebRTC',
     long_description=open('README.rst').read(),
     long_description_content_type="text/x-rst; charset=UTF-8",
