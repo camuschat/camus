@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --mode production --config webpack.config.js",
     "watch": "webpack --progress -d --config webpack.config.js --watch"
   },
   "repository": {
