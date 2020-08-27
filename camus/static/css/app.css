@@ -1,7 +1,34 @@
 /* --- General element styles --- */
 
+/* Fallback scrollbar styling for webkit */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 2px lightgray;
+    border-radius: 10px;
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 html {
     min-height: 100%;  /* Allow background to fill entire screen */
+    scrollbar-color: #888 #f1f1f1;
+    scrollbar-width: thin;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
 }
 
 
@@ -14,35 +41,6 @@ html {
 
 
 /* --- Camus specific --- */
-
-#control-bar {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-#video-stage {
-    border: 1px dotted lightgray;
-    border-radius: 0.5em;
-    min-height: 480px;
-}
-
-#video-thumbs {
-    max-height: 600;
-    overflow-y: auto;
-    text-overflow: ellipsis;
-}
-
-#message-bar {
-    width: 100%;
-    height: 100%;
-}
-
-#message-log {
-    min-height: 200px;
-    max-height: 400px;
-    overflow-y: auto;
-}
 
 .content {
     margin-top: 20px;
@@ -62,95 +60,6 @@ html {
     text-decoration: none;
 }
 
-.icon-button:hover,
-.icon-button:focus {
-    background-color: #eeeeee;
-    outline: none;
-    box-shadow: none;
-}
-
-.icon-button:active {
-    background-color: #dddddd;
-}
-
-.video-box {
-    position: relative;
-    box-shadow: inset 0 0 4em 2em #000000;
-    border-radius: 0.5em;
-}
-
-.video-box video {
-    /* Fill the video-box */
-    height: 100%;
-    width: 100%;
-    display: flex;
-
-    max-height: 750px;
-    background-color: #000;
-    border-radius: 0.5em;
-}
-
-.video-box:hover video {
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    transition-delay: 0.2s;
-    transition-timing-function: ease;
-}
-
-.video-box .video-tag {
-    display: none;
-    position: absolute;
-    left: 20px;
-    top: 10px;
-    z-index: 9;
-    max-width: 80%;
-    text-overflow: ellipsis;
-    font-size: 1.5em;
-}
-
-.video-box:hover .video-tag {
-    display: inline;
-    color: #000;
-    text-shadow: 1px 1px 4px #fff,
-                 -1px -1px 4px #fff;
-                 1px -1px 4px #fff;
-                 -1px 1px 4px #fff;
-    text-overflow: ellipsis;
-}
-
-.message-time {
-    display: inline-block;
-    font-size: small;
-    font-style: italic;
-    margin-bottom: 0px;
-    margin-left: 10px;
-    float: right;
-}
-
-.message-from {
-    display: inline-block;
-    font-variant-caps: all-small-caps;
-    font-weight: bold;
-    margin-bottom: 0px;
-}
-
-.message-text {
-    margin-top: 0px;
-}
-
-.tech-info {
-    font-variant-caps: all-small-caps;
-    font-weight: bold;
-    margin-bottom: 0px;
-}
-
-.tech-info > span {
-    font-variant-caps: normal;
-    font-weight: normal;
-    font-size: small;
-    font-style: italic;
-}
-
 .about a {
     color: #004B6B;
     text-decoration: none;
@@ -166,4 +75,284 @@ html {
 .about i {
     /* Consistent sizing for material icons */
     font-size: 1em;
+}
+
+
+/* --- React --- */
+
+main {
+
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+    overflow: hidden;
+}
+
+.react-root {
+    display: flex;
+    position: relative;
+    height: 100%;
+}
+
+.enter-room-modal {
+    /* Center modal on its own layer above everything else */
+    position: fixed;
+    margin: auto auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    height: min-content;
+    width: 60%;
+    padding: 20px;
+
+    background-color: #fff;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+}
+
+.enter-room-modal form {
+    flex: 1 200px;
+
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+}
+
+.enter-room-modal form input,
+.enter-room-modal form select {
+    display: block;
+    width: 100%;
+}
+
+.enter-room-modal .video-container {
+    flex: 1 200px;
+    margin: 10px;
+
+
+}
+.enter-room-modal .video-container video {
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    background-color: #000;
+    border-radius: 0.5em;
+}
+
+.modal-overlay {
+    position: fixed;
+    z-index: 9998;
+
+    height: 100%;
+    width: 100%;
+
+    background-color: #000;
+    opacity: 0.5;
+}
+
+.video-stage {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    /*border: 1px dotted lightgray;*/
+    border-radius: 0.5em;
+    height: 80vh;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+    overflow-y: auto;
+}
+
+.video-feed {
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: inset 0 0 4em 2em #000000;
+    border-radius: 0.5em;
+}
+
+.video-feed video {
+    /* Fill the video-feed */
+    height: 100%;
+    width: 100%;
+    display: flex;
+
+    background-color: #000;
+    border-radius: 0.5em;
+}
+
+.video-feed:hover video {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    transition-delay: 0.2s;
+    transition-timing-function: ease;
+}
+
+.video-feed .video-tag {
+    display: none;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    z-index: 9;
+    max-width: 80%;
+    text-overflow: ellipsis;
+    font-size: 1.5em;
+}
+
+.video-feed:hover .video-tag {
+    display: inline;
+    color: #fff;
+    text-shadow: 1px 1px 4px #000,
+                 -1px -1px 4px #000,
+                 1px -1px 4px #000,
+                 -1px 1px 4px #000;
+    text-overflow: ellipsis;
+}
+
+.media-control-bar {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    /*border: 1px solid lightgray;*/
+    display: flex;
+    justify-content: center;
+}
+
+.media-control-bar button,
+.chat-message-bar button {
+    border: none;
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 6px 12px;
+}
+
+.media-control-bar button:hover,
+.media-control-bar button:focus,
+.chat-message-bar button:hover,
+.chat-message-bar button:focus {
+    background-color: #eee;
+    outline: none;
+    box-shadow: none;
+}
+
+.media-control-bar button:active,
+.chat-message-bar button:active {
+    background-color: #ddd;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    height: 80vh;
+
+    border: 1px dotted lightgray;
+    border-radius: 0.5em;
+
+    background-color: #fff;
+}
+
+.sidebar.collapsed {
+    width: auto;
+}
+
+.sidebar .icon-button {
+    border: none;
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 6px 12px;
+}
+
+.sidebar .icon-button:hover,
+.sidebar .icon-button:focus {
+    background-color: #eee;
+    outline: none;
+    box-shadow: none;
+}
+
+.sidebar .icon-button:active {
+    background-color: #ddd;
+}
+
+.chat-message-bar {
+    flex: 1;
+
+    /* Allow .chat-message-log to take up as much space as necessary, with
+     * the message form positioned at the bottom of the container */
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-message-bar form {
+    width: 100%;
+    display: flex;
+    padding: 20px;
+}
+
+.chat-message-bar form input {
+    flex: 1;
+}
+
+.chat-message-log {
+    padding: 20px;
+    margin: 0;
+
+    /* flex-basis must be set for overflow to work */
+    flex: 1;
+    flex-basis: 0;
+    overflow-y: auto;
+}
+
+.chat-message-time {
+    display: inline-block;
+    font-size: small;
+    font-style: italic;
+    margin-bottom: 0px;
+    margin-left: 10px;
+    float: right;
+}
+
+.chat-message-from {
+    display: inline-block;
+    font-variant-caps: all-small-caps;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+
+.chat-message-text {
+    margin-top: 0px;
+}
+
+.connection-info-bar {
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.connection-info-node {
+    padding: 10px 20px;
+}
+
+.connection-info-node li {
+    font-variant-caps: all-small-caps;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+
+.connection-info-node span {
+    font-variant-caps: normal;
+    font-weight: normal;
+    font-size: small;
+    font-style: italic;
 }

@@ -6,14 +6,19 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:cypress/recommended"
+        "plugin:cypress/recommended",
+        "plugin:react/recommended"
     ],
     "parserOptions": {
         "ecmaVersion": 11,
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
     },
     "plugins": [
-        "cypress"
+        "cypress",
+        "react"
     ],
     "rules": {
         "no-promise-executor-return": "error",
