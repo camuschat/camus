@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html{% block html_attribs %}{% endblock html_attribs %}>
+{%- block html %}
+  <head>
+    {%- block head %}
+    <title>
+        {% block title %}
+            {% if title %}{{ title }}{% else %}Camus Video Chat{% endif %}
+        {% endblock title %}
+    </title>
+
+    {%- block metas %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="Peer-to-peer video chat application using WebRTC. Audio and video streaming, desktop sharing, and text chat.">
+    {% block robots %}<meta name="robots" content="index, follow">{% endblock robots %}
+    {%- endblock metas %}
+
+    {%- block styles %}
+        {{ bootstrap.load_css() }}
+        <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/icons.css')}}">
+    {%- endblock styles %}
+    {%- endblock head %}
+  </head>
+  <body{% block body_attribs %}{% endblock body_attribs %}>
+    {% block body -%}
+    {% block navbar %}
+    {%- endblock navbar %}
+    {% block content -%}
+    {%- endblock content %}
+
+    {% block scripts %}
+    {%- endblock scripts %}
+    {%- endblock body %}
+  </body>
+{%- endblock html %}
+</html>
