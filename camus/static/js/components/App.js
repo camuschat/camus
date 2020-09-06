@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {setManager} from '../actions';
 import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
@@ -8,14 +10,12 @@ import MediaControlBar from './MediaControlBar.js';
 import Sidebar from './Sidebar.js';
 import VideoStage from './VideoStage.js';
 
-export default class App extends Component {
+class App extends Component {
     constructor(props) {
         super(props);
         this.manager = this.props.manager;
         this.state = {
             displayEnterRoomModal: true,
-            audioDeviceId: '',
-            videoDeviceId: '',
             users: [{id: 'local', username: 'Me'}],
             chatMessages: [],
             feeds: [{id: 'local', audioStream: null, videoStream: null}],
@@ -48,6 +48,8 @@ export default class App extends Component {
         window.addEventListener('load', async () => {
             await this.manager.start();
         });
+
+        this.props.setManager(this.manager);
     }
 
     componentWillUnmount() {
@@ -72,8 +74,6 @@ export default class App extends Component {
                     onSwapFeeds={this.onSwapFeeds}
                 />
                 <MediaControlBar
-                    audioDeviceId={this.state.audioDeviceId}
-                    videoDeviceId={this.state.videoDeviceId}
                     onVideoTrack={this.onLocalVideoTrack}
                     onAudioTrack={this.onLocalAudioTrack}
                 />
@@ -94,12 +94,9 @@ export default class App extends Component {
         </>)
     }
 
-    onSubmitModal(username, audioDeviceId, videoDeviceId) {
-        this.manager.setUsername(username);
+    onSubmitModal() {
         this.setState({
-            displayEnterRoomModal: false,
-            audioDeviceId: audioDeviceId,
-            videoDeviceId: videoDeviceId
+            displayEnterRoomModal: false
         });
     }
 
@@ -316,5 +313,11 @@ export default class App extends Component {
 }
 
 App.propTypes = {
-    manager: PropTypes.instanceOf(Manager).isRequired
+    manager: PropTypes.instanceOf(Manager).isRequired,
+    setManager: PropTypes.func.isRequired
 };
+
+export default connect(
+    null,
+    {setManager}
+)(App);

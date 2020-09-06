@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
-export default class MediaControlBar extends Component {
+class MediaControlBar extends Component {
     constructor(props) {
         super(props);
 
@@ -82,6 +83,22 @@ MediaControlBar.propTypes = {
     onVideoTrack: PropTypes.func.isRequired,
     onAudioTrack: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        audioDeviceId,
+        videoDeviceId
+    } = state;
+
+    return {
+        audioDeviceId,
+        videoDeviceId
+    }
+}
+
+export default connect(
+    select
+)(MediaControlBar);
 
 class MediaToggleButton extends Component {
     constructor(props) {

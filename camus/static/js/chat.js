@@ -1,8 +1,9 @@
 'use strict';
 
-import React from "react";
-import ReactDOM from "react-dom";
-
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Provider} from 'react-redux';
+import store from './store';
 import {Manager} from './rtcclient.js';
 import App from './components/App.js';
 
@@ -17,10 +18,10 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App
-        manager={manager}
-    />
-  </React.StrictMode>,
-  document.getElementById('react-root')
+    <React.StrictMode>
+        <Provider store={store}>
+            <App manager={manager}/>
+        </Provider>
+    </React.StrictMode>,
+    document.getElementById('react-root')
 );
