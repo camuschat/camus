@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {setAudioTrack, setVideoTrack} from '../actions';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
 class MediaControlBar extends Component {
@@ -60,7 +61,7 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? false : state.displayOn
                 };
             });
-            this.props.onVideoTrack(mediaTrack);
+            this.props.setVideoTrack(mediaTrack);
         } else if (kind === 'display') {
             this.setState(state => {
                 return {
@@ -68,10 +69,10 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? true : false
                 };
             });
-            this.props.onVideoTrack(mediaTrack);
+            this.props.setVideoTrack(mediaTrack);
         } else if (kind === 'mic') {
             this.setState({micOn: mediaTrack ? true : false});
-            this.props.onAudioTrack(mediaTrack);
+            this.props.setAudioTrack(mediaTrack);
         }
 
     }
@@ -80,24 +81,27 @@ class MediaControlBar extends Component {
 MediaControlBar.propTypes = {
     audioDeviceId: PropTypes.string.isRequired,
     videoDeviceId: PropTypes.string.isRequired,
-    onVideoTrack: PropTypes.func.isRequired,
-    onAudioTrack: PropTypes.func.isRequired
+    setAudioTrack: PropTypes.func.isRequired,
+    setVideoTrack: PropTypes.func.isRequired
 };
 
 function select(state) {
     const {
         audioDeviceId,
-        videoDeviceId
+        videoDeviceId,
+        feeds
     } = state;
 
     return {
         audioDeviceId,
-        videoDeviceId
+        videoDeviceId,
+        feeds
     }
 }
 
 export default connect(
-    select
+    select,
+    {setAudioTrack, setVideoTrack}
 )(MediaControlBar);
 
 class MediaToggleButton extends Component {

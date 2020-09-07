@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {setManager} from '../actions';
+import {setManager, addUser, updateUser, addChatMessage, addConnection, removeConnection,
+        updateConnection, addFeed, removeFeed, updateFeed} from '../actions';
 import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
@@ -16,24 +17,16 @@ class App extends Component {
         this.manager = this.props.manager;
         this.state = {
             displayEnterRoomModal: true,
-            users: [{id: 'local', username: 'Me'}],
-            chatMessages: [],
-            feeds: [{id: 'local', audioStream: null, videoStream: null}],
-            connections: []
         }
 
         this.onSubmitModal = this.onSubmitModal.bind(this);
-        this.onSendChatMessage = this.onSendChatMessage.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
         this.onVideoPeer = this.onVideoPeer.bind(this);
         this.onVideoPeerRemoved = this.onVideoPeerRemoved.bind(this);
-        this.onLocalVideoTrack = this.onLocalVideoTrack.bind(this);
-        this.onLocalAudioTrack = this.onLocalAudioTrack.bind(this);
         this.onPeerTrack = this.onPeerTrack.bind(this);
         this.onPeerConnectionChange = this.onPeerConnectionChange.bind(this);
         this.onPeerUsernameChange = this.onPeerUsernameChange.bind(this);
         this.onSidebarToggle = this.onSidebarToggle.bind(this);
-        this.onSwapFeeds = this.onSwapFeeds.bind(this);
     }
 
     componentDidMount() {
@@ -68,28 +61,14 @@ class App extends Component {
 
         return (<>
             <main>
-                <VideoStage
-                    users={this.state.users}
-                    feeds={this.state.feeds}
-                    onSwapFeeds={this.onSwapFeeds}
-                />
-                <MediaControlBar
-                    onVideoTrack={this.onLocalVideoTrack}
-                    onAudioTrack={this.onLocalAudioTrack}
-                />
+                <VideoStage />
+                <MediaControlBar />
             </main>
             <Sidebar
                 buttonIcons={['message', 'people']}
                 onToggle={this.onSidebarToggle}>
-                <ChatMessageBar
-                    users={this.state.users}
-                    messages={this.state.chatMessages}
-                    onSend={this.onSendChatMessage}
-                />
-                <ConnectionInfoBar
-                    users={this.state.users}
-                    connections={this.state.connections}
-                />
+                <ChatMessageBar />
+                <ConnectionInfoBar />
             </Sidebar>
         </>)
     }
@@ -100,32 +79,13 @@ class App extends Component {
         });
     }
 
-    async onSendChatMessage(message) {
-        const time = new Date().getTime();
-        const data = {
-            receiver: 'room',
-            type: 'text',
-            data: {
-                from: this.manager.username,
-                time: time,
-                text: message
-            }
-        };
-        await this.manager.signaler.send(data);
-    }
-
     onReceiveChatMessage(message) {
         const chatMessage = {
             from: message.data.from,
             timestamp: message.data.time,
             text: message.data.text
         };
-        this.setState(state => {
-            const messages = state.chatMessages.concat(chatMessage);
-            return {
-                chatMessages: messages
-            };
-        });
+        this.props.addChatMessage(chatMessage);
     }
 
     onVideoPeer(peer) {
@@ -159,7 +119,8 @@ class App extends Component {
         }
         const feed = {
             id: peer.client_id,
-            stream: null
+            videoStream: null,
+            audioStream: null
         };
         const connection = {
             id: peer.client_id,
@@ -168,126 +129,47 @@ class App extends Component {
             iceGatheringState: peer.iceGatheringState,
             signalingState: peer.signalingState
         };
-        this.setState(state => {
-            const users = state.users.concat(user);
-            const feeds = state.feeds.concat(feed);
-            const connections = state.connections.concat(connection);
-            return {
-                users: users,
-                feeds: feeds,
-                connections: connections
-            };
-        });
+
+        this.props.addUser(user);
+        this.props.addFeed(feed);
+        this.props.addConnection(connection);
     }
 
     onVideoPeerRemoved(peer) {
-        this.setState(state => {
-            const feeds = state.feeds.filter(feed => feed.id !== peer.client_id);
-            const connections = state.connections.filter(connection => connection.id !== peer.client_id);
-            return {
-                feeds: feeds,
-                connections: connections
-            };
-        });
-    }
-
-    onLocalVideoTrack(track) {
-        if (track) {
-            this.manager.setVideoTrack(track).then();
-
-            // Add local video to video feeds
-            this.setState(state => {
-                const feeds = state.feeds.slice();
-                const feed = feeds.find(feed => feed.id === 'local');
-                feed.videoStream = new MediaStream([track]);
-                return {
-                    feeds: feeds
-                };
-            });
-        } else {
-            this.manager.stopVideo();
-        }
-    }
-
-    onLocalAudioTrack(track) {
-        if (track) {
-            this.manager.setAudioTrack(track).then();
-        } else {
-            this.manager.stopAudio();
-        }
+        this.props.removeFeed(peer.client_id);
+        this.props.removeConnection(peer.client_id);
     }
 
     onPeerTrack(peer, track, streams) {
         const stream = streams[0];
 
         track.addEventListener('unmute', () => {
-            this.setState(state => {
-                const updatedFeeds = state.feeds.map(feed => {
-                    if (feed.id === peer.client_id && stream) {
-                        if (track.kind === 'video') {
-                            feed.videoStream = stream;
-                        } else if (track.kind === 'audio') {
-                            feed.audioStream = stream;
-                        }
-                    }
-                    return feed;
-                });
-
-                return {
-                    feeds: updatedFeeds
-                };
-            });
+            const fieldName = track.kind == 'video' ? 'videoStream' : 'audioStream';
+            const feed = {
+                id: peer.client_id,
+                [fieldName]: stream
+            }
+            this.props.updateFeed(feed);
         });
 
         track.addEventListener('mute', () => {
             console.log('Track muted', track);
-            this.setState(state => {
-                const updatedFeeds = state.feeds.map(feed => {
-                    if (feed.id === peer.client_id && stream) {
-                        if (track.kind === 'video') {
-                            feed.videoStream = null;
-                        } else if (track.kind === 'audio') {
-                            feed.audioStream = null;
-                        }
-                    }
-                    return feed;
-                });
-
-                return {
-                    feeds: updatedFeeds
-                };
-            });
+            const fieldName = track.kind == 'video' ? 'videoStream' : 'audioStream';
+            const feed = {
+                id: peer.client_id,
+                [fieldName]: null
+            }
+            this.props.updateFeed(feed);
         });
     }
 
     onPeerConnectionChange(peer, kind, status) {
-            this.setState(state => {
-                const connections = state.connections.slice();
-                const idx = connections.findIndex(connection => connection.id === peer.client_id);
-
-                if (idx >= 0) {
-                    connections[idx][kind] = status;
-                }
-
-                return {
-                    connections: connections
-                };
-            });
+        this.props.updateConnection(peer.client_id, kind, status);
     }
 
     onPeerUsernameChange(peer, username) {
-        this.setState(state => {
-            const users = state.users.slice();
-            const idx = users.findIndex(user => user.id === peer.client_id);
-
-            if (idx >= 0) {
-                users[idx].username = username;
-            }
-
-            return {
-                users: users
-            };
-        });
+        const user = {id: peer.client_id, username};
+        this.props.updateUser(user);
     }
 
     onSidebarToggle() {
@@ -297,27 +179,24 @@ class App extends Component {
         // (see https://drafts.csswg.org/resize-observer-1/).
         this.forceUpdate();
     }
-
-    onSwapFeeds(feedId1, feedId2) {
-        this.setState(state => {
-            const feeds = state.feeds.slice();
-            const idx1 = feeds.findIndex(feed => feed.id === feedId1);
-            const idx2 = feeds.findIndex(feed => feed.id === feedId2);
-            [feeds[idx1], feeds[idx2]] = [feeds[idx2], feeds[idx1]];
-
-            return {
-                feeds: feeds
-            };
-        });
-    }
 }
 
 App.propTypes = {
     manager: PropTypes.instanceOf(Manager).isRequired,
-    setManager: PropTypes.func.isRequired
+    setManager: PropTypes.func.isRequired,
+    addUser: PropTypes.func.isRequired,
+    updateUser: PropTypes.func.isRequired,
+    addChatMessage: PropTypes.func.isRequired,
+    addConnection: PropTypes.func.isRequired,
+    removeConnection: PropTypes.func.isRequired,
+    updateConnection: PropTypes.func.isRequired,
+    addFeed: PropTypes.func.isRequired,
+    removeFeed: PropTypes.func.isRequired,
+    updateFeed: PropTypes.func.isRequired
 };
 
 export default connect(
     null,
-    {setManager}
+    {setManager, addUser, updateUser, addChatMessage, addConnection, removeConnection,
+        updateConnection, addFeed, removeFeed, updateFeed}
 )(App);

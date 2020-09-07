@@ -633,7 +633,6 @@ class Manager extends EventEmitter {
 
         removeIds.forEach((id) => {
             this.removeVideoPeer(id);
-            console.log('Removed client ', clientId);
         });
 
         // Add peers in room
@@ -645,7 +644,6 @@ class Manager extends EventEmitter {
 
         // Update information for each peer
         this.videoPeers.forEach((peer, peer_id) => {
-            const oldUsername = peer.username;
             const client = roomInfo.clients.find(client => client.id === peer_id);
             if (client) {
                 peer.username = client.username;

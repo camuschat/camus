@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 
-export default class ConnectionInfoBar extends Component {
+class ConnectionInfoBar extends Component {
     render() {
         // Associate each connection with the corresponding username
         const connections = this.props.connections;
@@ -37,6 +38,22 @@ ConnectionInfoBar.propTypes = {
     users: PropTypes.array.isRequired,
     connections: PropTypes.array.isRequired
 };
+
+function select(state) {
+    const {
+        users,
+        connections
+    } = state;
+
+    return {
+        users,
+        connections
+    }
+}
+
+export default connect(
+    select
+)(ConnectionInfoBar);
 
 class ConnectionInfoNode extends Component {
     render() {

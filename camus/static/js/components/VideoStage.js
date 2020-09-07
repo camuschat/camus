@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {swapFeeds} from '../actions';
 
-export default class VideoStage extends Component {
+class VideoStage extends Component {
     constructor(props) {
         super(props);
 
@@ -37,7 +39,7 @@ export default class VideoStage extends Component {
                         key={feed.id}
                         feed={feed}
                         style={videoFeedStyle}
-                        onDragAndDrop={this.props.onSwapFeeds}
+                        onDragAndDrop={this.props.swapFeeds}
                     />
                 )}
             </ul>
@@ -126,8 +128,25 @@ export default class VideoStage extends Component {
 VideoStage.propTypes = {
     feeds: PropTypes.array.isRequired,
     users: PropTypes.array.isRequired,
-    onSwapFeeds: PropTypes.func.isRequired
+    swapFeeds: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        users,
+        feeds
+    } = state;
+
+    return {
+        users,
+        feeds
+    }
+}
+
+export default connect(
+    select,
+    {swapFeeds}
+)(VideoStage);
 
 class VideoFeed extends Component {
     constructor(props) {
