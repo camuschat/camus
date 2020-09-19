@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {swapFeeds} from '../actions';
+import {swapFeeds} from '../slices/feeds';
 
 class VideoStage extends Component {
     constructor(props) {
@@ -18,11 +18,11 @@ class VideoStage extends Component {
 
     render() {
         // Associate each feed with the corresponding username
-        const feeds = this.props.feeds;
         const users = this.props.users;
-        feeds.forEach(feed => {
+        const feeds = this.props.feeds.map(feed => {
             const user = users.find(user => user.id === feed.id);
-            feed.username = user ? user.username : 'Major Tom';
+            const username = user ? user.username : 'Major Tom';
+            return Object.assign({}, feed, {username});
         });
 
         const feedHeight = Math.floor(this.state.videoScaleFactor * this.state.videoHeightAspect);
@@ -34,7 +34,7 @@ class VideoStage extends Component {
 
         return (
             <ul id='video-stage' className='video-stage'>
-                {this.props.feeds.map((feed) =>
+                {feeds.map((feed) =>
                     <VideoFeed
                         key={feed.id}
                         feed={feed}
@@ -145,7 +145,9 @@ function select(state) {
 
 export default connect(
     select,
-    {swapFeeds}
+    {swapFeeds},
+    null,
+    {forwardRef: true}
 )(VideoStage);
 
 class VideoFeed extends Component {
@@ -188,18 +190,33 @@ class VideoFeed extends Component {
     }
 
     componentDidMount() {
-        this.video.current.srcObject = this.props.feed.videoStream;
-        this.audio.current.srcObject = this.props.feed.audioStream;
+        const {
+            videoStream,
+            audioStream,
+            audioMuted
+        } = this.props.feed;
+
+        this.video.current.srcObject = videoStream;
+        this.audio.current.srcObject = audioStream;
+        this.audio.current.muted = audioMuted;
     }
 
     componentDidUpdate() {
-        if (this.video.current.srcObject !== this.props.feed.videoStream) {
-            this.video.current.srcObject = this.props.feed.videoStream;
+        const {
+            videoStream,
+            audioStream,
+            audioMuted
+        } = this.props.feed;
+
+        if (this.video.current.srcObject !== videoStream) {
+            this.video.current.srcObject = videoStream;
         }
 
-        if (this.audio.current.srcObject !== this.props.feed.audioStream) {
-            this.audio.current.srcObject = this.props.feed.audioStream;
+        if (this.audio.current.srcObject !== audioStream) {
+            this.audio.current.srcObject = audioStream;
         }
+
+        this.audio.current.muted = audioMuted;
     }
 
     onDragStart(evt) {
@@ -214,7 +231,7 @@ class VideoFeed extends Component {
         evt.preventDefault();
         const draggedId = evt.dataTransfer.getData('id');
         const targetId = this.props.feed.id;
-        this.props.onDragAndDrop(draggedId, targetId);
+        this.props.onDragAndDrop({id1: draggedId, id2: targetId});
     }
 }
 

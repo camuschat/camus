@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {setAudioTrack, setVideoTrack} from '../actions';
+import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
 class MediaControlBar extends Component {
@@ -61,7 +61,7 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? false : state.displayOn
                 };
             });
-            this.props.setVideoTrack(mediaTrack);
+            this.props.setLocalVideo(mediaTrack);
         } else if (kind === 'display') {
             this.setState(state => {
                 return {
@@ -69,10 +69,10 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? true : false
                 };
             });
-            this.props.setVideoTrack(mediaTrack);
+            this.props.setLocalVideo(mediaTrack);
         } else if (kind === 'mic') {
             this.setState({micOn: mediaTrack ? true : false});
-            this.props.setAudioTrack(mediaTrack);
+            this.props.setLocalAudio(mediaTrack);
         }
 
     }
@@ -81,27 +81,26 @@ class MediaControlBar extends Component {
 MediaControlBar.propTypes = {
     audioDeviceId: PropTypes.string.isRequired,
     videoDeviceId: PropTypes.string.isRequired,
-    setAudioTrack: PropTypes.func.isRequired,
-    setVideoTrack: PropTypes.func.isRequired
+    setLocalAudio: PropTypes.func.isRequired,
+    setLocalVideo: PropTypes.func.isRequired
 };
 
 function select(state) {
     const {
-        audioDeviceId,
-        videoDeviceId,
+        devices,
         feeds
     } = state;
 
     return {
-        audioDeviceId,
-        videoDeviceId,
+        audioDeviceId: devices.audioDeviceId,
+        videoDeviceId: devices.videoDeviceId,
         feeds
     }
 }
 
 export default connect(
     select,
-    {setAudioTrack, setVideoTrack}
+    {setLocalAudio, setLocalVideo}
 )(MediaControlBar);
 
 class MediaToggleButton extends Component {

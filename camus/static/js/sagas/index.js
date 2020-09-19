@@ -1,37 +1,30 @@
-import {all, call, put, select, takeLatest} from 'redux-saga/effects';
-import {SET_USERNAME, SEND_CHAT_MESSAGE, SET_AUDIO_TRACK, SET_VIDEO_TRACK} from '../actions/actionTypes';
+import {apply, put, takeEvery, takeLatest, getContext} from 'redux-saga/effects';
+import {setUsername} from '../slices/users';
+import {sendChatMessage} from '../slices/messages';
+import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 
 export default function* rootSaga() {
-    yield all([
-        watchSetUsername(),
-        watchSendChatMessage(),
-        watchSetAudioTrack(),
-        watchSetVideoTrack()
-    ]);
+    yield takeLatest(setUsername.type, doSetUsername);
+    yield takeEvery(sendChatMessage.type, doSendChatMessage);
+    yield takeLatest(setLocalAudio.type, doSetLocalAudio);
+    yield takeLatest(setLocalVideo.type, doSetLocalVideo);
 }
 
-function* watchSetUsername() {
-    yield takeLatest(SET_USERNAME, setUsername);
-}
-
-function* setUsername(action) {
-    const {manager} = yield select();
+function* doSetUsername(action) {
+    const manager = yield getContext('manager');
+    const username = action.payload;
 
     try {
-        manager.setUsername(action.payload.username);
+        yield apply(manager, manager.setUsername, [username]);
         yield put({type: 'MANAGER_UPDATED'});
     } catch (err) {
         yield put({type: 'MANAGER_ERROR', payload: err});
     }
 }
 
-function* watchSendChatMessage() {
-    yield takeLatest(SEND_CHAT_MESSAGE, sendChatMessage);
-}
-
-function* sendChatMessage(action) {
-    const {manager} = yield select();
-    const {message} = action.payload;
+function* doSendChatMessage(action) {
+    const manager = yield getContext('manager');
+    const message = action.payload;
 
     try {
         const time = new Date().getTime();
@@ -45,27 +38,22 @@ function* sendChatMessage(action) {
             }
         };
 
-        const send = manager.signaler.send.bind(manager.signaler);
-        yield call(send, data);
+        yield apply(manager.signaler, manager.signaler.send, [data]);
         yield put({type: 'MANAGER_UPDATED'});
     } catch (err) {
         yield put({type: 'MANAGER_ERROR', payload: err});
     }
 }
 
-function* watchSetAudioTrack() {
-    yield takeLatest(SET_AUDIO_TRACK, setAudioTrack);
-}
-
-function* setAudioTrack(action) {
-    const {manager} = yield select();
-    const {track} = action.payload;
+function* doSetLocalAudio(action) {
+    const manager = yield getContext('manager');
+    const track = action.payload;
 
     try {
         if (track) {
-            manager.setAudioTrack(track).then();
+            yield apply(manager, manager.setAudioTrack, [track]);
         } else {
-            manager.stopAudio();
+            yield apply(manager, manager.stopAudio);
         }
 
         yield put({type: 'MANAGER_UPDATED'});
@@ -74,19 +62,15 @@ function* setAudioTrack(action) {
     }
 }
 
-function* watchSetVideoTrack() {
-    yield takeLatest(SET_VIDEO_TRACK, setVideoTrack);
-}
-
-function* setVideoTrack(action) {
-    const {manager} = yield select();
-    const {track} = action.payload;
+function* doSetLocalVideo(action) {
+    const manager = yield getContext('manager');
+    const track = action.payload;
 
     try {
         if (track) {
-            manager.setVideoTrack(track).then();
+            yield apply(manager, manager.setVideoTrack, [track]);
         } else {
-            manager.stopVideo();
+            yield apply(manager, manager.stopVideo);
         }
 
         yield put({type: 'MANAGER_UPDATED'});

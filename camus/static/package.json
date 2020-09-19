@@ -39,6 +39,7 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^1.4.0",
     "babel-loader": "^8.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",

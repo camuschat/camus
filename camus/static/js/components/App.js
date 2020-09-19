@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {setManager, addUser, updateUser, addChatMessage, addConnection, removeConnection,
-        updateConnection, addFeed, removeFeed, updateFeed} from '../actions';
+import {addUser, updateUser} from '../slices/users';
+import {addChatMessage} from '../slices/messages';
+import {addConnection, removeConnection, updateConnection} from '../slices/connections';
+import {addFeed, removeFeed, updateFeed} from '../slices/feeds';
 import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
@@ -18,6 +20,8 @@ class App extends Component {
         this.state = {
             displayEnterRoomModal: true,
         }
+
+        this.videoStage = React.createRef();
 
         this.onSubmitModal = this.onSubmitModal.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
@@ -41,8 +45,6 @@ class App extends Component {
         window.addEventListener('load', async () => {
             await this.manager.start();
         });
-
-        this.props.setManager(this.manager);
     }
 
     componentWillUnmount() {
@@ -61,12 +63,15 @@ class App extends Component {
 
         return (<>
             <main>
-                <VideoStage />
+                <VideoStage 
+                    ref={this.videoStage}
+                />
                 <MediaControlBar />
             </main>
             <Sidebar
                 buttonIcons={['message', 'people']}
-                onToggle={this.onSidebarToggle}>
+                onToggle={this.onSidebarToggle}
+            >
                 <ChatMessageBar />
                 <ConnectionInfoBar />
             </Sidebar>
@@ -120,7 +125,9 @@ class App extends Component {
         const feed = {
             id: peer.client_id,
             videoStream: null,
-            audioStream: null
+            audioStream: null,
+            videoMuted: false,
+            audioMuted: false
         };
         const connection = {
             id: peer.client_id,
@@ -164,7 +171,11 @@ class App extends Component {
     }
 
     onPeerConnectionChange(peer, kind, status) {
-        this.props.updateConnection(peer.client_id, kind, status);
+        const connection = {
+            id: peer.client_id,
+            [kind]: status
+        };
+        this.props.updateConnection(connection);
     }
 
     onPeerUsernameChange(peer, username) {
@@ -177,13 +188,12 @@ class App extends Component {
         // update the scaling factor of its VideoFeeds. In the future, the
         // VideoStage should be able to update itself using Resize Observers
         // (see https://drafts.csswg.org/resize-observer-1/).
-        this.forceUpdate();
+        this.videoStage.current.forceUpdate();
     }
 }
 
 App.propTypes = {
     manager: PropTypes.instanceOf(Manager).isRequired,
-    setManager: PropTypes.func.isRequired,
     addUser: PropTypes.func.isRequired,
     updateUser: PropTypes.func.isRequired,
     addChatMessage: PropTypes.func.isRequired,
@@ -197,6 +207,6 @@ App.propTypes = {
 
 export default connect(
     null,
-    {setManager, addUser, updateUser, addChatMessage, addConnection, removeConnection,
+    {addUser, updateUser, addChatMessage, addConnection, removeConnection,
         updateConnection, addFeed, removeFeed, updateFeed}
 )(App);

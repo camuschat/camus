@@ -230,6 +230,7 @@ main {
     transition-delay: 0.2s;
     transition-timing-function: ease;
     box-shadow: 0 0 0 0.2rem rgba(97,0,255,0.5);
+    cursor: grab;
 }
 
 .video-feed .video-tag {
