@@ -1,8 +1,11 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {setUsername} from '../slices/users';
+import {setAudioDevice, setVideoDevice} from '../slices/devices';
 import {getCameras, getMics, getUserVideo} from '../mediaUtils.js';
 
-export default class EnterRoomModal extends Component {
+class EnterRoomModal extends Component {
     constructor(props) {
         super(props);
 
@@ -103,7 +106,10 @@ export default class EnterRoomModal extends Component {
             audioDeviceId,
             videoDeviceId
         } = this.state;
-        this.props.onSubmit(nickname, audioDeviceId, videoDeviceId);
+        this.props.setUsername(nickname);
+        this.props.setAudioDevice(audioDeviceId);
+        this.props.setVideoDevice(videoDeviceId);
+        this.props.onSubmit();
     }
 
     stopPreviewStream() {
@@ -118,8 +124,16 @@ export default class EnterRoomModal extends Component {
 
 EnterRoomModal.propTypes = {
     isVisible: PropTypes.bool.isRequired,
+    setUsername: PropTypes.func.isRequired,
+    setAudioDevice: PropTypes.func.isRequired,
+    setVideoDevice: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired
 };
+
+export default connect(
+    null,
+    {setUsername, setAudioDevice, setVideoDevice}
+)(EnterRoomModal);
 
 class DeviceSelect extends Component {
     constructor(props) {

@@ -1,14 +1,15 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 
-export default class ConnectionInfoBar extends Component {
+class ConnectionInfoBar extends Component {
     render() {
         // Associate each connection with the corresponding username
-        const connections = this.props.connections;
         const users = this.props.users;
-        connections.forEach(connection => {
-            const user = users.find(user => user.id === connection.id);
-            connection.username = user ? user.username : 'Major Tom';
+        const connections = this.props.connections.map(conn => {
+            const user = users.find(user => user.id === conn.id);
+            const username = user ? user.username : 'Major Tom';
+            return Object.assign({}, conn, {username});
         });
 
         if (connections.length === 0) {
@@ -37,6 +38,22 @@ ConnectionInfoBar.propTypes = {
     users: PropTypes.array.isRequired,
     connections: PropTypes.array.isRequired
 };
+
+function select(state) {
+    const {
+        users,
+        connections
+    } = state;
+
+    return {
+        users,
+        connections
+    }
+}
+
+export default connect(
+    select
+)(ConnectionInfoBar);
 
 class ConnectionInfoNode extends Component {
     render() {

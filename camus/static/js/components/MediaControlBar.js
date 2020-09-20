@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
-export default class MediaControlBar extends Component {
+class MediaControlBar extends Component {
     constructor(props) {
         super(props);
 
@@ -59,7 +61,7 @@ export default class MediaControlBar extends Component {
                     displayOn: mediaTrack ? false : state.displayOn
                 };
             });
-            this.props.onVideoTrack(mediaTrack);
+            this.props.setLocalVideo(mediaTrack);
         } else if (kind === 'display') {
             this.setState(state => {
                 return {
@@ -67,10 +69,10 @@ export default class MediaControlBar extends Component {
                     displayOn: mediaTrack ? true : false
                 };
             });
-            this.props.onVideoTrack(mediaTrack);
+            this.props.setLocalVideo(mediaTrack);
         } else if (kind === 'mic') {
             this.setState({micOn: mediaTrack ? true : false});
-            this.props.onAudioTrack(mediaTrack);
+            this.props.setLocalAudio(mediaTrack);
         }
 
     }
@@ -79,9 +81,27 @@ export default class MediaControlBar extends Component {
 MediaControlBar.propTypes = {
     audioDeviceId: PropTypes.string.isRequired,
     videoDeviceId: PropTypes.string.isRequired,
-    onVideoTrack: PropTypes.func.isRequired,
-    onAudioTrack: PropTypes.func.isRequired
+    setLocalAudio: PropTypes.func.isRequired,
+    setLocalVideo: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        devices,
+        feeds
+    } = state;
+
+    return {
+        audioDeviceId: devices.audioDeviceId,
+        videoDeviceId: devices.videoDeviceId,
+        feeds
+    }
+}
+
+export default connect(
+    select,
+    {setLocalAudio, setLocalVideo}
+)(MediaControlBar);
 
 class MediaToggleButton extends Component {
     constructor(props) {

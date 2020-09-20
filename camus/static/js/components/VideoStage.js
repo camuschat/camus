@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {swapFeeds} from '../slices/feeds';
 
-export default class VideoStage extends Component {
+class VideoStage extends Component {
     constructor(props) {
         super(props);
 
@@ -16,11 +18,11 @@ export default class VideoStage extends Component {
 
     render() {
         // Associate each feed with the corresponding username
-        const feeds = this.props.feeds;
         const users = this.props.users;
-        feeds.forEach(feed => {
+        const feeds = this.props.feeds.map(feed => {
             const user = users.find(user => user.id === feed.id);
-            feed.username = user ? user.username : 'Major Tom';
+            const username = user ? user.username : 'Major Tom';
+            return Object.assign({}, feed, {username});
         });
 
         const feedHeight = Math.floor(this.state.videoScaleFactor * this.state.videoHeightAspect);
@@ -32,12 +34,12 @@ export default class VideoStage extends Component {
 
         return (
             <ul id='video-stage' className='video-stage'>
-                {this.props.feeds.map((feed) =>
+                {feeds.map((feed) =>
                     <VideoFeed
                         key={feed.id}
                         feed={feed}
                         style={videoFeedStyle}
-                        onDragAndDrop={this.props.onSwapFeeds}
+                        onDragAndDrop={this.props.swapFeeds}
                     />
                 )}
             </ul>
@@ -126,8 +128,27 @@ export default class VideoStage extends Component {
 VideoStage.propTypes = {
     feeds: PropTypes.array.isRequired,
     users: PropTypes.array.isRequired,
-    onSwapFeeds: PropTypes.func.isRequired
+    swapFeeds: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        users,
+        feeds
+    } = state;
+
+    return {
+        users,
+        feeds
+    }
+}
+
+export default connect(
+    select,
+    {swapFeeds},
+    null,
+    {forwardRef: true}
+)(VideoStage);
 
 class VideoFeed extends Component {
     constructor(props) {
@@ -169,18 +190,33 @@ class VideoFeed extends Component {
     }
 
     componentDidMount() {
-        this.video.current.srcObject = this.props.feed.videoStream;
-        this.audio.current.srcObject = this.props.feed.audioStream;
+        const {
+            videoStream,
+            audioStream,
+            audioMuted
+        } = this.props.feed;
+
+        this.video.current.srcObject = videoStream;
+        this.audio.current.srcObject = audioStream;
+        this.audio.current.muted = audioMuted;
     }
 
     componentDidUpdate() {
-        if (this.video.current.srcObject !== this.props.feed.videoStream) {
-            this.video.current.srcObject = this.props.feed.videoStream;
+        const {
+            videoStream,
+            audioStream,
+            audioMuted
+        } = this.props.feed;
+
+        if (this.video.current.srcObject !== videoStream) {
+            this.video.current.srcObject = videoStream;
         }
 
-        if (this.audio.current.srcObject !== this.props.feed.audioStream) {
-            this.audio.current.srcObject = this.props.feed.audioStream;
+        if (this.audio.current.srcObject !== audioStream) {
+            this.audio.current.srcObject = audioStream;
         }
+
+        this.audio.current.muted = audioMuted;
     }
 
     onDragStart(evt) {
@@ -195,7 +231,7 @@ class VideoFeed extends Component {
         evt.preventDefault();
         const draggedId = evt.dataTransfer.getData('id');
         const targetId = this.props.feed.id;
-        this.props.onDragAndDrop(draggedId, targetId);
+        this.props.onDragAndDrop({id1: draggedId, id2: targetId});
     }
 }
 

@@ -96,11 +96,11 @@ v0.1
 v0.2
 ~~~~
 
--  [ ] Rewrite the UI using `React`_
+-  [x] Rewrite the UI using `React`_ (PR `#3`_, `#4`_)
 -  [ ] Make the UI accessible
 -  [ ] Configurable TURN server in the client
 -  [ ] Controls for video quality
--  [ ] Debian package
+-  [ ] Snap package
 
 v0.3+
 ~~~~~
@@ -133,4 +133,6 @@ v0.3+
 .. _Adapter: https://github.com/webrtcHacks/adapter
 .. _TURN: https://webrtc.org/getting-started/turn-server
 .. _React: https://github.com/facebook/react
+.. _#3: https://github.com/mrgnr/camus/pull/3
+.. _#4: https://github.com/mrgnr/camus/pull/4
 .. _SFU: https://webrtcglossary.com/sfu

@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {sendChatMessage} from '../slices/messages';
 
-export default class ChatMessageBar extends Component {
+class ChatMessageBar extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -21,7 +23,7 @@ export default class ChatMessageBar extends Component {
 
         const trimmed = this.state.value.trim();
         if (trimmed) {
-            this.props.onSend(trimmed);
+            this.props.sendChatMessage(trimmed);
             this.setState({value: ''});
         }
     }
@@ -49,8 +51,25 @@ export default class ChatMessageBar extends Component {
 ChatMessageBar.propTypes = {
     users: PropTypes.arrayOf(PropTypes.object).isRequired,
     messages: PropTypes.arrayOf(PropTypes.object).isRequired,
-    onSend: PropTypes.func.isRequired
+    sendChatMessage: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        users,
+        messages
+    } = state;
+
+    return {
+        users,
+        messages
+    }
+}
+
+export default connect(
+    select,
+    {sendChatMessage}
+)(ChatMessageBar);
 
 class ChatMessageLog extends Component {
     render() {
