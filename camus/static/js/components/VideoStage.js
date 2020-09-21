@@ -159,6 +159,7 @@ class VideoFeed extends Component {
         // directly to update the stream source
         this.video = React.createRef();
         this.audio = React.createRef();
+        this.videoContainer = React.createRef();
 
         this.onDragStart = this.onDragStart.bind(this);
         this.onDragOver = this.onDragOver.bind(this);
@@ -175,19 +176,25 @@ class VideoFeed extends Component {
                 onDrop={this.onDrop}
             >
                 <p className='video-tag'>{this.props.feed.username}</p>
-                <video
-                    ref={this.video}
-                    id={this.props.feed.id}
-                    autoPlay={true}
-                    playsInline={true}
-                    muted={true}
-                />
+                <div
+                    ref={this.videoContainer}
+                    style={{height: '100%'}}
+                >
+                    <video
+                        ref={this.video}
+                        id={this.props.feed.id}
+                        autoPlay={true}
+                        playsInline={true}
+                        muted={true}
+                    />
+                </div>
                 <audio 
                     ref={this.audio}
                     autoPlay={true}
                 />
                 <VideoControlBar
                     videoRef={this.video}
+                    videoContainerRef={this.videoContainer}
                 />
             </li>
         );

@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import fscreen from 'fscreen';
 
 export default class VideoControlBar extends Component {
     constructor(props) {
         super(props);
 
         this.togglePictureInPicture = this.togglePictureInPicture.bind(this);
+        this.toggleFullscreen = this.toggleFullscreen.bind(this);
     }
 
     render() {
@@ -13,7 +15,7 @@ export default class VideoControlBar extends Component {
         // browser supports picture-in-picture
         const video = this.props.videoRef.current;
         const pipSupported = ('pictureInPictureEnabled' in document ||
-            video &&video.webkitSetPresentationMode);
+            video && video.webkitSetPresentationMode);
 
         return (
             <div className='video-control-bar'>
@@ -22,9 +24,11 @@ export default class VideoControlBar extends Component {
                     <i className='material-icons'>picture_in_picture</i>
                 </button>
                 }
-                <button>
+                {fscreen.fullscreenEnabled &&
+                <button onClick={this.toggleFullscreen}>
                     <i className='material-icons'>fullscreen</i>
                 </button>
+                }
             </div>
         );
     }
@@ -48,8 +52,19 @@ export default class VideoControlBar extends Component {
             });
         }
     }
+
+    toggleFullscreen() {
+        const videoContainer = this.props.videoContainerRef.current;
+
+        if (fscreen.fullscreenElement) {
+            fscreen.exitFullscreen();
+        } else {
+            fscreen.requestFullscreen(videoContainer);
+        }
+    }
 }
 
 VideoControlBar.propTypes = {
-    videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired
+    videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
+    videoContainerRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired
 };

@@ -276,6 +276,7 @@ main {
 .video-control-bar button:focus {
     color: #fff;
     outline: none;
+    border: none;
 }
 
 .media-control-bar {
