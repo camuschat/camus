@@ -254,6 +254,30 @@ main {
     text-overflow: ellipsis;
 }
 
+.video-feed:hover .video-control-bar {
+    display: inline;
+}
+
+.video-control-bar {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.video-control-bar button {
+    background: none;
+    color: #ccc;
+    box-shadow: none;
+    border: none;
+}
+
+.video-control-bar button:hover,
+.video-control-bar button:focus {
+    color: #fff;
+    outline: none;
+}
+
 .media-control-bar {
     margin: 0;
     padding-top: 20px;
