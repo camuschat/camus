@@ -167,6 +167,8 @@ class VideoFeed extends Component {
     }
 
     render() {
+        const feed = this.props.feed;
+
         return (
             <li className='video-feed'
                 style={this.props.style}
@@ -175,14 +177,14 @@ class VideoFeed extends Component {
                 onDragOver={this.onDragOver}
                 onDrop={this.onDrop}
             >
-                <p className='video-tag'>{this.props.feed.username}</p>
+                <p className='video-tag'>{feed.username}</p>
                 <div
                     ref={this.videoContainer}
                     style={{height: '100%'}}
                 >
                     <video
                         ref={this.video}
-                        id={this.props.feed.id}
+                        id={feed.id}
                         autoPlay={true}
                         playsInline={true}
                         muted={true}
@@ -193,8 +195,10 @@ class VideoFeed extends Component {
                     autoPlay={true}
                 />
                 <VideoControlBar
+                    audioRef={this.audio}
                     videoRef={this.video}
                     videoContainerRef={this.videoContainer}
+                    showAudioControls={!feed.audioMuted}
                 />
             </li>
         );
@@ -208,8 +212,7 @@ class VideoFeed extends Component {
         } = this.props.feed;
 
         this.video.current.srcObject = videoStream;
-        this.audio.current.srcObject = audioStream;
-        this.audio.current.muted = audioMuted;
+        this.audio.current.srcObject = audioMuted ? null : audioStream;
     }
 
     componentDidUpdate() {
@@ -224,10 +227,8 @@ class VideoFeed extends Component {
         }
 
         if (this.audio.current.srcObject !== audioStream) {
-            this.audio.current.srcObject = audioStream;
+            this.audio.current.srcObject = audioMuted ? null : audioStream;
         }
-
-        this.audio.current.muted = audioMuted;
     }
 
     onDragStart(evt) {
