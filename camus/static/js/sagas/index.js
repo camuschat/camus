@@ -1,13 +1,14 @@
-import {apply, put, takeEvery, takeLatest, getContext} from 'redux-saga/effects';
+import {apply, put, takeEvery, takeLatest, getContext, select} from 'redux-saga/effects';
 import {setUsername} from '../slices/users';
 import {sendChatMessage} from '../slices/messages';
-import {setLocalAudio, setLocalVideo} from '../slices/feeds';
+import {setLocalAudio, setLocalVideo, setResolution} from '../slices/feeds';
 
 export default function* rootSaga() {
     yield takeLatest(setUsername.type, doSetUsername);
     yield takeEvery(sendChatMessage.type, doSendChatMessage);
     yield takeLatest(setLocalAudio.type, doSetLocalAudio);
     yield takeLatest(setLocalVideo.type, doSetLocalVideo);
+    yield takeLatest(setResolution.type, doSetResolution);
 }
 
 function* doSetUsername(action) {
@@ -75,6 +76,35 @@ function* doSetLocalVideo(action) {
 
         yield put({type: 'MANAGER_UPDATED'});
     } catch(err) {
+        yield put({type: 'MANAGER_ERROR', payload: err});
+    }
+}
+
+function* doSetResolution(action) {
+    const manager = yield getContext('manager');
+    const {id, resolution} = action.payload;
+
+    try {
+        if (id === 'local') {
+            const localFeed = yield select(state => state.feeds.find(feed => feed.id === 'local'));
+            if (localFeed.videoStream) {
+                const track = localFeed.videoStream.getVideoTracks()[0];
+                const constraints = {
+                    height: {ideal: resolution},
+                    width: {ideal: resolution * 4 / 3}
+                };
+                yield apply(track, track.applyConstraints, [constraints]);
+                console.log('UPDATED RESOLUTION: ', track.getSettings().width, track.getSettings().height);
+                yield apply(manager, manager.setVideoResolution, [resolution]);
+            }
+        } else {
+            const peer = manager.videoPeers.get(id);
+            yield apply(peer, peer.requestIncomingVideoResolution, [resolution]);
+        }
+
+        yield put({type: 'MANAGER_UPDATED'});
+    } catch(err) {
+        console.error(err);
         yield put({type: 'MANAGER_ERROR', payload: err});
     }
 }

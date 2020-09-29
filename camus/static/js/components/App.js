@@ -118,6 +118,17 @@ class App extends Component {
             this.onPeerUsernameChange(peer, username);
         });
 
+        peer.on('video-params', (params) => {
+            console.log('GOT VIDEO PARAMS: ', params);
+            const {resolution, maxResolution} = params;
+            const feed = {
+                id: peer.client_id,
+                resolution,
+                maxResolution
+            }
+            this.props.updateFeed(feed);
+        });
+
         const user = {
             id: peer.client_id,
             username: peer.username
@@ -127,7 +138,9 @@ class App extends Component {
             videoStream: null,
             audioStream: null,
             videoMuted: false,
-            audioMuted: false
+            audioMuted: false,
+            maxResolution: 720,
+            resolution: 720 
         };
         const connection = {
             id: peer.client_id,

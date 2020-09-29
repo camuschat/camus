@@ -1,18 +1,24 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {setResolution} from '../slices/feeds';
 import fscreen from 'fscreen';
 
-export default class VideoControlBar extends Component {
+import {RESOLUTIONS} from '../mediaUtils.js';
+
+class VideoControlBar extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             volume: 1.0,
-            volumeMuted: false
+            volumeMuted: false,
+            showSettings: false
         }
 
         this.toggleAudioMute = this.toggleAudioMute.bind(this);
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
+        this.toggleSettings = this.toggleSettings.bind(this);
         this.togglePictureInPicture = this.togglePictureInPicture.bind(this);
         this.toggleFullscreen = this.toggleFullscreen.bind(this);
     }
@@ -20,7 +26,8 @@ export default class VideoControlBar extends Component {
     render() {
         const {
             volume,
-            volumeMuted
+            volumeMuted,
+            showSettings
         } = this.state;
 
         const volumeIcon = (
@@ -36,6 +43,9 @@ export default class VideoControlBar extends Component {
 
         return (
             <div className='video-control-bar'>
+                <button>
+                    <i className='material-icons'>visibility</i>
+                </button>
                 {this.props.showAudioControls && <>
                 <button onClick={this.toggleAudioMute}>
                     <i className='material-icons'>{volumeIcon}</i>
@@ -48,6 +58,10 @@ export default class VideoControlBar extends Component {
                     onChange={this.handleVolumeChange}
                 />
                 </>}
+                <button onClick={this.toggleSettings}>
+                    <i className='material-icons'>settings</i>
+                </button>
+                {showSettings && this.renderSettings()}
                 {pipSupported &&
                 <button onClick={this.togglePictureInPicture}>
                     <i className='material-icons'>picture_in_picture</i>
@@ -60,6 +74,27 @@ export default class VideoControlBar extends Component {
                 }
             </div>
         );
+    }
+
+    renderSettings() {
+        const options = RESOLUTIONS.filter(res =>
+            res <= this.props.feed.maxResolution
+        ).map(res => 
+            `${res}p`
+        );
+
+        //const options = ['720p', '480p', '360p', '240p']
+        return (
+            <div className='video-settings'>
+                <p>Video quality</p>
+                {options.map(option =>
+                    <button key={option} onClick={() => this.setQuality(option)}>
+                        {option}
+                    </button>
+                )}
+            </div>
+        );
+
     }
 
     componentDidUpdate() {
@@ -79,6 +114,22 @@ export default class VideoControlBar extends Component {
         const volume = event.target.value;
         const volumeMuted = false;
         this.setState({ volume, volumeMuted });
+    }
+
+    toggleSettings() {
+        this.setState(state => {
+            const showSettings = !state.showSettings;
+            return { showSettings };
+        });
+    }
+
+    setQuality(value) {
+        const resolution = Number(value.replace(/p/, ''));
+        const updatedFeed = {
+            id: this.props.feed.id,
+            resolution
+        };
+        this.props.setResolution(updatedFeed);
     }
 
     togglePictureInPicture() {
@@ -116,5 +167,12 @@ VideoControlBar.propTypes = {
     audioRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoContainerRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
-    showAudioControls: PropTypes.bool
+    feed: PropTypes.object.isRequired,
+    showAudioControls: PropTypes.bool,
+    setResolution: PropTypes.func.isRequired
 };
+
+export default connect(
+    null,
+    {setResolution},
+)(VideoControlBar);

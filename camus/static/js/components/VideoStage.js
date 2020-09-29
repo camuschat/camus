@@ -198,6 +198,7 @@ class VideoFeed extends Component {
                     audioRef={this.audio}
                     videoRef={this.video}
                     videoContainerRef={this.videoContainer}
+                    feed={feed}
                     showAudioControls={!feed.audioMuted}
                 />
             </li>

@@ -346,6 +346,32 @@ input[type=range]:focus::-moz-range-track {
     background: #fff;
 }
 
+.video-settings {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 10px;
+    background: #333;
+    opacity: 0.9;
+    color: #ccc;
+}
+
+.video-settings p {
+    text-align: center;
+    padding: 4px;
+    margin: 0px;
+    border-bottom: 1px solid #555;
+}
+
+.video-settings button {
+    width: 100%;
+    padding: 4px;
+}
+
+.video-settings button:hover {
+    color: #fff;
+    background: #555;
+}
+
 .media-control-bar {
     margin: 0;
     padding-top: 20px;

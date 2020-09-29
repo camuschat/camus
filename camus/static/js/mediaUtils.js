@@ -1,5 +1,14 @@
 'use strict';
 
+export const RESOLUTIONS = [
+    2160,
+    1080,
+    720,
+    480,
+    360,
+    240
+];
+
 export async function getCameras() {
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -31,14 +40,15 @@ export async function hasMic() {
 }
 
 export async function getUserMedia(audio=true, video=true) {
-    const audioConstraints = (typeof audio === 'string' ?
-        {deviceId: audio} :
+    const audioConstraints = (typeof audio === 'object' ?
+        audio :
         audio && await hasMic()
     );
-    const videoConstraints = (typeof video === 'string' ?
-        {deviceId: video} :
+    const videoConstraints = (typeof video === 'object' ?
+        video :
         video && await hasCamera()
     );
+    console.log('Video Constraints: ', videoConstraints);
     const constraints = {
         audio: audioConstraints,
         video: videoConstraints
@@ -55,20 +65,25 @@ export async function getUserMedia(audio=true, video=true) {
     const videoTrack = stream.getTracks().find(track => track.kind === 'video');
     const audioTrack = stream.getTracks().find(track => track.kind === 'audio');
 
+    const height = videoTrack ? videoTrack.getSettings().height : '???';
+    const width = videoTrack ? videoTrack.getSettings().width : '???';
+    console.log('VIDEO RESOLUTION: ', width, height);
+
     return {audio: audioTrack, video: videoTrack}
 }
 
-export async function getUserVideo(deviceId=null) {
-    const {video} = await getUserMedia(false, deviceId ? deviceId : true);
+export async function getUserVideo(constraints=null) {
+    const {video} = await getUserMedia(false, constraints ? constraints : true);
     return video;
 }
 
-export async function getUserAudio(deviceId=null) {
-    const {audio} = await getUserMedia(deviceId ? deviceId : true, false);
+export async function getUserAudio(constraints=null) {
+    const {audio} = await getUserMedia(constraints ? constraints : true, false);
     return audio;
 }
 
 export async function getDisplayMedia() {
+    // TODO: accept constraints
     const constraints = {
         'video': {cursor: 'always'},
         'audio': false

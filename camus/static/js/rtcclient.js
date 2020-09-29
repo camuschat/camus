@@ -45,8 +45,11 @@ class VideoPeer extends EventEmitter {
         this._username = client.username;
         this.signaler = signaler;
         this.polite = polite;
-        this.connection = null;
         this.makingOffer = false;
+        this.connection = null;
+        this.datachannel = null;
+        this.maxVideoResolution = null;
+        this.requestedVideoResolution = null;
 
         this.createPeerConnection(iceServers);
     }
@@ -58,6 +61,18 @@ class VideoPeer extends EventEmitter {
 
     get username() {
         return this._username;
+    }
+
+    get videoTrack() {
+        const videoSender = this.connection.getSenders().find(sender =>
+            sender.track && sender.track.kind === 'video');
+        return videoSender ? videoSender.track : null;
+    }
+
+    get incomingVideoTrack() {
+        const receiver = this.connection.getReceivers().find(receiver =>
+            receiver.track && receiver.track.kind === 'video');
+        return receiver ? receiver.track : null;
     }
 
     createPeerConnection(iceServers) {
@@ -130,6 +145,36 @@ class VideoPeer extends EventEmitter {
                 });
             }
         };
+
+        if (this.polite) {
+            this.datachannel = this.connection.createDataChannel('data');
+            this.configureDatachannel();
+        } else {
+            this.connection.ondatachannel = (event) => {
+                this.datachannel = event.channel;
+                this.configureDatachannel();
+            };
+        }
+    }
+
+    configureDatachannel() {
+        this.datachannel.onopen = () => {
+            console.log('DATACHANNEL OPENED', this.datachannel);
+        };
+
+        this.datachannel.onclose = () => {
+            console.log('DATACHANNEL CLOSED');
+        };
+
+        // Handle messages received over the datachannel
+        this.datachannel.onmessage = async (event) => {
+            console.log('RECEIVED DATACHANNEL MESSAGE: ', event);
+            await this.handleMessage(JSON.parse(event.data));
+        };
+
+        this.datachannel.onerror = (event) => {
+            console.error('DATCHANNEL ERROR: ', event);
+        };
     }
 
     connect() {
@@ -173,18 +218,15 @@ class VideoPeer extends EventEmitter {
          * 3. If we aren't ignoring the offer, respond to the peer with an answer.
          */
 
-        console.log(`[${this.client_id}] Processing offer`);
         if (offer.type !== 'offer') {
             throw new Error('type mismatch');
         }
 
         try {
             const offerCollision = this.makingOffer || this.connection.signalingState !== 'stable';
-            console.log(`[${this.client_id}] ? Polite: ${this.polite}`);
 
             if (offerCollision) {
                 if (!this.polite) {
-                    console.log(`[${this.client_id}] Reject offer`);
                     return;
                 }
 
@@ -204,7 +246,6 @@ class VideoPeer extends EventEmitter {
             await this.connection.setLocalDescription(answer);
 
             const description = this.connection.localDescription.toJSON();
-            console.log(`[${this.client_id}] Respond to offer`);
             this.signaler.send({
                 receiver: this.client_id,
                 type: description.type,
@@ -216,8 +257,6 @@ class VideoPeer extends EventEmitter {
     }
 
     async onAnswer(answer) {
-        console.log(`[${this.client_id}] Processing answer`);
-
         try {
             await this.connection.setRemoteDescription(answer);
         } catch(err) {
@@ -253,6 +292,95 @@ class VideoPeer extends EventEmitter {
 
         if (trackSender) return trackSender.track;
         else return null;
+    }
+
+    datachannelSend(type, data) {
+        const message = {
+            receiver: this.client_id,
+            type,
+            data
+        }
+
+        try {
+            this.datachannel.send(JSON.stringify(message));
+            return true;
+        } catch(err) {
+            console.error(err);
+            return false;
+        }
+    }
+
+    async setVideoResolution(height) {
+        /*
+        await this.videoTrack.applyConstraints({
+            height: {ideal: height}
+        });
+        */
+
+        const maxResolution = height;
+        const resolution = await this.scaleVideoResolution();
+        this.datachannelSend('video-params', {
+            resolution,
+            maxResolution
+        });
+    }
+
+    async scaleVideoResolution() {
+        // See https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender/setParameters#Currently_compatible_implementation
+
+        const videoSender = this.connection.getSenders().find(sender =>
+            sender.track && sender.track.kind === 'video');
+        const trackHeight = this.videoTrack.getSettings().height;
+        const scaledHeight = this.requestedVideoResolution;
+
+        const scaleRatio =  scaledHeight ? trackHeight / scaledHeight : 1;
+        const params = videoSender.getParameters();
+
+        console.log('SETTING VIDEO RESOLUTION: ', scaledHeight);
+        console.log('Track height: ', trackHeight);
+
+        // Workaround for firefox & safari
+        if (!params.encodings) {
+            params.encodings = [{}];
+        }
+
+        params.encodings[0].scaleResolutionDownBy = Math.max(scaleRatio, 1);
+        await videoSender.setParameters(params);
+
+        const setScaleRatio = videoSender.getParameters().encodings[0].scaleResolutionDownBy;
+
+        // Fallback for browsers that don't support scaling resolution via setParameters()
+        if (setScaleRatio !== scaleRatio) {
+            //await videoSender.track.applyConstraints({ height });
+            console.log('DOWNSCALING VIDEO FAILED');
+            return trackHeight;
+        } else {
+            console.log('SCALE RESOLUTION DOWN BY: ', setScaleRatio);
+        }
+
+        return scaledHeight ? Math.min(trackHeight, scaledHeight) : trackHeight;
+    }
+
+    requestIncomingVideoResolution(height) {
+        console.log('REQUESTING VIDEO RESOLUTION: ', height);
+        const resolution = height;
+        this.datachannelSend('request-video-params', {
+            resolution
+        });
+    }
+
+    async handleMessage(message) {
+        switch(message.type) {
+            case 'request-video-params':
+                this.requestedVideoResolution = message.data.resolution;
+                await this.scaleVideoResolution();
+                return;
+            case 'video-params':
+                this.emit('video-params', message.data);
+                return;
+            default:
+                return;
+        }
     }
 
     restartIce() {
@@ -324,9 +452,6 @@ class Signaler extends EventEmitter {
 
     send(data) {
         this.socket.send(JSON.stringify(data));
-        if (data.type === 'offer' || data.type === 'answer' || data.type === 'icecandidate') {
-            console.log(`>> Sent ${data.type}: `, data);
-        }
     }
 
     sendReceive(data, responseParams) {
@@ -458,8 +583,6 @@ class MessageHandler {
     }
 
     async offer(message) {
-        console.log('<< Received offer: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in offer');
@@ -468,8 +591,6 @@ class MessageHandler {
     }
 
     async answer(message) {
-        console.log('<< Received answer: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in answer');
@@ -478,8 +599,6 @@ class MessageHandler {
     }
 
     async iceCandidate(message) {
-        console.log('<< Received icecandidate: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         const iceCandidate = new RTCIceCandidate(message.data);
         await peer.onIceCandidate(iceCandidate);
@@ -536,6 +655,12 @@ class Manager extends EventEmitter {
                       data: {username: this.username}
         };
         this.signaler.send(data);
+    }
+
+    async setVideoResolution(height) {
+        for (let peer of this.videoPeers.values()) {
+            await peer.setVideoResolution(height);
+        }
     }
 
     async setAudioTrack(track) {

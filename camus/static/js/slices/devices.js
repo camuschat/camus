@@ -3,19 +3,30 @@ import { createSlice } from '@reduxjs/toolkit';
 const devicesSlice = createSlice({
     name: 'devices',
     initialState: {
-        audioDeviceId: '',
-        videoDeviceId: ''
+        audio: {
+            id: ''
+        },
+        video: {
+            id: '',
+            maxResolution: 0
+        },
+        display: {
+            maxResolution: 0
+        }
     },
     reducers: {
-        setAudioDevice(state, action) {
-            state.audioDeviceId = action.payload;
+        updateAudioDevice(state, action) {
+            Object.assign(state.audio, action.payload);
         },
-        setVideoDevice(state, action) {
-            state.videoDeviceId = action.payload;
+        updateVideoDevice(state, action) {
+            Object.assign(state.video, action.payload);
+        },
+        updateDisplayDevice(state, action) {
+            Object.assign(state.display, action.payload);
         }
     }
 });
 
 const {actions, reducer} = devicesSlice;
-export const {setAudioDevice, setVideoDevice} = actions;
+export const {updateAudioDevice, updateVideoDevice, updateDisplayDevice} = actions;
 export default reducer;
