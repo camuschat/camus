@@ -199,6 +199,7 @@ class VideoFeed extends Component {
                     videoRef={this.video}
                     videoContainerRef={this.videoContainer}
                     showAudioControls={!feed.audioMuted}
+                    showResolutionControls={feed.id === 'local'}
                 />
             </li>
         );

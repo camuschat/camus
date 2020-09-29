@@ -1,18 +1,23 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import fscreen from 'fscreen';
+import {connect} from 'react-redux';
+import {setResolution} from '../slices/devices';
+import {RESOLUTIONS} from '../mediaUtils.js';
 
-export default class VideoControlBar extends Component {
+class VideoControlBar extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             volume: 1.0,
-            volumeMuted: false
+            volumeMuted: false,
+            showSettings: false
         }
 
         this.toggleAudioMute = this.toggleAudioMute.bind(this);
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
+        this.toggleSettings = this.toggleSettings.bind(this);
         this.togglePictureInPicture = this.togglePictureInPicture.bind(this);
         this.toggleFullscreen = this.toggleFullscreen.bind(this);
     }
@@ -20,8 +25,16 @@ export default class VideoControlBar extends Component {
     render() {
         const {
             volume,
-            volumeMuted
+            volumeMuted,
+            showSettings
         } = this.state;
+
+        const {
+            videoRef,
+            showAudioControls,
+            showResolutionControls,
+            videoDevice
+        } = this.props;
 
         const volumeIcon = (
             volumeMuted || volume == 0 ?  'volume_off' :
@@ -30,13 +43,16 @@ export default class VideoControlBar extends Component {
 
         // We should only render the picture-in-picture and fullscreen toggle
         // buttons if the browser supports these features
-        const video = this.props.videoRef.current;
+        const video = videoRef.current;
         const pipSupported = ('pictureInPictureEnabled' in document ||
             video && video.webkitSetPresentationMode);
 
         return (
             <div className='video-control-bar'>
-                {this.props.showAudioControls && <>
+                <button>
+                    <i className='material-icons'>visibility</i>
+                </button>
+                {showAudioControls && <>
                 <button onClick={this.toggleAudioMute}>
                     <i className='material-icons'>{volumeIcon}</i>
                 </button>
@@ -48,6 +64,13 @@ export default class VideoControlBar extends Component {
                     onChange={this.handleVolumeChange}
                 />
                 </>}
+                {showResolutionControls && videoDevice.active &&
+                <button onClick={this.toggleSettings}>
+                    <i className='material-icons'>settings</i>
+                </button>
+                }
+                {showResolutionControls && videoDevice.active &&
+                    showSettings && this.renderSettings()}
                 {pipSupported &&
                 <button onClick={this.togglePictureInPicture}>
                     <i className='material-icons'>picture_in_picture</i>
@@ -58,6 +81,30 @@ export default class VideoControlBar extends Component {
                     <i className='material-icons'>fullscreen</i>
                 </button>
                 }
+            </div>
+        );
+    }
+
+    renderSettings() {
+        const videoDevice = this.props.videoDevice;
+        const selectedResolution = `${videoDevice.resolution}p`;
+
+        const options = RESOLUTIONS.filter(res =>
+            res <= videoDevice.maxResolution
+        ).map(res => 
+            `${res}p`
+        );
+
+        return (
+            <div className='video-settings'>
+                <p>Video quality</p>
+                {options.map(option =>
+                    <button key={option} onClick={() => this.setQuality(option)}>
+                        <span className={option === selectedResolution ? 'selected' : ''}>
+                            {option}
+                        </span>
+                    </button>
+                )}
             </div>
         );
     }
@@ -79,6 +126,19 @@ export default class VideoControlBar extends Component {
         const volume = event.target.value;
         const volumeMuted = false;
         this.setState({ volume, volumeMuted });
+    }
+
+    toggleSettings() {
+        this.setState(state => {
+            const showSettings = !state.showSettings;
+            return { showSettings };
+        });
+    }
+
+    setQuality(value) {
+        const resolution = Number(value.replace(/p/, ''));
+        this.props.setResolution(resolution);
+        this.setState({ showSettings: false });
     }
 
     togglePictureInPicture() {
@@ -116,5 +176,23 @@ VideoControlBar.propTypes = {
     audioRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoContainerRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
-    showAudioControls: PropTypes.bool
+    showAudioControls: PropTypes.bool.isRequired,
+    showResolutionControls: PropTypes.bool.isRequired,
+    videoDevice: PropTypes.object.isRequired,
+    setResolution: PropTypes.func.isRequired
 };
+
+function select(state) {
+    const {
+        devices,
+    } = state;
+
+    return {
+        videoDevice: devices.video,
+    }
+}
+
+export default connect(
+    select,
+    {setResolution},
+)(VideoControlBar);
