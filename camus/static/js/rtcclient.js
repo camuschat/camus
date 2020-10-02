@@ -47,6 +47,8 @@ class VideoPeer extends EventEmitter {
         this.polite = polite;
         this.makingOffer = false;
         this.connection = null;
+        this.audioTransceiver = null;
+        this.videoTransceiver = null;
 
         this.createPeerConnection(iceServers);
     }
@@ -134,8 +136,8 @@ class VideoPeer extends EventEmitter {
 
     connect() {
         // Adding transceivers triggers onnegotiationneeded()
-        this.connection.addTransceiver('video');
-        this.connection.addTransceiver('audio');
+        this.videoTransceiver = this.connection.addTransceiver('video');
+        this.audioTransceiver = this.connection.addTransceiver('audio');
     }
 
     get connectionState() {
@@ -233,7 +235,6 @@ class VideoPeer extends EventEmitter {
 
         if (trackSender) {
             console.log('Replacing track on sender ', trackSender);
-            trackSender.track.stop();
             await trackSender.replaceTrack(track);
         } else {
             if (stream) this.connection.addTrack(track, stream);
@@ -247,6 +248,14 @@ class VideoPeer extends EventEmitter {
 
         if (trackSender) return trackSender.track;
         else return null;
+    }
+
+    disableRemoteVideo() {
+        this.videoTransceiver.direction = 'sendonly';
+    }
+
+    enableRemoteVideo() {
+        this.videoTransceiver.direction = 'sendrecv';
     }
 
     restartIce() {

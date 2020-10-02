@@ -3,6 +3,7 @@ import {setUsername} from '../slices/users';
 import {sendChatMessage} from '../slices/messages';
 import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {setResolution} from '../slices/devices';
+import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
 
 export default function* rootSaga() {
     yield takeLatest(setUsername.type, doSetUsername);
@@ -10,6 +11,8 @@ export default function* rootSaga() {
     yield takeLatest(setLocalAudio.type, doSetLocalAudio);
     yield takeLatest(setLocalVideo.type, doSetLocalVideo);
     yield takeLatest(setResolution.type, doSetResolution);
+    yield takeLatest(disableRemoteVideo.type, doDisableRemoteVideo);
+    yield takeLatest(enableRemoteVideo.type, doEnableRemoteVideo);
 }
 
 function* doSetUsername(action) {
@@ -98,5 +101,31 @@ function* doSetResolution(action) {
     } catch(err) {
         console.error(err);
         yield put({type: 'ERROR', payload: err});
+    }
+}
+
+function* doDisableRemoteVideo(action) {
+    const manager = yield getContext('manager');
+    const id = action.payload;
+
+    try {
+        const peer = manager.videoPeers.get(id);
+        yield apply(peer, peer.disableRemoteVideo);
+        yield put({type: 'PEER_UPDATED'});
+    } catch(err) {
+        yield put({type: 'PEER_ERROR', payload: err});
+    }
+}
+
+function* doEnableRemoteVideo(action) {
+    const manager = yield getContext('manager');
+    const id = action.payload;
+
+    try {
+        const peer = manager.videoPeers.get(id);
+        yield apply(peer, peer.enableRemoteVideo);
+        yield put({type: 'PEER_UPDATED'});
+    } catch(err) {
+        yield put({type: 'PEER_ERROR', payload: err});
     }
 }

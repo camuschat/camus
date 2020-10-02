@@ -7,7 +7,7 @@ const feedsSlice = createSlice({
         audioStream: null,
         videoStream: null,
         audioMuted: true,
-        videoMuted: false
+        videoEnabled: true
     }],
     reducers: {
         addFeed(state, action) {
@@ -37,10 +37,26 @@ const feedsSlice = createSlice({
             const track = action.payload;
             const stream = track ? new MediaStream([track]) : null;
             state.find(feed => feed.id === 'local').videoStream = stream;
+        },
+        disableRemoteVideo(state, action) {
+            const id = action.payload;
+            state.find(feed => feed.id === id).videoEnabled = false;
+        },
+        enableRemoteVideo(state, action) {
+            const id = action.payload;
+            state.find(feed => feed.id === id).videoEnabled = true;
         }
     }
 });
 
 const {actions, reducer} = feedsSlice;
-export const {addFeed, removeFeed, updateFeed, swapFeeds, setLocalAudio, setLocalVideo} = actions;
+export const {
+    addFeed,
+    removeFeed,
+    updateFeed,
+    swapFeeds,
+    setLocalAudio,
+    setLocalVideo,
+    disableRemoteVideo,
+    enableRemoteVideo} = actions;
 export default reducer;

@@ -198,6 +198,8 @@ class VideoFeed extends Component {
                     audioRef={this.audio}
                     videoRef={this.video}
                     videoContainerRef={this.videoContainer}
+                    feed={feed}
+                    showVisibilityControls={feed.id !== 'local'}
                     showAudioControls={!feed.audioMuted}
                     showResolutionControls={feed.id === 'local'}
                 />
@@ -209,10 +211,11 @@ class VideoFeed extends Component {
         const {
             videoStream,
             audioStream,
-            audioMuted
+            audioMuted,
+            videoEnabled
         } = this.props.feed;
 
-        this.video.current.srcObject = videoStream;
+        this.video.current.srcObject = videoEnabled ? videoStream : null;
         this.audio.current.srcObject = audioMuted ? null : audioStream;
     }
 
@@ -220,10 +223,13 @@ class VideoFeed extends Component {
         const {
             videoStream,
             audioStream,
-            audioMuted
+            audioMuted,
+            videoEnabled
         } = this.props.feed;
 
-        if (this.video.current.srcObject !== videoStream) {
+        if (!videoEnabled) {
+            this.video.current.srcObject = null;
+        } else if (this.video.current.srcObject !== videoStream) {
             this.video.current.srcObject = videoStream;
         }
 

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import fscreen from 'fscreen';
 import {connect} from 'react-redux';
 import {setResolution} from '../slices/devices';
+import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
 import {RESOLUTIONS} from '../mediaUtils.js';
 
 class VideoControlBar extends Component {
@@ -20,6 +21,7 @@ class VideoControlBar extends Component {
         this.toggleSettings = this.toggleSettings.bind(this);
         this.togglePictureInPicture = this.togglePictureInPicture.bind(this);
         this.toggleFullscreen = this.toggleFullscreen.bind(this);
+        this.toggleVisibility = this.toggleVisibility.bind(this);
     }
 
     render() {
@@ -31,6 +33,8 @@ class VideoControlBar extends Component {
 
         const {
             videoRef,
+            feed,
+            showVisibilityControls,
             showAudioControls,
             showResolutionControls,
             videoDevice
@@ -49,9 +53,11 @@ class VideoControlBar extends Component {
 
         return (
             <div className='video-control-bar'>
-                <button>
-                    <i className='material-icons'>visibility</i>
+                {showVisibilityControls &&
+                <button onClick={this.toggleVisibility}>
+                    <i className='material-icons'>{feed.videoEnabled ? 'visibility' : 'visibility_off'}</i>
                 </button>
+                }
                 {showAudioControls && <>
                 <button onClick={this.toggleAudioMute}>
                     <i className='material-icons'>{volumeIcon}</i>
@@ -170,15 +176,28 @@ class VideoControlBar extends Component {
             fscreen.requestFullscreen(videoContainer);
         }
     }
+
+    toggleVisibility() {
+        const feed = this.props.feed;
+        if (feed.videoEnabled) {
+            this.props.disableRemoteVideo(feed.id);
+        } else {
+            this.props.enableRemoteVideo(feed.id);
+        }
+    }
 }
 
 VideoControlBar.propTypes = {
     audioRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
     videoContainerRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
+    feed: PropTypes.object.isRequired,
+    showVisibilityControls: PropTypes.bool.isRequired,
     showAudioControls: PropTypes.bool.isRequired,
     showResolutionControls: PropTypes.bool.isRequired,
     videoDevice: PropTypes.object.isRequired,
+    disableRemoteVideo: PropTypes.func.isRequired,
+    enableRemoteVideo: PropTypes.func.isRequired,
     setResolution: PropTypes.func.isRequired
 };
 
@@ -194,5 +213,9 @@ function select(state) {
 
 export default connect(
     select,
-    {setResolution},
+    {
+        setResolution,
+        disableRemoteVideo,
+        enableRemoteVideo
+    },
 )(VideoControlBar);

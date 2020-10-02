@@ -202,6 +202,7 @@ class MediaToggleButton extends Component {
 
     mediaOff() {
         if (this.mediaIsOn()) {
+            this.mediaTrack.enabled = false;
             this.mediaTrack.stop();
         }
         this.props.onTrack(this.props.kind, null);

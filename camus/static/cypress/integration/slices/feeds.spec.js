@@ -11,7 +11,7 @@ describe('Test feeds slice of Redux store', () => {
             id: '1234',
             videoStream: null,
             audioStream: null,
-            videoMuted: false,
+            videoEnabled: true,
             audioMuted: false
         };
         store.dispatch(addFeed(feed));
@@ -25,7 +25,7 @@ describe('Test feeds slice of Redux store', () => {
         expect(storedFeed.id).to.equal('1234');
         expect(storedFeed.videoStream).is.null;
         expect(storedFeed.audioStream).is.null;
-        expect(storedFeed.videoMuted).is.false;
+        expect(storedFeed.videoEnabled).is.true;
         expect(storedFeed.audioMuted).is.false;
     });
 
@@ -37,7 +37,7 @@ describe('Test feeds slice of Redux store', () => {
                 id: '1234',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             }]
         );
@@ -61,7 +61,7 @@ describe('Test feeds slice of Redux store', () => {
                 id: '1234',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             }]
         );
@@ -84,7 +84,7 @@ describe('Test feeds slice of Redux store', () => {
         expect(storedFeed.id).to.equal('1234');
         expect(storedFeed.videoStream).is.null;
         expect(storedFeed.audioStream).to.equal(audioStream);
-        expect(storedFeed.videoMuted).is.false;
+        expect(storedFeed.videoEnabled).is.true;
         expect(storedFeed.audioMuted).is.true;
     });
 
@@ -96,14 +96,14 @@ describe('Test feeds slice of Redux store', () => {
                 id: '1234',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             },
             {
                 id: '5678',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             }]
         );
@@ -129,7 +129,7 @@ describe('Test feeds slice of Redux store', () => {
                 id: 'local',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             }]
         );
@@ -157,7 +157,7 @@ describe('Test feeds slice of Redux store', () => {
                 id: 'local',
                 videoStream: null,
                 audioStream: null,
-                videoMuted: false,
+                videoEnabled: true,
                 audioMuted: false
             }]
         );
