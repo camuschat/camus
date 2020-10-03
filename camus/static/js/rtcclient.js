@@ -45,8 +45,10 @@ class VideoPeer extends EventEmitter {
         this._username = client.username;
         this.signaler = signaler;
         this.polite = polite;
-        this.connection = null;
         this.makingOffer = false;
+        this.connection = null;
+        this.audioTransceiver = null;
+        this.videoTransceiver = null;
 
         this.createPeerConnection(iceServers);
     }
@@ -134,8 +136,8 @@ class VideoPeer extends EventEmitter {
 
     connect() {
         // Adding transceivers triggers onnegotiationneeded()
-        this.connection.addTransceiver('video');
-        this.connection.addTransceiver('audio');
+        this.videoTransceiver = this.connection.addTransceiver('video');
+        this.audioTransceiver = this.connection.addTransceiver('audio');
     }
 
     get connectionState() {
@@ -173,18 +175,15 @@ class VideoPeer extends EventEmitter {
          * 3. If we aren't ignoring the offer, respond to the peer with an answer.
          */
 
-        console.log(`[${this.client_id}] Processing offer`);
         if (offer.type !== 'offer') {
             throw new Error('type mismatch');
         }
 
         try {
             const offerCollision = this.makingOffer || this.connection.signalingState !== 'stable';
-            console.log(`[${this.client_id}] ? Polite: ${this.polite}`);
 
             if (offerCollision) {
                 if (!this.polite) {
-                    console.log(`[${this.client_id}] Reject offer`);
                     return;
                 }
 
@@ -204,7 +203,6 @@ class VideoPeer extends EventEmitter {
             await this.connection.setLocalDescription(answer);
 
             const description = this.connection.localDescription.toJSON();
-            console.log(`[${this.client_id}] Respond to offer`);
             this.signaler.send({
                 receiver: this.client_id,
                 type: description.type,
@@ -216,8 +214,6 @@ class VideoPeer extends EventEmitter {
     }
 
     async onAnswer(answer) {
-        console.log(`[${this.client_id}] Processing answer`);
-
         try {
             await this.connection.setRemoteDescription(answer);
         } catch(err) {
@@ -239,7 +235,6 @@ class VideoPeer extends EventEmitter {
 
         if (trackSender) {
             console.log('Replacing track on sender ', trackSender);
-            trackSender.track.stop();
             await trackSender.replaceTrack(track);
         } else {
             if (stream) this.connection.addTrack(track, stream);
@@ -253,6 +248,14 @@ class VideoPeer extends EventEmitter {
 
         if (trackSender) return trackSender.track;
         else return null;
+    }
+
+    disableRemoteVideo() {
+        this.videoTransceiver.direction = 'sendonly';
+    }
+
+    enableRemoteVideo() {
+        this.videoTransceiver.direction = 'sendrecv';
     }
 
     restartIce() {
@@ -324,9 +327,6 @@ class Signaler extends EventEmitter {
 
     send(data) {
         this.socket.send(JSON.stringify(data));
-        if (data.type === 'offer' || data.type === 'answer' || data.type === 'icecandidate') {
-            console.log(`>> Sent ${data.type}: `, data);
-        }
     }
 
     sendReceive(data, responseParams) {
@@ -458,8 +458,6 @@ class MessageHandler {
     }
 
     async offer(message) {
-        console.log('<< Received offer: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in offer');
@@ -468,8 +466,6 @@ class MessageHandler {
     }
 
     async answer(message) {
-        console.log('<< Received answer: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in answer');
@@ -478,8 +474,6 @@ class MessageHandler {
     }
 
     async iceCandidate(message) {
-        console.log('<< Received icecandidate: ', message);
-
         const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
         const iceCandidate = new RTCIceCandidate(message.data);
         await peer.onIceCandidate(iceCandidate);

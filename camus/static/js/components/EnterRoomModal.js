@@ -2,8 +2,8 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {setUsername} from '../slices/users';
-import {setAudioDevice, setVideoDevice} from '../slices/devices';
-import {getCameras, getMics, getUserVideo} from '../mediaUtils.js';
+import {updateAudioDevice, updateVideoDevice} from '../slices/devices';
+import {getCameras, getMics, getUserMedia, getUserVideo} from '../mediaUtils.js';
 
 class EnterRoomModal extends Component {
     constructor(props) {
@@ -64,6 +64,15 @@ class EnterRoomModal extends Component {
         </>);
     }
 
+    componentDidMount() {
+        // Prompt user for camera/microphone permission
+        getUserMedia().then(({audio, video}) => {
+            if (audio) audio.stop();
+            if (video) video.stop();
+            this.forceUpdate();
+        });
+    }
+
     componentWillUnmount() {
         this.stopPreviewStream();
     }
@@ -106,9 +115,24 @@ class EnterRoomModal extends Component {
             audioDeviceId,
             videoDeviceId
         } = this.state;
+
+        // Determine the maximum camera resolution
+        const videoConstraints = {
+            deviceId: videoDeviceId,
+            height: {ideal: 2160}
+        };
+        getUserVideo(videoConstraints).then(track => {
+            console.log('VIDEO TRACK: ', track);
+            const videoDevice = {
+                id: videoDeviceId,
+                maxResolution: track.getSettings().height
+            };
+            track.stop();
+            this.props.updateVideoDevice(videoDevice);
+        });
+
         this.props.setUsername(nickname);
-        this.props.setAudioDevice(audioDeviceId);
-        this.props.setVideoDevice(videoDeviceId);
+        this.props.updateAudioDevice({id: audioDeviceId});
         this.props.onSubmit();
     }
 
@@ -125,14 +149,14 @@ class EnterRoomModal extends Component {
 EnterRoomModal.propTypes = {
     isVisible: PropTypes.bool.isRequired,
     setUsername: PropTypes.func.isRequired,
-    setAudioDevice: PropTypes.func.isRequired,
-    setVideoDevice: PropTypes.func.isRequired,
+    updateAudioDevice: PropTypes.func.isRequired,
+    updateVideoDevice: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired
 };
 
 export default connect(
     null,
-    {setUsername, setAudioDevice, setVideoDevice}
+    {setUsername, updateAudioDevice, updateVideoDevice}
 )(EnterRoomModal);
 
 class DeviceSelect extends Component {
@@ -162,7 +186,7 @@ class DeviceSelect extends Component {
         );
     }
 
-    componentDidMount() {
+    componentDidUpdate() {
         this.props.getDevices().then(devices => {
             this.setState({
                 devices: devices

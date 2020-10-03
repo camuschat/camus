@@ -126,7 +126,7 @@ class App extends Component {
             id: peer.client_id,
             videoStream: null,
             audioStream: null,
-            videoMuted: false,
+            videoEnabled: true,
             audioMuted: false
         };
         const connection = {
@@ -147,10 +147,11 @@ class App extends Component {
         this.props.removeConnection(peer.client_id);
     }
 
-    onPeerTrack(peer, track, streams) {
-        const stream = streams[0];
+    onPeerTrack(peer, track) {
+        const stream = new MediaStream([track]);
 
         track.addEventListener('unmute', () => {
+            console.log('Track unmuted', track, stream);
             const fieldName = track.kind == 'video' ? 'videoStream' : 'audioStream';
             const feed = {
                 id: peer.client_id,

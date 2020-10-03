@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {swapFeeds} from '../slices/feeds';
+import VideoControlBar from './VideoControlBar';
 
 class VideoStage extends Component {
     constructor(props) {
@@ -158,6 +159,7 @@ class VideoFeed extends Component {
         // directly to update the stream source
         this.video = React.createRef();
         this.audio = React.createRef();
+        this.videoContainer = React.createRef();
 
         this.onDragStart = this.onDragStart.bind(this);
         this.onDragOver = this.onDragOver.bind(this);
@@ -165,6 +167,8 @@ class VideoFeed extends Component {
     }
 
     render() {
+        const feed = this.props.feed;
+
         return (
             <li className='video-feed'
                 style={this.props.style}
@@ -173,17 +177,31 @@ class VideoFeed extends Component {
                 onDragOver={this.onDragOver}
                 onDrop={this.onDrop}
             >
-                <p className='video-tag'>{this.props.feed.username}</p>
-                <video
-                    ref={this.video}
-                    id={this.props.feed.id}
-                    autoPlay={true}
-                    playsInline={true}
-                    muted={true}
-                />
+                <p className='video-tag'>{feed.username}</p>
+                <div
+                    ref={this.videoContainer}
+                    style={{height: '100%'}}
+                >
+                    <video
+                        ref={this.video}
+                        id={feed.id}
+                        autoPlay={true}
+                        playsInline={true}
+                        muted={true}
+                    />
+                </div>
                 <audio 
                     ref={this.audio}
                     autoPlay={true}
+                />
+                <VideoControlBar
+                    audioRef={this.audio}
+                    videoRef={this.video}
+                    videoContainerRef={this.videoContainer}
+                    feed={feed}
+                    showVisibilityControls={feed.id !== 'local'}
+                    showAudioControls={!feed.audioMuted}
+                    showResolutionControls={feed.id === 'local'}
                 />
             </li>
         );
@@ -193,30 +211,31 @@ class VideoFeed extends Component {
         const {
             videoStream,
             audioStream,
-            audioMuted
+            audioMuted,
+            videoEnabled
         } = this.props.feed;
 
-        this.video.current.srcObject = videoStream;
-        this.audio.current.srcObject = audioStream;
-        this.audio.current.muted = audioMuted;
+        this.video.current.srcObject = videoEnabled ? videoStream : null;
+        this.audio.current.srcObject = audioMuted ? null : audioStream;
     }
 
     componentDidUpdate() {
         const {
             videoStream,
             audioStream,
-            audioMuted
+            audioMuted,
+            videoEnabled
         } = this.props.feed;
 
-        if (this.video.current.srcObject !== videoStream) {
+        if (!videoEnabled) {
+            this.video.current.srcObject = null;
+        } else if (this.video.current.srcObject !== videoStream) {
             this.video.current.srcObject = videoStream;
         }
 
         if (this.audio.current.srcObject !== audioStream) {
-            this.audio.current.srcObject = audioStream;
+            this.audio.current.srcObject = audioMuted ? null : audioStream;
         }
-
-        this.audio.current.muted = audioMuted;
     }
 
     onDragStart(evt) {

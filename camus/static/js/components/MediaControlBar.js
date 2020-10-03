@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {setLocalAudio, setLocalVideo} from '../slices/feeds';
+import {updateAudioDevice, updateVideoDevice, updateDisplayDevice} from '../slices/devices';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 
 class MediaControlBar extends Component {
@@ -9,13 +10,13 @@ class MediaControlBar extends Component {
         super(props);
 
         const {
-            videoDeviceId,
-            audioDeviceId
+            videoDevice,
+            audioDevice,
         } = this.props;
 
         this.state = {
-            cameraOn: videoDeviceId ? true : false,
-            micOn: audioDeviceId ? true : false,
+            cameraOn: videoDevice.id ? true : false,
+            micOn: audioDevice.id ? true : false,
             displayOn: false
         };
 
@@ -23,11 +24,27 @@ class MediaControlBar extends Component {
     }
 
     render() {
+        const {
+            videoDevice,
+            audioDevice
+        } = this.props;
+
+        const resolution = videoDevice.resolution;
+        const videoConstraints = {
+            deviceId: videoDevice.id,
+            height: {ideal: resolution},
+            width: {ideal: resolution * 4 / 3}
+        };
+
+        const audioConstraints = {
+            deviceId: audioDevice.id
+        };
+
         return (
             <div className='media-control-bar'>
                 <MediaToggleButton
                     kind={'camera'}
-                    deviceId={this.props.videoDeviceId}
+                    deviceConstraints={videoConstraints}
                     isOn={this.state.cameraOn}
                     onTrack={this.onTrack}
                     getMedia={getUserVideo}
@@ -35,7 +52,7 @@ class MediaControlBar extends Component {
                 />
                 <MediaToggleButton
                     kind={'mic'}
-                    deviceId={this.props.audioDeviceId}
+                    deviceConstraints={audioConstraints}
                     isOn={this.state.micOn}
                     onTrack={this.onTrack}
                     getMedia={getUserAudio}
@@ -43,7 +60,7 @@ class MediaControlBar extends Component {
                 />
                 <MediaToggleButton
                     kind={'display'}
-                    deviceId={null}
+                    deviceConstraints={null}
                     isOn={this.state.displayOn}
                     onTrack={this.onTrack}
                     getMedia={getDisplayMedia}
@@ -61,7 +78,15 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? false : state.displayOn
                 };
             });
+
             this.props.setLocalVideo(mediaTrack);
+
+            if (mediaTrack) {
+                this.props.updateVideoDevice({active: true});
+                this.props.updateDisplayDevice({active: false});
+            } else {
+                this.props.updateVideoDevice({active: false});
+            }
         } else if (kind === 'display') {
             this.setState(state => {
                 return {
@@ -69,38 +94,55 @@ class MediaControlBar extends Component {
                     displayOn: mediaTrack ? true : false
                 };
             });
+
             this.props.setLocalVideo(mediaTrack);
+
+            if (mediaTrack) {
+                this.props.updateDisplayDevice({active: true});
+                this.props.updateVideoDevice({active: false});
+            } else {
+                this.props.updateDisplayDevice({active: false});
+            }
         } else if (kind === 'mic') {
             this.setState({micOn: mediaTrack ? true : false});
             this.props.setLocalAudio(mediaTrack);
+
+            if (mediaTrack) {
+                this.props.updateAudioDevice({active: true});
+            } else {
+                this.props.updateAudioDevice({active: false});
+            }
         }
 
     }
 }
 
 MediaControlBar.propTypes = {
-    audioDeviceId: PropTypes.string.isRequired,
-    videoDeviceId: PropTypes.string.isRequired,
+    audioDevice: PropTypes.object.isRequired,
+    videoDevice: PropTypes.object.isRequired,
+    displayDevice: PropTypes.object.isRequired,
     setLocalAudio: PropTypes.func.isRequired,
-    setLocalVideo: PropTypes.func.isRequired
+    setLocalVideo: PropTypes.func.isRequired,
+    updateAudioDevice: PropTypes.func.isRequired,
+    updateVideoDevice: PropTypes.func.isRequired,
+    updateDisplayDevice: PropTypes.func.isRequired
 };
 
 function select(state) {
     const {
         devices,
-        feeds
     } = state;
 
     return {
-        audioDeviceId: devices.audioDeviceId,
-        videoDeviceId: devices.videoDeviceId,
-        feeds
+        audioDevice: devices.audio,
+        videoDevice: devices.video,
+        displayDevice: devices.display,
     }
 }
 
 export default connect(
     select,
-    {setLocalAudio, setLocalVideo}
+    {setLocalAudio, setLocalVideo, updateAudioDevice, updateVideoDevice, updateDisplayDevice}
 )(MediaControlBar);
 
 class MediaToggleButton extends Component {
@@ -152,7 +194,7 @@ class MediaToggleButton extends Component {
     }
 
     mediaOn() {
-        this.props.getMedia(this.props.deviceId).then((track) => {
+        this.props.getMedia(this.props.deviceConstraints).then((track) => {
             this.mediaTrack = track;
             this.props.onTrack(this.props.kind, track);
         });
@@ -160,6 +202,7 @@ class MediaToggleButton extends Component {
 
     mediaOff() {
         if (this.mediaIsOn()) {
+            this.mediaTrack.enabled = false;
             this.mediaTrack.stop();
         }
         this.props.onTrack(this.props.kind, null);
@@ -168,7 +211,7 @@ class MediaToggleButton extends Component {
 
 MediaToggleButton.propTypes = {
     kind: PropTypes.string.isRequired,
-    deviceId: PropTypes.string,
+    deviceConstraints: PropTypes.object,
     isOn: PropTypes.bool.isRequired,
     icons: PropTypes.object.isRequired,
     getMedia: PropTypes.func.isRequired,
