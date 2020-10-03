@@ -54,12 +54,12 @@ class VideoControlBar extends Component {
         return (
             <div className='video-control-bar'>
                 {showVisibilityControls &&
-                <button onClick={this.toggleVisibility}>
+                <button className='toggle-visibility' onClick={this.toggleVisibility}>
                     <i className='material-icons'>{feed.videoEnabled ? 'visibility' : 'visibility_off'}</i>
                 </button>
                 }
                 {showAudioControls && <>
-                <button onClick={this.toggleAudioMute}>
+                <button className='toggle-audio' onClick={this.toggleAudioMute}>
                     <i className='material-icons'>{volumeIcon}</i>
                 </button>
                 <input
@@ -71,19 +71,19 @@ class VideoControlBar extends Component {
                 />
                 </>}
                 {showResolutionControls && videoDevice.active &&
-                <button onClick={this.toggleSettings}>
+                <button className='toggle-settings' onClick={this.toggleSettings}>
                     <i className='material-icons'>settings</i>
                 </button>
                 }
                 {showResolutionControls && videoDevice.active &&
                     showSettings && this.renderSettings()}
                 {pipSupported &&
-                <button onClick={this.togglePictureInPicture}>
+                <button className='toggle-pip' onClick={this.togglePictureInPicture}>
                     <i className='material-icons'>picture_in_picture</i>
                 </button>
                 }
                 {fscreen.fullscreenEnabled &&
-                <button onClick={this.toggleFullscreen}>
+                <button className='toggle-fullscreen' onClick={this.toggleFullscreen}>
                     <i className='material-icons'>fullscreen</i>
                 </button>
                 }
