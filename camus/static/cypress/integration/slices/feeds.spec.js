@@ -1,5 +1,14 @@
 import {createStore} from 'redux';
-import reducer, {addFeed, removeFeed, updateFeed, swapFeeds, setLocalAudio, setLocalVideo} from '../../../js/slices/feeds';
+import reducer, {
+    addFeed,
+    removeFeed,
+    updateFeed,
+    swapFeeds,
+    setLocalAudio,
+    setLocalVideo,
+    disableRemoteVideo,
+    enableRemoteVideo
+} from '../../../js/slices/feeds';
 
 describe('Test feeds slice of Redux store', () => {
     it('can add a feed', () => {
@@ -175,5 +184,53 @@ describe('Test feeds slice of Redux store', () => {
         // Verify result
         expect(videoStreamTrack).to.equal(videoTrack);
         expect(videoStreamTrack.kind).to.equal('video');
+    });
+
+    it('can disable a remote video feed', () => {
+        // Setup
+        const store = createStore(
+            reducer,
+            [{
+                id: '1234',
+                videoStream: null,
+                audioStream: null,
+                videoEnabled: true,
+                audioMuted: false
+            }]
+        );
+
+        // Test
+        store.dispatch(disableRemoteVideo('1234'));
+
+        // Get result
+        const state = store.getState();
+        const storedFeed = state.find(feed => feed.id === '1234');
+
+        // Verify result
+        expect(storedFeed.videoEnabled).is.false;
+    });
+
+    it('can enable a remote video feed', () => {
+        // Setup
+        const store = createStore(
+            reducer,
+            [{
+                id: '1234',
+                videoStream: null,
+                audioStream: null,
+                videoEnabled: false,
+                audioMuted: false
+            }]
+        );
+
+        // Test
+        store.dispatch(enableRemoteVideo('1234'));
+
+        // Get result
+        const state = store.getState();
+        const storedFeed = state.find(feed => feed.id === '1234');
+
+        // Verify result
+        expect(storedFeed.videoEnabled).is.true;
     });
 });
