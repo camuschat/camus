@@ -9,6 +9,8 @@ from time import time
 
 from pyee import AsyncIOEventEmitter
 from slugify import slugify
+from twilio.rest import Client as TwilioClient
+from twilio.base.exceptions import TwilioException, TwilioRestException
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -381,4 +383,19 @@ class ChatManager:
             username, password = generate_turn_creds(turn_key, client_id)
             servers.append({'urls': [turn_url], 'username': username, 'credential': password})
 
+        servers += self.get_twilio_ice_servers()
+
         return servers
+
+    def get_twilio_ice_servers(self):
+        """Fetch a list of ICE servers provided by Twilio."""
+        account_sid = app.config['TWILIO_ACCOUNT_SID']
+        auth_token = app.config['TWILIO_AUTH_TOKEN']
+        key_sid = app.config['TWILIO_KEY_SID']
+
+        try:
+            twilio = TwilioClient(key_sid, auth_token, account_sid)
+            token = twilio.tokens.create()
+            return token.ice_servers
+        except (TwilioException, TwilioRestException):
+            return {}

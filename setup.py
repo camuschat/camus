@@ -24,6 +24,7 @@ setup(
         'flask-wtf==0.14.3',
         'pyee==7.0.2',
         'python-slugify==4.0.1',
+        'twilio==6.45.4',
         'werkzeug==1.0.1',
     ],
     classifiers=[
