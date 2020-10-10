@@ -10,6 +10,7 @@ import App from './components/App.js';
 import connectionsReducer from './slices/connections';
 import devicesReducer from './slices/devices';
 import feedsReducer from './slices/feeds';
+import iceServersReducer from './slices/iceServers';
 import messagesReducer from './slices/messages';
 import usersReducer from './slices/users';
 import rootSaga from './sagas';
@@ -43,6 +44,7 @@ const store = configureStore({
         users: usersReducer,
         messages: messagesReducer,
         feeds: feedsReducer,
+        iceServers: iceServersReducer,
         connections: connectionsReducer
     },
     middleware

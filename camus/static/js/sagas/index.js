@@ -4,6 +4,14 @@ import {sendChatMessage} from '../slices/messages';
 import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {setResolution} from '../slices/devices';
 import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
+import {
+    addStunServer,
+    removeStunServer,
+    updateStunServer,
+    addTurnServer,
+    removeTurnServer,
+    updateTurnServer,
+} from '../slices/iceServers';
 
 export default function* rootSaga() {
     yield takeLatest(setUsername.type, doSetUsername);
@@ -13,6 +21,12 @@ export default function* rootSaga() {
     yield takeLatest(setResolution.type, doSetResolution);
     yield takeLatest(disableRemoteVideo.type, doDisableRemoteVideo);
     yield takeLatest(enableRemoteVideo.type, doEnableRemoteVideo);
+    yield takeEvery(addStunServer.type, doSetIceServers);
+    yield takeEvery(removeStunServer.type, doSetIceServers);
+    yield takeEvery(updateStunServer.type, doSetIceServers);
+    yield takeEvery(addTurnServer.type, doSetIceServers);
+    yield takeEvery(removeTurnServer.type, doSetIceServers);
+    yield takeEvery(updateTurnServer.type, doSetIceServers);
 }
 
 function* doSetUsername(action) {
@@ -127,5 +141,26 @@ function* doEnableRemoteVideo(action) {
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
         yield put({type: 'PEER_ERROR', payload: err});
+    }
+}
+
+function* doSetIceServers() {
+    const manager = yield getContext('manager');
+    const stunServers = yield select(state => state.iceServers.stunServers);
+    const turnServers = yield select(state => state.iceServers.turnServers);
+    const iceServers = stunServers.concat(turnServers).map(server => {
+        return ({
+            urls: server.urls,
+            username: server.username,
+            credential: server.credential
+        });
+    });
+
+    try {
+        yield apply(manager, manager.setIceServers, [iceServers]);
+        yield put({type: 'MANAGER_UPDATED'});
+    } catch (err) {
+        console.log(err);
+        yield put({type: 'MANAGER_ERROR', payload: err});
     }
 }

@@ -49,6 +49,7 @@ class VideoPeer extends EventEmitter {
         this.connection = null;
         this.audioTransceiver = null;
         this.videoTransceiver = null;
+        this._iceServers = iceServers;
 
         this.createPeerConnection(iceServers);
     }
@@ -60,6 +61,25 @@ class VideoPeer extends EventEmitter {
 
     get username() {
         return this._username;
+    }
+
+    set iceServers(iceServers) {
+        this._iceServers = iceServers;
+        try {
+            this.connection.setConfiguration({
+                iceServers
+            });
+            console.log(`[${this.client_id}] Updated connection configuration: `,
+                this.connection.getConfiguration());
+
+            this.restartIce();
+        } catch (err) {
+            console.error('Updating ICE servers failed: ', err);
+        }
+    }
+
+    get iceServers() {
+        return this._iceServers;
     }
 
     createPeerConnection(iceServers) {
@@ -260,6 +280,7 @@ class VideoPeer extends EventEmitter {
 
     restartIce() {
         this.connection.restartIce();
+        console.log(`[${this.client_id}] Restarted ICE`);
     }
 
     shutdown() {
@@ -519,7 +540,7 @@ class Manager extends EventEmitter {
         this.textMessages = [];
         this.messageHandler = new MessageHandler(this, this.signaler);
         this.id = null;
-        this.iceServers = [];
+        this._iceServers = [];
     }
 
     setUsername(username) {
@@ -530,6 +551,22 @@ class Manager extends EventEmitter {
                       data: {username: this.username}
         };
         this.signaler.send(data);
+    }
+
+    setIceServers(iceServers) {
+        this.iceServers = iceServers;
+    }
+
+    set iceServers(iceServers) {
+        this._iceServers = iceServers;
+
+        this.videoPeers.forEach(peer => {
+            peer.iceServers = iceServers;
+        });
+    }
+
+    get iceServers() {
+        return this._iceServers;
     }
 
     async setAudioTrack(track) {
@@ -679,7 +716,7 @@ class Manager extends EventEmitter {
         return response.data;
     }
 
-    async getIceServers() {
+    async fetchIceServers() {
         const data = {
             'receiver': 'ground control',
             'type': 'get-ice-servers'
@@ -709,7 +746,7 @@ class Manager extends EventEmitter {
         }
 
         this.id = await this.get_self_id();
-        this.iceServers = await this.getIceServers();
+        this.iceServers = await this.fetchIceServers();
         await this.findPeers();
     }
 }
