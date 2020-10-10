@@ -148,7 +148,9 @@ function* doSetIceServers() {
     const manager = yield getContext('manager');
     const stunServers = yield select(state => state.iceServers.stunServers);
     const turnServers = yield select(state => state.iceServers.turnServers);
-    const iceServers = stunServers.concat(turnServers).map(server => {
+    const iceServers = stunServers.concat(turnServers).filter(server => {
+        return server.enabled
+    }).map(server => {
         return ({
             urls: server.urls,
             username: server.username,

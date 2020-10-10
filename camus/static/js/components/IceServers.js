@@ -13,51 +13,65 @@ import {
 class IceServers extends Component {
     constructor(props) {
         super(props);
+
+        this.newServer = this.newServer.bind(this);
     }
 
     render() {
         return (<>
-            {this.renderStunServers()}
-            {this.renderTurnServers()}
+            {this.renderServers('stun')}
+            {this.renderServers('turn')}
         </>);
     }
 
-    renderStunServers() {
-        return (<>
-            <p>Stun Servers</p>
-            <ul className='stun-servers'>
-                {this.props.stunServers.filter(server =>
-                    server.urls && server.urls.length
-                ).map(server =>
-                    <IceServer
-                        key={server.urls}
-                        server={server}
-                        onSave={this.props.updateStunServer}
-                        onDelete={this.props.removeStunServer}
-                        allowEditing={this.props.allowEditing}
-                    />
-                )}
-            </ul>
-        </>);
-    }
+    renderServers(kind) {
+        const {
+            stunServers,
+            turnServers,
+            updateStunServer,
+            updateTurnServer,
+            removeStunServer,
+            removeTurnServer,
+            allowEditing
+        } = this.props;
+        const title = kind[0].toUpperCase() + kind.slice(1) + ' Servers';
+        const servers = kind === 'stun' ? stunServers : turnServers;
+        const onSave = kind === 'stun' ? updateStunServer : updateTurnServer;
+        const onDelete = kind === 'stun' ? removeStunServer : removeTurnServer;
 
-    renderTurnServers() {
         return (<>
-            <p>Turn Servers</p>
-            <ul className='turn-servers'>
-                {this.props.turnServers.filter(server =>
+            <p>{title}</p>
+            <ul className='ice-servers'>
+                {servers.filter(server =>
                     server.urls && server.urls.length
                 ).map(server =>
                     <IceServer
                         key={server.id}
                         server={server}
-                        onSave={this.props.updateTurnServer}
-                        onDelete={this.props.removeTurnServer}
-                        allowEditing={this.props.allowEditing}
+                        onSave={onSave}
+                        onDelete={onDelete}
+                        allowEditing={allowEditing}
                     />
                 )}
             </ul>
+            {allowEditing &&
+            <button onClick={() => this.newServer(kind)}>
+                <i className='material-icons'>add</i>
+            </button>
+            }
         </>);
+    }
+
+    newServer(kind) {
+        const server = {
+            urls: [`${kind}:`],
+            enabled: false
+        }
+        if (kind === 'stun') {
+            this.props.addStunServer(server);
+        } else if (kind === 'turn') {
+            this.props.addTurnServer(server);
+        }
     }
 }
 
@@ -106,10 +120,12 @@ class IceServer extends Component {
             credential
         } = this.props.server;
 
+        // username and credential may be undefined, so in that case initialize
+        // the corresponding properties in our state as empty strings
         this.state = {
             urls: urls.join(','),
-            username,
-            credential
+            username: username ? username : '',
+            credential: credential ? credential : ''
         };
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -162,7 +178,7 @@ class IceServer extends Component {
                             <button type='button' onClick={this.handleDelete}>
                                 <i className='material-icons'>delete</i>
                             </button>
-                            <button type='submit' onClick={this.handleDelete}>
+                            <button type='submit' onClick={this.handleSubmit}>
                                 <i className='material-icons'>save</i>
                             </button>
                         </>}
@@ -192,6 +208,7 @@ class IceServer extends Component {
 
         const server = {
             id: this.props.server.id,
+            enabled: true,
             urls: urls.split(','),
             username: username ? username : undefined,
             credential: credential ? credential : undefined
