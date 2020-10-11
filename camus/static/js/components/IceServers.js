@@ -2,12 +2,9 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {
-    addStunServer,
-    removeStunServer,
-    updateStunServer,
-    addTurnServer,
-    removeTurnServer,
-    updateTurnServer,
+    addIceServer,
+    removeIceServer,
+    updateIceServer
 } from '../slices/iceServers';
 
 class IceServers extends Component {
@@ -26,18 +23,13 @@ class IceServers extends Component {
 
     renderServers(kind) {
         const {
-            stunServers,
-            turnServers,
-            updateStunServer,
-            updateTurnServer,
-            removeStunServer,
-            removeTurnServer,
+            iceServers,
+            updateIceServer,
+            removeIceServer,
             allowEditing
         } = this.props;
         const title = kind[0].toUpperCase() + kind.slice(1) + ' Servers';
-        const servers = kind === 'stun' ? stunServers : turnServers;
-        const onSave = kind === 'stun' ? updateStunServer : updateTurnServer;
-        const onDelete = kind === 'stun' ? removeStunServer : removeTurnServer;
+        const servers = iceServers.filter(server => server.kind === kind);
 
         return (<>
             <p>{title}</p>
@@ -48,8 +40,8 @@ class IceServers extends Component {
                     <IceServer
                         key={server.id}
                         server={server}
-                        onSave={onSave}
-                        onDelete={onDelete}
+                        onSave={updateIceServer}
+                        onDelete={removeIceServer}
                         allowEditing={allowEditing}
                     />
                 )}
@@ -65,26 +57,19 @@ class IceServers extends Component {
     newServer(kind) {
         const server = {
             urls: [`${kind}:`],
-            enabled: false
+            enabled: false,
+            kind
         }
-        if (kind === 'stun') {
-            this.props.addStunServer(server);
-        } else if (kind === 'turn') {
-            this.props.addTurnServer(server);
-        }
+        this.props.addIceServer(server);
     }
 }
 
 IceServers.propTypes = {
-    stunServers: PropTypes.arrayOf(PropTypes.object).isRequired,
-    turnServers: PropTypes.arrayOf(PropTypes.object).isRequired,
+    iceServers: PropTypes.arrayOf(PropTypes.object).isRequired,
     allowEditing: PropTypes.bool.isRequired,
-    addStunServer: PropTypes.func.isRequired,
-    removeStunServer: PropTypes.func.isRequired,
-    updateStunServer: PropTypes.func.isRequired,
-    addTurnServer: PropTypes.func.isRequired,
-    removeTurnServer: PropTypes.func.isRequired,
-    updateTurnServer: PropTypes.func.isRequired
+    addIceServer: PropTypes.func.isRequired,
+    updateIceServer: PropTypes.func.isRequired,
+    removeIceServer: PropTypes.func.isRequired,
 };
 
 function select(state) {
@@ -93,20 +78,16 @@ function select(state) {
     } = state;
 
     return {
-        stunServers: iceServers.stunServers,
-        turnServers: iceServers.turnServers
+        iceServers
     }
 }
 
 export default connect(
     select,
     {
-        addStunServer,
-        removeStunServer,
-        updateStunServer,
-        addTurnServer,
-        removeTurnServer,
-        updateTurnServer,
+        addIceServer,
+        updateIceServer,
+        removeIceServer
     },
 )(IceServers);
 

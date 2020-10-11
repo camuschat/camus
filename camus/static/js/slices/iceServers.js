@@ -5,35 +5,19 @@ let id = 0;
 
 const iceServersSlice = createSlice({
     name: 'iceServers',
-    initialState: {
-        stunServers: [],
-        turnServers: []
-    },
+    initialState: [],
     reducers: {
-        addStunServer(state, action) {
-            const server = Object.assign({id: id++, kind: 'stun', enabled: true}, action.payload);
-            state.stunServers.push(server)
+        addIceServer(state, action) {
+            const server = Object.assign({id: id++, enabled: true}, action.payload);
+            state.push(server)
         },
-        removeStunServer(state, action) {
+        removeIceServer(state, action) {
             const id = action.payload;
-            state.stunServers = state.stunServers.filter(server => server.id !== id);
+            return state.filter(server => server.id !== id);
         },
-        updateStunServer(state, action) {
+        updateIceServer(state, action) {
             const {id} = action.payload;
-            const server = state.stunServers.find(server => server.id === id);
-            Object.assign(server, action.payload);
-        },
-        addTurnServer(state, action) {
-            const server = Object.assign({id: id++, kind: 'turn', enabled: true}, action.payload);
-            state.turnServers.push(server)
-        },
-        removeTurnServer(state, action) {
-            const id = action.payload;
-            state.turnServers = state.turnServers.filter(server => server.id !== id);
-        },
-        updateTurnServer(state, action) {
-            const {id} = action.payload;
-            const server = state.turnServers.find(server => server.id === id);
+            const server = state.find(server => server.id === id);
             Object.assign(server, action.payload);
         }
     }
@@ -41,11 +25,8 @@ const iceServersSlice = createSlice({
 
 const {actions, reducer} = iceServersSlice;
 export const {
-    addStunServer,
-    removeStunServer,
-    updateStunServer,
-    addTurnServer,
-    removeTurnServer,
-    updateTurnServer,
+    addIceServer,
+    removeIceServer,
+    updateIceServer
 } = actions;
 export default reducer;

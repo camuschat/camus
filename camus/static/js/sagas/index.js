@@ -5,12 +5,9 @@ import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {setResolution} from '../slices/devices';
 import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
 import {
-    addStunServer,
-    removeStunServer,
-    updateStunServer,
-    addTurnServer,
-    removeTurnServer,
-    updateTurnServer,
+    addIceServer,
+    removeIceServer,
+    updateIceServer
 } from '../slices/iceServers';
 
 export default function* rootSaga() {
@@ -21,12 +18,9 @@ export default function* rootSaga() {
     yield takeLatest(setResolution.type, doSetResolution);
     yield takeLatest(disableRemoteVideo.type, doDisableRemoteVideo);
     yield takeLatest(enableRemoteVideo.type, doEnableRemoteVideo);
-    yield takeEvery(addStunServer.type, doSetIceServers);
-    yield takeEvery(removeStunServer.type, doSetIceServers);
-    yield takeEvery(updateStunServer.type, doSetIceServers);
-    yield takeEvery(addTurnServer.type, doSetIceServers);
-    yield takeEvery(removeTurnServer.type, doSetIceServers);
-    yield takeEvery(updateTurnServer.type, doSetIceServers);
+    yield takeEvery(addIceServer.type, doSetIceServers);
+    yield takeEvery(removeIceServer.type, doSetIceServers);
+    yield takeEvery(updateIceServer.type, doSetIceServers);
 }
 
 function* doSetUsername(action) {
@@ -146,9 +140,8 @@ function* doEnableRemoteVideo(action) {
 
 function* doSetIceServers() {
     const manager = yield getContext('manager');
-    const stunServers = yield select(state => state.iceServers.stunServers);
-    const turnServers = yield select(state => state.iceServers.turnServers);
-    const iceServers = stunServers.concat(turnServers).filter(server => {
+    const iceServers = yield select(state => state.iceServers);
+    const servers = iceServers.filter(server => {
         return server.enabled
     }).map(server => {
         return ({
@@ -159,7 +152,7 @@ function* doSetIceServers() {
     });
 
     try {
-        yield apply(manager, manager.setIceServers, [iceServers]);
+        yield apply(manager, manager.setIceServers, [servers]);
         yield put({type: 'MANAGER_UPDATED'});
     } catch (err) {
         console.log(err);

@@ -5,7 +5,7 @@ import {addUser, updateUser} from '../slices/users';
 import {addChatMessage} from '../slices/messages';
 import {addConnection, removeConnection, updateConnection} from '../slices/connections';
 import {addFeed, removeFeed, updateFeed} from '../slices/feeds';
-import {addStunServer, addTurnServer} from '../slices/iceServers';
+import {addIceServer} from '../slices/iceServers';
 import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
@@ -108,11 +108,9 @@ class App extends Component {
                 server.urls = [server.urls]
             }
 
-            if (server.urls[0].startsWith('stun:')) {
-                this.props.addStunServer(server);
-            } else if (server.urls[0].startsWith('turn:')) {
-                this.props.addTurnServer(server);
-            }
+            const kind = server.urls[0].match(/^(?<kind>stun|turn):/);
+            server.kind = kind ? kind.groups.kind : undefined;
+            this.props.addIceServer(server);
         });
     }
 
@@ -227,8 +225,7 @@ App.propTypes = {
     addFeed: PropTypes.func.isRequired,
     removeFeed: PropTypes.func.isRequired,
     updateFeed: PropTypes.func.isRequired,
-    addStunServer: PropTypes.func.isRequired,
-    addTurnServer: PropTypes.func.isRequired
+    addIceServer: PropTypes.func.isRequired
 };
 
 export default connect(
@@ -243,7 +240,6 @@ export default connect(
         addFeed,
         removeFeed,
         updateFeed,
-        addStunServer,
-        addTurnServer
+        addIceServer
     }
 )(App);
