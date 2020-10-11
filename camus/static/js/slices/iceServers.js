@@ -11,7 +11,7 @@ const iceServersSlice = createSlice({
     },
     reducers: {
         addStunServer(state, action) {
-            const server = Object.assign({id: id++, enabled: true}, action.payload);
+            const server = Object.assign({id: id++, kind: 'stun', enabled: true}, action.payload);
             state.stunServers.push(server)
         },
         removeStunServer(state, action) {
@@ -24,7 +24,7 @@ const iceServersSlice = createSlice({
             Object.assign(server, action.payload);
         },
         addTurnServer(state, action) {
-            const server = Object.assign({id: id++, enabled: true}, action.payload);
+            const server = Object.assign({id: id++, kind: 'turn', enabled: true}, action.payload);
             state.turnServers.push(server)
         },
         removeTurnServer(state, action) {

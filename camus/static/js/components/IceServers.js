@@ -134,9 +134,18 @@ class IceServer extends Component {
     }
 
     render() {
-        const {server} = this.props;
-        const host = server.urls[0];
-        const allowEditing = this.props.allowEditing;
+        const {
+            server,
+            allowEditing
+        } = this.props;
+
+        // Pattern to validate input for server URLs
+        const urlPattern = `${server.kind}:[\\w\\d_./:?=&%-]+`;
+        const urlsPattern = `^${urlPattern}(,${urlPattern})*$`
+
+        // Extract the host from a server URL
+        const hostMatch = server.urls[0].match(/(?:stun|turn):(?<host>[\w\d_.-]+)/);
+        const host = hostMatch ? hostMatch.groups.host : 'New server'
 
         return (
             <li className='ice-server'>
@@ -151,6 +160,7 @@ class IceServer extends Component {
                                 value={this.state.urls}
                                 onChange={this.handleInputChange}
                                 required
+                                pattern={urlsPattern}
                                 readOnly={!allowEditing}
                             />
                         </label>
@@ -161,6 +171,7 @@ class IceServer extends Component {
                                 type='text'
                                 value={this.state.username}
                                 onChange={this.handleInputChange}
+                                required={server.kind === 'turn'}
                                 readOnly={!allowEditing}
                             />
                         </label>
@@ -171,6 +182,7 @@ class IceServer extends Component {
                                 type='text'
                                 value={this.state.credential}
                                 onChange={this.handleInputChange}
+                                required={server.kind === 'turn'}
                                 readOnly={!allowEditing}
                             />
                         </label>
@@ -178,7 +190,7 @@ class IceServer extends Component {
                             <button type='button' onClick={this.handleDelete}>
                                 <i className='material-icons'>delete</i>
                             </button>
-                            <button type='submit' onClick={this.handleSubmit}>
+                            <button type='submit'>
                                 <i className='material-icons'>save</i>
                             </button>
                         </>}
