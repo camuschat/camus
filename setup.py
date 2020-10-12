@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='camus-chat',
-    version='0.2.dev4',
+    version='0.2.dev5',
     description='Peer-to-peer video chat using WebRTC',
     long_description=open('README.rst').read(),
     long_description_content_type="text/x-rst; charset=UTF-8",
@@ -24,6 +24,7 @@ setup(
         'flask-wtf==0.14.3',
         'pyee==7.0.2',
         'python-slugify==4.0.1',
+        'twilio==6.45.4',
         'werkzeug==1.0.1',
     ],
     classifiers=[

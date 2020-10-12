@@ -5,9 +5,11 @@ import {addUser, updateUser} from '../slices/users';
 import {addChatMessage} from '../slices/messages';
 import {addConnection, removeConnection, updateConnection} from '../slices/connections';
 import {addFeed, removeFeed, updateFeed} from '../slices/feeds';
+import {addIceServer} from '../slices/iceServers';
 import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
+import IceServers from './IceServers.js';
 import EnterRoomModal from './EnterRoomModal.js';
 import MediaControlBar from './MediaControlBar.js';
 import Sidebar from './Sidebar.js';
@@ -22,9 +24,11 @@ class App extends Component {
         }
 
         this.videoStage = React.createRef();
+        this.canUpdateIceServers = new RTCPeerConnection().setConfiguration !== undefined;
 
         this.onSubmitModal = this.onSubmitModal.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
+        this.onReceiveIceServers = this.onReceiveIceServers.bind(this);
         this.onVideoPeer = this.onVideoPeer.bind(this);
         this.onVideoPeerRemoved = this.onVideoPeerRemoved.bind(this);
         this.onPeerTrack = this.onPeerTrack.bind(this);
@@ -35,6 +39,7 @@ class App extends Component {
 
     componentDidMount() {
         this.manager.addMessageListener({type: 'text'}, this.onReceiveChatMessage);
+        this.manager.addMessageListener({type: 'ice-servers'}, this.onReceiveIceServers);
         this.manager.on('videopeer', this.onVideoPeer);
         this.manager.on('videopeerremoved', this.onVideoPeerRemoved);
 
@@ -69,11 +74,12 @@ class App extends Component {
                 <MediaControlBar />
             </main>
             <Sidebar
-                buttonIcons={['message', 'people']}
+                buttonIcons={['message', 'people', 'settings']}
                 onToggle={this.onSidebarToggle}
             >
                 <ChatMessageBar />
                 <ConnectionInfoBar />
+                <IceServers allowEditing={this.canUpdateIceServers}/>
             </Sidebar>
         </>)
     }
@@ -91,6 +97,21 @@ class App extends Component {
             text: message.data.text
         };
         this.props.addChatMessage(chatMessage);
+    }
+
+    onReceiveIceServers(message) {
+        const servers = message.data;
+        servers.forEach(server => {
+            // The urls field may either be a single string or an array of
+            // strings, so convert it to an array if a single string is given
+            if (typeof server.urls === 'string') {
+                server.urls = [server.urls]
+            }
+
+            const kind = server.urls[0].match(/^(?<kind>stun|turn):/);
+            server.kind = kind ? kind.groups.kind : undefined;
+            this.props.addIceServer(server);
+        });
     }
 
     onVideoPeer(peer) {
@@ -203,11 +224,22 @@ App.propTypes = {
     updateConnection: PropTypes.func.isRequired,
     addFeed: PropTypes.func.isRequired,
     removeFeed: PropTypes.func.isRequired,
-    updateFeed: PropTypes.func.isRequired
+    updateFeed: PropTypes.func.isRequired,
+    addIceServer: PropTypes.func.isRequired
 };
 
 export default connect(
     null,
-    {addUser, updateUser, addChatMessage, addConnection, removeConnection,
-        updateConnection, addFeed, removeFeed, updateFeed}
+    {
+        addUser,
+        updateUser,
+        addChatMessage,
+        addConnection,
+        removeConnection,
+        updateConnection,
+        addFeed,
+        removeFeed,
+        updateFeed,
+        addIceServer
+    }
 )(App);

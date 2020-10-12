@@ -98,8 +98,8 @@ v0.2
 
 -  [x] Rewrite the UI using `React`_ [PR `#3`_, `#4`_]
 -  [x] Video feed controls (fullscreen, picture-in-picture, resolution, audio level, visibility) [PR `#5`_]
+-  [x] Configurable TURN server in the client [PR `#6`_]
 -  [ ] Make the UI accessible
--  [ ] Configurable TURN server in the client
 -  [ ] Snap package
 
 v0.3+
@@ -136,4 +136,5 @@ v0.3+
 .. _#3: https://github.com/mrgnr/camus/pull/3
 .. _#4: https://github.com/mrgnr/camus/pull/4
 .. _#5: https://github.com/mrgnr/camus/pull/5
+.. _#6: https://github.com/mrgnr/camus/pull/6
 .. _SFU: https://webrtcglossary.com/sfu

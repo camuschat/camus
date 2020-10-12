@@ -4,6 +4,11 @@ import {sendChatMessage} from '../slices/messages';
 import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {setResolution} from '../slices/devices';
 import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
+import {
+    addIceServer,
+    removeIceServer,
+    updateIceServer
+} from '../slices/iceServers';
 
 export default function* rootSaga() {
     yield takeLatest(setUsername.type, doSetUsername);
@@ -13,6 +18,9 @@ export default function* rootSaga() {
     yield takeLatest(setResolution.type, doSetResolution);
     yield takeLatest(disableRemoteVideo.type, doDisableRemoteVideo);
     yield takeLatest(enableRemoteVideo.type, doEnableRemoteVideo);
+    yield takeEvery(addIceServer.type, doSetIceServers);
+    yield takeEvery(removeIceServer.type, doSetIceServers);
+    yield takeEvery(updateIceServer.type, doSetIceServers);
 }
 
 function* doSetUsername(action) {
@@ -127,5 +135,27 @@ function* doEnableRemoteVideo(action) {
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
         yield put({type: 'PEER_ERROR', payload: err});
+    }
+}
+
+function* doSetIceServers() {
+    const manager = yield getContext('manager');
+    const iceServers = yield select(state => state.iceServers);
+    const servers = iceServers.filter(server => {
+        return server.enabled
+    }).map(server => {
+        return ({
+            urls: server.urls,
+            username: server.username,
+            credential: server.credential
+        });
+    });
+
+    try {
+        yield apply(manager, manager.setIceServers, [servers]);
+        yield put({type: 'MANAGER_UPDATED'});
+    } catch (err) {
+        console.log(err);
+        yield put({type: 'MANAGER_ERROR', payload: err});
     }
 }
