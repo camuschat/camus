@@ -400,7 +400,8 @@ input[type=range]:focus::-moz-range-track {
 }
 
 .media-control-bar button,
-.chat-message-bar button {
+.chat-message-bar button,
+.ice-servers button {
     border: none;
     border-radius: 4px;
     background-color: #fff;
@@ -411,13 +412,16 @@ input[type=range]:focus::-moz-range-track {
 .media-control-bar button:hover,
 .media-control-bar button:focus,
 .chat-message-bar button:hover,
-.chat-message-bar button:focus {
+.chat-message-bar button:focus,
+.ice-servers button:hover,
+.ice-servers button:focus {
     background-color: #eee;
     outline: none;
 }
 
 .media-control-bar button:active,
-.chat-message-bar button:active {
+.chat-message-bar button:active,
+.ice-servers button:active {
     background-color: #ddd;
 }
 
@@ -527,4 +531,26 @@ input[type=range]:focus::-moz-range-track {
     font-weight: normal;
     font-size: small;
     font-style: italic;
+}
+
+.ice-servers-bar {
+    overflow-y: auto;
+}
+
+.ice-servers {
+    padding: 20px 20px;
+}
+
+.ice-server {
+    padding: 10px 0px;
+}
+
+.ice-server form label,
+.ice-server form input {
+    display: block;
+    width: 100%;
+}
+
+.ice-server input:invalid {
+    border-color: red;
 }

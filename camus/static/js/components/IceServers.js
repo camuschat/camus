@@ -15,10 +15,12 @@ class IceServers extends Component {
     }
 
     render() {
-        return (<>
-            {this.renderServers('stun')}
-            {this.renderServers('turn')}
-        </>);
+        return (
+            <div className='ice-servers-bar'>
+                {this.renderServers('stun')}
+                {this.renderServers('turn')}
+            </div>
+        );
     }
 
     renderServers(kind) {
@@ -31,27 +33,29 @@ class IceServers extends Component {
         const title = kind[0].toUpperCase() + kind.slice(1) + ' Servers';
         const servers = iceServers.filter(server => server.kind === kind);
 
-        return (<>
-            <p>{title}</p>
-            <ul className='ice-servers'>
-                {servers.filter(server =>
-                    server.urls && server.urls.length
-                ).map(server =>
-                    <IceServer
-                        key={server.id}
-                        server={server}
-                        onSave={updateIceServer}
-                        onDelete={removeIceServer}
-                        allowEditing={allowEditing}
-                    />
-                )}
-            </ul>
-            {allowEditing &&
-            <button onClick={() => this.newServer(kind)}>
-                <i className='material-icons'>add</i>
-            </button>
-            }
-        </>);
+        return (
+            <div className='ice-servers'>
+                <h6>{title}</h6>
+                <ul>
+                    {servers.filter(server =>
+                        server.urls && server.urls.length
+                    ).map(server =>
+                        <IceServer
+                            key={server.id}
+                            server={server}
+                            onSave={updateIceServer}
+                            onDelete={removeIceServer}
+                            allowEditing={allowEditing}
+                        />
+                    )}
+                </ul>
+                {allowEditing &&
+                <button onClick={() => this.newServer(kind)}>
+                    <i className='material-icons'>add</i>
+                </button>
+                }
+            </div>
+        );
     }
 
     newServer(kind) {
