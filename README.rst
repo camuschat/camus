@@ -24,6 +24,25 @@ You can find a live demo at https://camus.chat.
 Running
 -------
 
+Using Snap
+~~~~~~~~~~
+
+Make sure you have `snapd`_ installed. Install Camus (currently only an
+unstable edge version is available):
+
+::
+
+   $ sudo snap install --edge camus
+
+Run Camus:
+
+::
+
+   $ camus
+
+Go to ``localhost:5000`` in your browser. For local testing, you can visit the
+same room in multiple tabs and each tab will act as a separate client.
+
 Using Python
 ~~~~~~~~~~~~
 
@@ -99,8 +118,8 @@ v0.2
 -  [x] Rewrite the UI using `React`_ [PR `#3`_, `#4`_]
 -  [x] Video feed controls (fullscreen, picture-in-picture, resolution, audio level, visibility) [PR `#5`_]
 -  [x] Configurable TURN server in the client [PR `#6`_]
+-  [x] Snap package [PR `#7`_]
 -  [ ] Make the UI accessible
--  [ ] Snap package
 
 v0.3+
 ~~~~~
@@ -123,6 +142,7 @@ v0.3+
    :target: https://heroku.com/deploy?template=https://github.com/mrgnr/camus
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
+.. _snapd: https://snapcraft.io/docs/installing-snapd
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
@@ -137,4 +157,5 @@ v0.3+
 .. _#4: https://github.com/mrgnr/camus/pull/4
 .. _#5: https://github.com/mrgnr/camus/pull/5
 .. _#6: https://github.com/mrgnr/camus/pull/6
+.. _#7: https://github.com/mrgnr/camus/pull/7
 .. _SFU: https://webrtcglossary.com/sfu

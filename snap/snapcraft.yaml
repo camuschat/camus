@@ -1,0 +1,24 @@
+name: camus
+base: core20
+version: '0.2.dev6'
+summary: Peer-to-peer group video chat using WebRTC.
+description: |
+  Camus is a video chat app that uses WebRTC for direct peer-to-peer communication.
+  Users can create public or private rooms, optionally protected by a password.
+  In addition to streaming audio and video from a webcam and microphone, Camus
+  also provides screen sharing and text chat.
+
+grade: devel
+confinement: strict
+
+apps:
+  camus:
+    command: bin/camus
+    plugs:
+      - network-bind
+      - network
+
+parts:
+  camus:
+    plugin: python
+    source: .
