@@ -12,7 +12,9 @@ class EnterRoomModal extends Component {
         this.state = {
             nickname: '',
             audioDeviceId: '',
-            videoDeviceId: ''
+            videoDeviceId: '',
+            mics: [],
+            cameras: []
         };
 
         this.videoPreview = React.createRef();
@@ -43,12 +45,12 @@ class EnterRoomModal extends Component {
                     </label>
                     <DeviceSelect
                         label='Microphone'
-                        getDevices={getMics}
+                        devices={this.state.mics}
                         onSelectDevice={this.onSelectDevice}
                     />
                     <DeviceSelect
                         label='Camera'
-                        getDevices={getCameras}
+                        devices={this.state.cameras}
                         onSelectDevice={this.onSelectDevice}
                     />
                     <input type='submit' value='Enter room' />
@@ -69,7 +71,16 @@ class EnterRoomModal extends Component {
         getUserMedia().then(({audio, video}) => {
             if (audio) audio.stop();
             if (video) video.stop();
-            this.forceUpdate();
+        }).then(() => {
+            return Promise.all([
+                getMics(),
+                getCameras()
+            ]);
+        }).then(([mics, cameras]) => {
+            this.setState({
+                mics,
+                cameras
+            });
         });
     }
 
@@ -162,11 +173,6 @@ export default connect(
 class DeviceSelect extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            devices: []
-        };
-
         this.handleChange = this.handleChange.bind(this);
     }
 
@@ -176,7 +182,7 @@ class DeviceSelect extends Component {
                 {this.props.label}
                 <select name={this.props.label} onChange={this.handleChange}>
                     <option value=''>None</option>
-                    {this.state.devices.map(device =>
+                    {this.props.devices.map(device =>
                         <option key={device.deviceId} value={device.deviceId}>
                             {device.label}
                         </option>
@@ -184,14 +190,6 @@ class DeviceSelect extends Component {
                 </select>
             </label>
         );
-    }
-
-    componentDidUpdate() {
-        this.props.getDevices().then(devices => {
-            this.setState({
-                devices: devices
-            });
-        });
     }
 
     handleChange(event) {
@@ -202,6 +200,6 @@ class DeviceSelect extends Component {
 
 DeviceSelect.propTypes = {
     label: PropTypes.string.isRequired,
-    getDevices: PropTypes.func.isRequired,
+    devices: PropTypes.array.isRequired,
     onSelectDevice: PropTypes.func.isRequired
 };
