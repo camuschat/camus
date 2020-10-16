@@ -67,7 +67,8 @@ class EnterRoomModal extends Component {
     }
 
     componentDidMount() {
-        // Prompt user for camera/microphone permission
+        // Prompt the user for camera/microphone permission, then get a list of
+        // available microphones and cameras
         getUserMedia().then(({audio, video}) => {
             if (audio) audio.stop();
             if (video) video.stop();
@@ -93,13 +94,23 @@ class EnterRoomModal extends Component {
             this.stopPreviewStream();
 
             if (deviceId) {
-                getUserVideo(deviceId).then(track => {
+                // Determine the maximum camera resolution, then set the
+                // preview stream
+                this.getMaxCameraResolution(deviceId).then(maxResolution => {
+                    this.props.updateVideoDevice({
+                        maxResolution
+                    });
+                }).then(() => {
+                    return getUserVideo(deviceId);
+                }).then(track => {
                     const stream = new MediaStream([track]);
                     this.videoPreview.current.srcObject = stream;
                 });
-            } else {
-                this.videoPreview.current.srcObject = null;
             }
+
+            this.props.updateVideoDevice({
+                id: deviceId
+            });
 
             this.setState({
                 videoDeviceId: deviceId
@@ -127,24 +138,44 @@ class EnterRoomModal extends Component {
             videoDeviceId
         } = this.state;
 
-        // Determine the maximum camera resolution
-        const videoConstraints = {
-            deviceId: videoDeviceId,
-            height: {ideal: 2160}
-        };
-        getUserVideo(videoConstraints).then(track => {
-            console.log('VIDEO TRACK: ', track);
-            const videoDevice = {
-                id: videoDeviceId,
-                maxResolution: track.getSettings().height
-            };
-            track.stop();
-            this.props.updateVideoDevice(videoDevice);
-        });
+        // If no camera was selected, determine the maximum resolution of the
+        // default camera
+        if (!videoDeviceId) {
+            this.getMaxCameraResolution(videoDeviceId).then(maxResolution => {
+                this.props.updateVideoDevice({
+                    maxResolution
+                });
+            });
+        }
 
         this.props.setUsername(nickname);
-        this.props.updateAudioDevice({id: audioDeviceId});
+        this.props.updateVideoDevice({
+            id: videoDeviceId,
+            active: videoDeviceId ? true : false
+        });
+        this.props.updateAudioDevice({
+            id: audioDeviceId,
+            active: audioDeviceId ? true : false
+        });
         this.props.onSubmit();
+    }
+
+    getMaxCameraResolution(deviceId) {
+        // Determine the maximum camera resolution.
+        // Note that we must stop the preview stream to turn off the camera
+        // since the camera probably only supports a single resolution at
+        // a time.
+        this.stopPreviewStream();
+        const videoConstraints = {
+            deviceId,
+            height: {ideal: 2160}
+        };
+
+        return getUserVideo(videoConstraints).then(track => {
+            const resolution = track.getSettings().height;
+            track.stop();
+            return resolution;
+        });
     }
 
     stopPreviewStream() {
@@ -167,7 +198,11 @@ EnterRoomModal.propTypes = {
 
 export default connect(
     null,
-    {setUsername, updateAudioDevice, updateVideoDevice}
+    {
+        setUsername,
+        updateAudioDevice,
+        updateVideoDevice
+    }
 )(EnterRoomModal);
 
 class DeviceSelect extends Component {

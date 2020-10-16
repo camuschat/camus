@@ -8,25 +8,14 @@ import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
 class MediaControlBar extends Component {
     constructor(props) {
         super(props);
-
-        const {
-            videoDevice,
-            audioDevice,
-        } = this.props;
-
-        this.state = {
-            cameraOn: videoDevice.id ? true : false,
-            micOn: audioDevice.id ? true : false,
-            displayOn: false
-        };
-
         this.onTrack = this.onTrack.bind(this);
     }
 
     render() {
         const {
             videoDevice,
-            audioDevice
+            audioDevice,
+            displayDevice
         } = this.props;
 
         const resolution = videoDevice.resolution;
@@ -45,7 +34,7 @@ class MediaControlBar extends Component {
                 <MediaToggleButton
                     kind={'camera'}
                     deviceConstraints={videoConstraints}
-                    isOn={this.state.cameraOn}
+                    isOn={videoDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getUserVideo}
                     icons={{on: 'videocam', off: 'videocam_off'}}
@@ -53,7 +42,7 @@ class MediaControlBar extends Component {
                 <MediaToggleButton
                     kind={'mic'}
                     deviceConstraints={audioConstraints}
-                    isOn={this.state.micOn}
+                    isOn={audioDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getUserAudio}
                     icons={{on: 'mic', off: 'mic_off'}}
@@ -61,7 +50,7 @@ class MediaControlBar extends Component {
                 <MediaToggleButton
                     kind={'display'}
                     deviceConstraints={null}
-                    isOn={this.state.displayOn}
+                    isOn={displayDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getDisplayMedia}
                     icons={{on: 'screen_share', off: 'stop_screen_share'}}
@@ -72,13 +61,6 @@ class MediaControlBar extends Component {
 
     onTrack(kind, mediaTrack) {
         if (kind === 'camera') {
-            this.setState(state => {
-                return {
-                    cameraOn: mediaTrack ? true : false,
-                    displayOn: mediaTrack ? false : state.displayOn
-                };
-            });
-
             this.props.setLocalVideo(mediaTrack);
 
             if (mediaTrack) {
@@ -88,13 +70,6 @@ class MediaControlBar extends Component {
                 this.props.updateVideoDevice({active: false});
             }
         } else if (kind === 'display') {
-            this.setState(state => {
-                return {
-                    cameraOn: mediaTrack ? false : state.cameraOn,
-                    displayOn: mediaTrack ? true : false
-                };
-            });
-
             this.props.setLocalVideo(mediaTrack);
 
             if (mediaTrack) {
@@ -104,7 +79,6 @@ class MediaControlBar extends Component {
                 this.props.updateDisplayDevice({active: false});
             }
         } else if (kind === 'mic') {
-            this.setState({micOn: mediaTrack ? true : false});
             this.props.setLocalAudio(mediaTrack);
 
             if (mediaTrack) {
@@ -130,13 +104,13 @@ MediaControlBar.propTypes = {
 
 function select(state) {
     const {
-        devices,
+        devices
     } = state;
 
     return {
         audioDevice: devices.audio,
         videoDevice: devices.video,
-        displayDevice: devices.display,
+        displayDevice: devices.display
     }
 }
 
@@ -168,10 +142,6 @@ class MediaToggleButton extends Component {
     }
 
     componentDidMount() {
-        this.setMedia();
-    }
-
-    componentDidUpdate() {
         this.setMedia();
     }
 
