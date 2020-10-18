@@ -15,6 +15,7 @@ yourself using :ref:`pip <Installation:Using Python>` or
    installation
    technical-overview
    development
+   configuration
    deployment
    license
 
