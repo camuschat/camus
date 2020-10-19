@@ -164,7 +164,7 @@ class IceServer extends Component {
                             Password
                             <input
                                 name='credential'
-                                type='text'
+                                type='password'
                                 value={this.state.credential}
                                 onChange={this.handleInputChange}
                                 required={server.kind === 'turn'}
