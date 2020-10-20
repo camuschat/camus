@@ -2,7 +2,7 @@ Installation
 ============
 
 Using Snap
-~~~~~~~~~~
+----------
 
 Make sure you have `snapd`_ installed. Install `Camus`_:
 
