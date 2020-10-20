@@ -31,12 +31,20 @@ const feedsSlice = createSlice({
         setLocalAudio(state, action) {
             const track = action.payload;
             const stream = track ? new MediaStream([track]) : null;
-            state.find(feed => feed.id === 'local').audioStream = stream;
+            const localFeed = state.find(feed => feed.id === 'local');
+            if (localFeed.audioStream) {
+                localFeed.audioStream.getTracks().forEach(track => track.stop());
+            }
+            localFeed.audioStream = stream;
         },
         setLocalVideo(state, action) {
             const track = action.payload;
             const stream = track ? new MediaStream([track]) : null;
-            state.find(feed => feed.id === 'local').videoStream = stream;
+            const localFeed = state.find(feed => feed.id === 'local');
+            if (localFeed.videoStream) {
+                localFeed.videoStream.getTracks().forEach(track => track.stop());
+            }
+            localFeed.videoStream = stream;
         },
         disableRemoteVideo(state, action) {
             const id = action.payload;

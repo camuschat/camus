@@ -20,6 +20,7 @@
         {{ bootstrap.load_css() }}
         <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
         <link rel="stylesheet" href="{{url_for('static', filename='css/icons.css')}}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     {%- endblock styles %}
     {%- endblock head %}
   </head>

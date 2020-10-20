@@ -16,6 +16,8 @@ Features
 -  Text chat
 -  Room management (public/private, password/no password, guest limits)
 
+.. image:: screenshots/0.2.0.png
+
 Demo
 ----
 
@@ -27,12 +29,11 @@ Running
 Using Snap
 ~~~~~~~~~~
 
-Make sure you have `snapd`_ installed. Install Camus (currently only an
-unstable edge version is available):
+Make sure you have `snapd`_ installed. Install Camus:
 
 ::
 
-   $ sudo snap install --edge camus
+   $ sudo snap install camus
 
 Run Camus:
 

@@ -22,6 +22,8 @@ _chat_manager = None
 
 
 def get_chat_manager():
+    """Retrieve the global ChatManager object."""
+
     global _chat_manager
     if _chat_manager is None:
         _chat_manager = ChatManager()
@@ -29,6 +31,8 @@ def get_chat_manager():
 
 
 def generate_turn_creds(key, client_id):
+    """Generate TURN server credentials for a client."""
+
     expiration = int(time()) + 6 * 60 * 60  # creds expire after 6 hrs
     username = '{}:{}'.format(expiration, client_id)
     token = hmac.new(key.encode(), msg=username.encode(), digestmod='SHA1')
@@ -42,6 +46,11 @@ class ChatException(Exception):
 
 
 class ChatRoom(AsyncIOEventEmitter):
+    """
+    A class that tracks information for a specific room, including connected
+    clients and room settings.
+    """
+
     def __init__(self, name, password=None, guest_limit=None, admin_list=None, is_public=False):
         super().__init__()
 
@@ -55,6 +64,11 @@ class ChatRoom(AsyncIOEventEmitter):
         self._last_active = time_ms()
 
         async def check_expire():
+            """Check whether the room has expired.
+
+            Rooms expire and are cleaned up after 60 minutes of inactivity.
+            """
+
             now = time_ms() / 1000
             last_active = self.last_active / 1000
 
@@ -73,31 +87,51 @@ class ChatRoom(AsyncIOEventEmitter):
 
     @property
     def last_active(self):
+        """A timestamp corresponding to when the room was last active."""
+
         last_seen = [client.last_seen for client in self.clients.values()]
         self._last_active = max([self._last_active, *last_seen])
         return self._last_active
 
     @property
     def active_ago(self):
+        """The number of minutes ago that the room was last active."""
         return int((time_ms() - self.last_active) / 60000)
 
     @property
     def info(self):
+        """
+        Information about the room, consisting of the room ID and a list of
+        connected clients.
+        """
+
         clients = [{'id': client.id, 'username': client.username}
                    for client in self.get_clients()]
 
         return {'room_id': self.id, 'clients': clients}
 
     def authenticate(self, password=None):
+        """Attempt to authenticate access to the room."""
+
         if password is None:
             return self.password_hash is None
 
         return check_password_hash(self.password_hash, password)
 
     def is_full(self):
+        """Check whether the room's guest limit has been reached.
+
+        Returns True if the guest limit has been reached, False otherwise.
+        """
+
         return self.guest_limit is not None and len(self.clients) == self.guest_limit
 
     def add_client(self, client):
+        """Add a client to the room.
+
+        Raises a ChatException if the room is already full.
+        """
+
         if self.is_full():
             raise ChatException('Guest limit already reached')
 
@@ -105,6 +139,8 @@ class ChatRoom(AsyncIOEventEmitter):
         client.room = self
 
     def remove_client(self, client):
+        """Remove a client from the room."""
+
         logging.info('Removing client {} from room {}'.format(client.id, self.id))
         self._last_active = max(self._last_active, client.last_seen)
         client.room = None
@@ -112,14 +148,19 @@ class ChatRoom(AsyncIOEventEmitter):
         logging.info('{} clients remaining in room {}'.format(len(self.clients), self.id))
 
     def get_clients(self):
+        """Get the clients connected to the room."""
         return self.clients.values()
 
     def broadcast(self, message):
+        """Send a message to all clients connected to the room."""
+
         for client in self.get_clients():
             message.receiver = client.id
             client.send(message.json())
 
     async def shutdown(self):
+        """Shut down the room."""
+
         if self._timer is not None:
             self._timer.cancel()
             self._timer = None
@@ -130,6 +171,8 @@ class ChatRoom(AsyncIOEventEmitter):
 
 
 class ChatClient(AsyncIOEventEmitter):
+    """A class that represents a connected client."""
+
     def __init__(self, id, username=None, room=None, is_admin=False):
         super().__init__()
 
@@ -157,6 +200,8 @@ class ChatClient(AsyncIOEventEmitter):
             self.emit('message', message)
 
     def send(self, data):
+        """Send a message to the client."""
+
         try:
             self.outbox.put_nowait(data)
             message_type = json.loads(data)['type']
@@ -167,6 +212,8 @@ class ChatClient(AsyncIOEventEmitter):
                          .format(self.id, e))
 
     def ping(self):
+        """Send the client a ping message."""
+
         message = ChatMessage()
         message.sender = 'ground control'
         message.receiver = self.id
@@ -175,6 +222,8 @@ class ChatClient(AsyncIOEventEmitter):
         self.send(message.json())
 
     async def shutdown(self):
+        """Terminate the connection with the client."""
+
         message = ChatMessage()
         message.sender = 'ground control'
         message.receiver = self.id
@@ -193,6 +242,8 @@ class ChatClient(AsyncIOEventEmitter):
         logging.info('Shut down client %s', self.id)
 
 class ChatMessage:
+    """A structured message that can be sent to a client."""
+
     def __init__(self, message=None):
         if isinstance(message, str):
             _json = json.loads(message)
@@ -208,6 +259,7 @@ class ChatMessage:
         self.data = _json.get('data')
 
     def json(self):
+        """Get the JSON-encoded representation of the message."""
         return json.dumps(self.__dict__)
 
 
@@ -219,6 +271,11 @@ class ChatManager:
 
     @property
     def clients(self):
+        """
+        A dictionary containing a mapping of client IDs to ChatClient objects
+        for all clients in all rooms.
+        """
+
         return {client.id: client for room in self.rooms.values()
                 for client in room.clients.values()}
 
@@ -288,6 +345,8 @@ class ChatManager:
         return chat_message
 
     def broadcast_room_info(self, room):
+        """Send a room-info message to all clients in a given room."""
+
         message = ChatMessage()
         message.sender = self._message_address
         message.type = 'room-info'
@@ -295,9 +354,12 @@ class ChatManager:
         room.broadcast(message)
 
     def add_room(self, room):
+        """Add a room."""
         self.rooms[room.id] = room
 
     async def remove_client(self, client):
+        """Remove a client."""
+
         room = client.room
         if room:
             room.remove_client(client)
@@ -315,13 +377,17 @@ class ChatManager:
         await self.remove_client(client)
 
     def get_room(self, room_id):
+        """Return a ChatRoom object given a room ID."""
         return self.rooms.get(room_id)
 
     def get_public_rooms(self):
+        """Get a list of public rooms."""
         return sorted([room for room in self.rooms.values() if room.is_public],
                       key=lambda room: room.active_ago)
 
     def create_room(self, name, **kwargs):
+        """Create a new room."""
+
         room_id = slugify(name)
         if room_id in self.rooms:
             raise ChatException('Room {} already exists'.format(room_id))
@@ -336,11 +402,15 @@ class ChatManager:
         return room
 
     async def remove_room(self, room):
+        """Remove a room."""
+
         self.rooms.pop(room.id, None)
         await room.shutdown()
         logging.info('Removed room %s', room.id)
 
     def create_client(self, client_id=None):
+        """Create a new ChatClient."""
+
         if client_id is None:
             client_id = uuid.uuid4().hex
 
@@ -369,6 +439,8 @@ class ChatManager:
         return client
 
     def get_ice_servers(self, client_id):
+        """Get a list of configured ICE servers."""
+
         stun_host = app.config['STUN_HOST']
         stun_port = app.config['STUN_PORT']
         stun_url = 'stun:{}:{}'.format(stun_host, stun_port)
@@ -389,6 +461,7 @@ class ChatManager:
 
     def get_twilio_ice_servers(self):
         """Fetch a list of ICE servers provided by Twilio."""
+
         account_sid = app.config['TWILIO_ACCOUNT_SID']
         auth_token = app.config['TWILIO_AUTH_TOKEN']
         key_sid = app.config['TWILIO_KEY_SID']
@@ -398,4 +471,4 @@ class ChatManager:
             token = twilio.tokens.create()
             return token.ice_servers
         except (TwilioException, TwilioRestException):
-            return {}
+            return []

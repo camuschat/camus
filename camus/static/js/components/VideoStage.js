@@ -73,7 +73,7 @@ class VideoStage extends Component {
 
 
             return {
-                videoScaleFactor: videoScaleFactor
+                videoScaleFactor
             };
         });
     }
@@ -106,11 +106,11 @@ class VideoStage extends Component {
 
         // Compute the maximum scaling factor based on the remaining grid options
         const scaleFactors = gridOptions.map(([rows, columns]) => {
-            // The -2 provides a small amount of slack to account for numerical
+            // The -4 provides a small amount of slack to account for numerical
             // imprecision. Without this slack, occasionally the items are slightly
             // too wide and pushed into a new row, causing overflow.
-            const xScale = (container.clientWidth - 2) / (columns * widthAspect);
-            const yScale = (container.clientHeight - 2) / (rows * heightAspect);
+            const xScale = (container.clientWidth - 4) / (columns * widthAspect);
+            const yScale = (container.clientHeight - 4) / (rows * heightAspect);
             return Math.min(xScale, yScale);
         });
         let scale = Math.max(...scaleFactors);
