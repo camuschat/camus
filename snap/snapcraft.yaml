@@ -7,7 +7,7 @@ description: |
   communication. Users can create public or private rooms, stream audio and
   video, share their desktops, and send text messages.
 
-grade: devel
+grade: stable
 confinement: strict
 
 apps:
