@@ -16,7 +16,7 @@ Features
 -  Text chat
 -  Room management (public/private, password/no password, guest limits)
 
-.. image:: screenshots/0.2.0.png
+.. image:: https://raw.githubusercontent.com/mrgnr/camus/master/screenshots/0.2.0.png
 
 Demo
 ----
