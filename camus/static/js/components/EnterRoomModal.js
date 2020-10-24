@@ -101,7 +101,7 @@ class EnterRoomModal extends Component {
                         maxResolution
                     });
                 }).then(() => {
-                    return getUserVideo(deviceId);
+                    return getUserVideo({deviceId});
                 }).then(track => {
                     const stream = new MediaStream([track]);
                     this.videoPreview.current.srcObject = stream;
