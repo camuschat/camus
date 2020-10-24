@@ -267,7 +267,7 @@ class ChatManager:
     def __init__(self):
         self.rooms = {}
         self._message_address = "ground control"
-        self._reap_timeout = 60
+        self._reap_timeout = 30
 
     @property
     def clients(self):
