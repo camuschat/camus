@@ -21,14 +21,19 @@
 }
 
 html {
+    background: radial-gradient(circle, rgba(153,153,153,1) 0%, rgba(105,105,105,1) 50%, rgba(80,80,80,1) 100%);
     min-height: 100%;  /* Allow background to fill entire screen */
     scrollbar-color: #888 #f1f1f1;
     scrollbar-width: thin;
 }
 
+body {
+    background: none;
+}
+
 button:hover,
 button:focus {
-    box-shadow: 0 0 0 0.2rem rgba(97,0,255,0.5);
+    box-shadow: 0 0 0 0.2rem rgba(100,95,204,1);
 }
 
 ul {
@@ -40,6 +45,10 @@ select {
     border: none;
     border-bottom: 1px solid lightgray;
     background-color: #fff;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 0px 8px;
 }
 
 select:focus {
@@ -110,6 +119,176 @@ summary:focus {
     font-size: 1em;
 }
 
+@keyframes slideDown {
+    0% {
+        transform: translateY(-2em);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0em);
+        opacity: 1;
+    }
+}
+
+.slide-down {
+    animation: slideDown 1s ease-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-out;
+}
+
+#create-room-dialog {
+    background-color: #ddd;
+    color: #333;
+    padding: 20px;
+    margin: 50px 0px;
+    width: clamp(10%, 500px, 100%);
+    border: 1px solid lightgray;
+    border-radius: 4px;
+}
+
+#create-room-dialog .input-line {
+    display: flex;
+    width: 100%;
+    margin: 10px 0px;
+}
+
+#create-room-dialog .input-line label {
+    margin-bottom: 0;
+}
+
+#create-room-dialog .input-line input[type=text],
+#create-room-dialog .input-line input[type=password] {
+    width: 100%;
+}
+
+#create-room-dialog .input-line input[type=submit] {
+    display: inline-block;
+    margin-right: 0;
+}
+
+#create-room-dialog .input-line button {
+    background: none;
+    border: none;
+    color: #555;
+    height: 20px;
+}
+
+#create-room-dialog .input-line button:hover,
+#create-room-dialog .input-line button:focus {
+    color: #333;
+    outline: none;
+    box-shadow: none;
+}
+
+#create-room-dialog input,
+#create-room-dialog select {
+    background: none;
+    margin: 0 8px;
+    border: none;
+    border-bottom: 1px solid #999;
+    border-radius: 0;
+}
+
+#create-room-dialog input:focus,
+#create-room-dialog select:focus {
+    border-color: #555;
+}
+
+#create-room-dialog input[type=submit] {
+    color: #ddd;
+    background-color: #645fcc;
+    border: none;
+    border-radius: 4px;
+}
+
+#create-room-dialog details {
+    margin-top: 20px;
+}
+
+#create-room-dialog details div {
+    padding-left: 20px;
+}
+
+.headline {
+    color: #ddd;
+}
+
+.sub-headline {
+    color: #bbb;
+}
+
+.create-room-area {
+    min-height: 100vh;
+}
+
+.info-area {
+    min-height: 100vh;
+}
+
+.info-box {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.info-box .material-icons {
+    font-size: 3em;
+}
+
+.info-box a {
+    color: inherit;
+}
+
+.info-box a:hover {
+    color: #ddd;
+    text-decoration: none;
+}
+
+footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #444;
+}
+
+footer p {
+    display: inline-block;
+    font-size: 14px;
+    color: #bbb;
+    vertical-align: middle;
+}
+
+footer a {
+    color: #bbb;
+}
+
+footer a:hover {
+    color: #ddd;
+}
+
+footer .footer-left {
+    float: left;
+}
+
+footer .footer-right {
+    float: right;
+}
 
 /* --- React --- */
 
@@ -229,7 +408,7 @@ main {
     transition: opacity 0.2s;
     transition-delay: 0.2s;
     transition-timing-function: ease;
-    box-shadow: 0 0 0 0.2rem rgba(97,0,255,0.5);
+    box-shadow: 0 0 0 0.2rem rgba(100,95,204,1);
     cursor: grab;
 }
 

@@ -4,7 +4,7 @@ from quart import (copy_current_websocket_context, flash, jsonify, redirect, ren
                    request, websocket)
 
 from camus import app
-from camus.forms import RoomCreate, RoomJoin
+from camus.forms import CreateRoomForm, JoinRoomForm
 
 from camus import chat
 from camus.chat import ChatException
@@ -23,9 +23,9 @@ async def about():
 async def chat_create():
     manager = chat.get_chat_manager()
 
-    form_create = RoomCreate()
-    if form_create.validate_on_submit():
-        form = form_create
+    create_room_form = CreateRoomForm()
+    if create_room_form.validate_on_submit():
+        form = create_room_form
         room_name = form.room_name.data
         password = None if not len(form.password.data) else form.password.data
         is_public = form.public.data
@@ -39,9 +39,9 @@ async def chat_create():
         except ChatException as e:
             await flash('Room name not available')
 
-    form_join = RoomJoin()
+    form_join = JoinRoomForm()
     public_rooms = manager.get_public_rooms()
-    return await render_template('chat.html', form_create=form_create,
+    return await render_template('chat.html', create_room_form=create_room_form,
                                  form_join=form_join, public_rooms=public_rooms)
 
 
@@ -59,7 +59,7 @@ async def chat_room(room_id):
     if room.authenticate():  # i.e. a password is not required
         return await render_template('chatroom.html', title='Camus | {}'.format(room.name))
 
-    form = RoomJoin()
+    form = JoinRoomForm()
     if form.validate_on_submit():
         room_id = form.room_id.data
         password = form.password.data

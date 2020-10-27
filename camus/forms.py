@@ -3,16 +3,17 @@ from wtforms import BooleanField, HiddenField, PasswordField, SelectField, Strin
 from wtforms.validators import DataRequired
 
 
-class RoomCreate(FlaskForm):
+class CreateRoomForm(FlaskForm):
     room_name = StringField('Room name', validators=[DataRequired()])
-    password = PasswordField('Room password (optional)')
-    public = BooleanField('Public (i.e. listed to the right)')
+    password = PasswordField('Password')
+    public = SelectField('Public', coerce=bool,
+                         choices=[(False, 'No'), (True, 'Yes')])
     guest_limit = SelectField('Guest limit', coerce=int,
-                               choices=[(2, '2'), (3, '3'), (4, '4'), (5, '5'), (0, 'No limit')])
+                               choices=[(0, 'None'), (2, '2'), (3, '3'), (5, '5'), (10, '10')])
     submit = SubmitField('Create')
 
 
-class RoomJoin(FlaskForm):
+class JoinRoomForm(FlaskForm):
     room_id = HiddenField()
     password = PasswordField('Password: ')
     submit = SubmitField('Join')
