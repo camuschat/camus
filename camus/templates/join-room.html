@@ -9,7 +9,6 @@
         <h3>Join room</h3>
         <form class="form" method="post" role="form" action="{{ url_for('chat_create') + '/' + room_id }}">
             {{ form.csrf_token }}
-            <input id="room_id" name="room_id" type="hidden" value="{{ room_id }}">
             {{ wtf.form_errors(form, hiddens="only") }}
             {{ wtf.render_field(form.password) }}
             {{ wtf.render_field(form.submit) }}

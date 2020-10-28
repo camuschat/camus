@@ -9,11 +9,11 @@ class CreateRoomForm(FlaskForm):
     public = SelectField('Public', coerce=bool,
                          choices=[(False, 'No'), (True, 'Yes')])
     guest_limit = SelectField('Guest limit', coerce=int,
-                               choices=[(0, 'None'), (2, '2'), (3, '3'), (5, '5'), (10, '10')])
+                              choices=[(0, 'None'), (2, '2'), (3, '3'),
+                                       (5, '5'), (10, '10')])
     submit = SubmitField('Create')
 
 
 class JoinRoomForm(FlaskForm):
-    room_id = HiddenField()
     password = PasswordField('Password: ')
     submit = SubmitField('Join')

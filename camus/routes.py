@@ -1,7 +1,7 @@
 import asyncio
 
-from quart import (copy_current_websocket_context, flash, jsonify, redirect, render_template,
-                   request, websocket)
+from quart import (copy_current_websocket_context, flash, redirect,
+                   render_template, websocket)
 
 from camus import app
 from camus.forms import CreateRoomForm, JoinRoomForm
@@ -15,9 +15,12 @@ from camus.chat import ChatException
 async def index():
     return redirect('/chat')
 
+
 @app.route('/about')
 async def about():
-    return await render_template('about.html', title='Camus Video Chat | About')
+    return await render_template(
+        'about.html', title='Camus Video Chat | About')
+
 
 @app.route('/chat', methods=['GET', 'POST'])
 async def chat_create():
@@ -29,20 +32,23 @@ async def chat_create():
         room_name = form.room_name.data
         password = None if not len(form.password.data) else form.password.data
         is_public = form.public.data
-        guest_limit = None if form.guest_limit.data == 0 else form.guest_limit.data
+        guest_limit = (None if form.guest_limit.data == 0
+                       else form.guest_limit.data)
         admin_list = []
 
         try:
-            room = manager.create_room(room_name, password=password, guest_limit=guest_limit,
-                                       admin_list=admin_list, is_public=is_public)
-            return redirect('/chat/{}'.format(room.id))
-        except ChatException as e:
+            room = manager.create_room(
+                room_name, password=password, guest_limit=guest_limit,
+                admin_list=admin_list, is_public=is_public)
+            return redirect('/chat/{}'.format(room.id), code=307)
+        except ChatException:
             await flash('Room name not available')
 
     form_join = JoinRoomForm()
     public_rooms = manager.get_public_rooms()
-    return await render_template('chat.html', create_room_form=create_room_form,
-                                 form_join=form_join, public_rooms=public_rooms)
+    return await render_template(
+        'chat.html', create_room_form=create_room_form, form_join=form_join,
+        public_rooms=public_rooms)
 
 
 @app.route('/chat/<room_id>', methods=['GET', 'POST'])
@@ -57,20 +63,22 @@ async def chat_room(room_id):
         return 'Guest limit already reached', 418
 
     if room.authenticate():  # i.e. a password is not required
-        return await render_template('chatroom.html', title='Camus | {}'.format(room.name))
+        return await render_template(
+            'chatroom.html', title='Camus | {}'.format(room.name))
 
     form = JoinRoomForm()
     if form.validate_on_submit():
-        room_id = form.room_id.data
         password = form.password.data
 
         if room.authenticate(password):
-            # TODO: Generate token to be used with offer
-            return await render_template('chatroom.html', title='Camus | {}'.format(room.name))
-        else:
-            await flash('Invalid password')
+            # TODO: Generate token to be used with websocket
+            return await render_template(
+                'chatroom.html', title='Camus | {}'.format(room.name))
+        await flash('Invalid password')
 
-    return await render_template('join-room.html', title='Camus | Join a room', form=form, room_id=room_id)
+    return await render_template(
+        'join-room.html', title='Camus | Join a room', form=form,
+        room_id=room_id)
 
 
 @app.websocket('/chat/<room_id>/ws')
@@ -79,7 +87,7 @@ async def chat_room_ws(room_id):
     room = manager.get_room(room_id)
 
     if room is None:
-        return # close the websocket
+        return  # close the websocket
 
     client = manager.create_client()
     room.add_client(client)
