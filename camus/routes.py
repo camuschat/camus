@@ -18,8 +18,7 @@ async def index():
 
 @app.route('/about')
 async def about():
-    return await render_template(
-        'about.html', title='Camus Video Chat | About')
+    return redirect('/chat#why-camus')
 
 
 @app.route('/chat', methods=['GET', 'POST'])
