@@ -66,9 +66,6 @@ input:focus {
     outline: none;
 }
 
-label {
-}
-
 summary:focus {
     outline: none;
     font-weight: bold;
@@ -204,42 +201,42 @@ summary:focus {
     padding-bottom: 10px;
 }
 
-#create-room-dialog .input-line {
+.dialog .input-line {
     display: flex;
     width: 100%;
     margin: 10px 0px;
 }
 
-#create-room-dialog .input-line label {
+.dialog .input-line label {
     margin-bottom: 0;
 }
 
-#create-room-dialog .input-line input[type=text],
-#create-room-dialog .input-line input[type=password] {
+.dialog .input-line input[type=text],
+.dialog .input-line input[type=password] {
     width: 100%;
 }
 
-#create-room-dialog .input-line input[type=submit] {
+.dialog .input-line input[type=submit] {
     display: inline-block;
     margin-right: 0;
 }
 
-#create-room-dialog .input-line button {
+.dialog .input-line button {
     background: none;
     border: none;
     color: #555;
     height: 20px;
 }
 
-#create-room-dialog .input-line button:hover,
-#create-room-dialog .input-line button:focus {
+.dialog .input-line button:hover,
+.dialog .input-line button:focus {
     color: #333;
     outline: none;
     box-shadow: none;
 }
 
-#create-room-dialog input,
-#create-room-dialog select {
+.dialog input,
+.dialog select {
     background: none;
     margin: 0 8px;
     border: none;
@@ -247,23 +244,23 @@ summary:focus {
     border-radius: 0;
 }
 
-#create-room-dialog input:focus,
-#create-room-dialog select:focus {
+.dialog input:focus,
+.dialog select:focus {
     border-color: #555;
 }
 
-#create-room-dialog input[type=submit] {
+.dialog input[type=submit] {
     color: #ddd;
     background-color: #645fcc;
     border: none;
     border-radius: 4px;
 }
 
-#create-room-dialog details {
+.dialog details {
     margin-top: 20px;
 }
 
-#create-room-dialog details div {
+.dialog details div {
     padding-left: 20px;
 }
 
@@ -375,7 +372,6 @@ main {
     width: clamp(50%, 600px, 100%);
     padding: 20px;
 
-    background-color: #fff;
     border: 1px solid lightgray;
     border-radius: 4px;
 }
@@ -414,9 +410,6 @@ main {
 
     height: 100%;
     width: 100%;
-
-    background-color: #000;
-    opacity: 0.5;
 }
 
 .video-stage {
