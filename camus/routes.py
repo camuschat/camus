@@ -105,6 +105,16 @@ async def chat_room_ws(room_id):
         receive_task.cancel()
 
 
+@app.route('/public')
+async def public():
+    manager = chat.get_chat_manager()
+    public_rooms = manager.get_public_rooms()
+
+    return await render_template(
+        'public.html', title='Camus Video Chat | Public Rooms',
+        public_rooms=public_rooms)
+
+
 async def ws_send(queue):
     while True:
         message = await queue.get()

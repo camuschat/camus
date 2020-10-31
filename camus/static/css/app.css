@@ -147,14 +147,61 @@ summary:focus {
     animation: fadeIn 1s ease-out;
 }
 
-#create-room-dialog {
+.dialog {
     background-color: #ddd;
     color: #333;
     padding: 20px;
     margin: 50px 0px;
-    width: clamp(10%, 500px, 100%);
     border: 1px solid lightgray;
     border-radius: 4px;
+}
+
+.dialog table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.dialog table td,
+.dialog table th {
+    padding: 0.75rem;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.dialog table thead {
+    border-bottom: 1px solid #555;
+}
+
+.dialog .footer-link {
+    text-align: right;
+    color: #555;
+}
+
+.dialog .footer-link hr {
+    border-color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.dialog .footer-link h6 {
+    margin-bottom: 0;
+}
+
+.dialog .footer-link a {
+    color: #555;
+}
+
+.dialog .footer-link a:hover {
+    color: #333;
+}
+
+#public-rooms-dialog {
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+#create-room-dialog {
+    width: clamp(10%, 500px, 100%);
+    padding-bottom: 10px;
 }
 
 #create-room-dialog .input-line {

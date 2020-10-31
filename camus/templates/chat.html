@@ -17,7 +17,7 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      <div class="slide-down" id="create-room-dialog">
+      <div class="dialog slide-down" id="create-room-dialog">
         <h5>Create a room</h5>
         <form method="post" id="create-room-form">
           {{ create_room_form.csrf_token }}
@@ -49,6 +49,11 @@
             </div>
           </details>
         </form>
+        <div class="footer-link">
+          <h6>
+            &#8627;<a href="/public">Find a public room</a>
+          </h6>
+        </div>
       </div>
     </div>
   </div>
@@ -102,21 +107,22 @@
     <div class="col-md-2">
     </div>
     <div class="col-md-5 info-box fade-in">
-      <i class="material-icons headline">group</i>
+      <i class="material-icons headline">groups</i>
       <h4 class="headline">Users are in control</h4>
       <h5 class="sub-headline">
         Camus is, and always will be,
         <a href="https://github.com/mrgnr/camus">
-          100% free and open-source software
-        </a>. You can even
-        <a href="https://docs.camus.chat/en/latest/deployment.html">deploy</a>
-        your own server.
+          100% open-source software</a>. You can even
+        <a href="https://docs.camus.chat/en/latest/deployment.html">
+          deploy your own server.
+        </a>
       </h5>
     </div>
   </div>
 </div>
 <footer class="fade-in">
   <div class="footer-left">
+    <p><a href="/">Camus</a> | </p>
     <p>&#169; 2020 by Morgan Robertson</p>
   </div>
   <div class="footer-right">
