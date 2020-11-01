@@ -41,7 +41,8 @@ async def chat_create():
                 admin_list=admin_list, is_public=is_public)
             return redirect('/chat/{}'.format(room.id), code=307)
         except ChatException:
-            await flash('Room name not available')
+            await flash('The room name "{}" is not available'
+                        .format(room_name))
 
     form_join = JoinRoomForm()
     public_rooms = manager.get_public_rooms()
@@ -76,8 +77,7 @@ async def chat_room(room_id):
         await flash('Invalid password')
 
     return await render_template(
-        'join-room.html', title='Camus | Join a room', form=form,
-        room_id=room_id)
+        'join-room.html', title='Camus | Join a room', form=form, room=room)
 
 
 @app.websocket('/chat/<room_id>/ws')

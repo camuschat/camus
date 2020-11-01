@@ -15,5 +15,5 @@ class CreateRoomForm(FlaskForm):
 
 
 class JoinRoomForm(FlaskForm):
-    password = PasswordField('Password: ')
+    password = PasswordField('Password')
     submit = SubmitField('Join')
