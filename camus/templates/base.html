@@ -1,48 +1,44 @@
 {% extends 'bootstrap-base.html' %}
 
 {% block title %}
-    {% if title %}{{ title }}{% else %}Camus Video Chat{% endif %}
+  {% if title %}{{ title }}{% else %}Camus Video Chat{% endif %}
 {% endblock %}
 
 
 {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="{{ url_for('index') }}">Camus</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar-content">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('chat_create') }}">Chat</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                </ul>
-            </div>
-        </div>
-    </nav>
 {% endblock %}
 
 {% block content %}
-    <div class="container content">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
+  <div class="container content">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-danger" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-        {% block app_content %}{% endblock %}
-    </div>
+    {% block app_content %}{% endblock %}
+
+    <footer>
+      <div class="footer-left">
+        <p><a href="/">Camus</a> | </p>
+        <p>&#169; 2020 by Morgan Robertson</p>
+      </div>
+      <div class="footer-right">
+        <p><a href="https://github.com/mrgnr/camus">Source code</a> | </p>
+        <p><a href="https://docs.camus.chat">Documentation</a> | </p>
+        <p><a href="https://github.com/mrgnr/camus/blob/master/LICENSE">License</a> | </p>
+        <p><a href="https://github.com/mrgnr/camus/issues">Report an issue</a> | </p>
+        <p><a href="https://liberapay.com/mrgnr">Donate</a></p>
+      </div>
+    </footer>
+  </div>
 {% endblock %}
 
 {% block styles %}
-    {{ super() }}
-    <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/icons.css')}}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  {{ super() }}
+  <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='css/icons.css')}}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 {% endblock %}

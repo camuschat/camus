@@ -31,7 +31,7 @@ class EnterRoomModal extends Component {
 
         return (<>
             <div className='modal-overlay'></div>
-            <div className='enter-room-modal'>
+            <div className='enter-room-modal dialog fade-in'>
                 <form onSubmit={this.handleSubmit}>
                     <label>
                         Nickname

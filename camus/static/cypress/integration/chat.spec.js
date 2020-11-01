@@ -11,8 +11,11 @@ describe('Create room', () => {
             .type(roomName)
             .should('have.value', roomName);
 
-        form.get('input[name="public"]').not('[disabled]')
-            .check().should('be.checked')
+        form.get('details')
+            .click();
+
+        form.get('select[name="public"]')
+            .select('Yes');
 
         form.get('input[name="submit"]')
             .click();
@@ -21,7 +24,7 @@ describe('Create room', () => {
         cy.url().should('include', roomName)
 
         // Check that room is in the public list
-        cy.visit('/chat');
+        cy.visit('/public');
         cy.get('#room-link-public-room')
     });
 
@@ -36,6 +39,12 @@ describe('Create room', () => {
             .type(roomName)
             .should('have.value', roomName);
 
+        form.get('details')
+            .click();
+
+        form.get('select[name="public"]')
+            .select('No')
+
         form.get('input[name="submit"]')
             .click();
 
@@ -43,7 +52,7 @@ describe('Create room', () => {
         cy.url().should('include', roomName)
 
         // Check that room is not in the public list
-        cy.visit('/chat');
+        cy.visit('/public');
         cy.get('#room-link-nonpublic-room').should('not.exist');
     });
 
@@ -59,23 +68,15 @@ describe('Create room', () => {
                   .type(roomName)
                   .should('have.value', roomName);
 
+        createForm.get('details')
+                  .click();
+
         createForm.get('input[name="password"]')
                   .type(password)
                   .should('have.value', password);
 
         createForm.get('input[name="submit"]')
                   .click();
-
-        // Log in on the next page
-        cy.url().should('include', roomName)
-
-        const loginForm = cy.get('form');
-        loginForm.get('input[name="password"]')
-                 .type(password)
-                 .should('have.value', password);
-
-        loginForm.get('input[name="submit"]')
-                 .click();
 
         // Enter the room
         cy.url().should('include', roomName)

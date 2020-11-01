@@ -5,16 +5,39 @@
 {% block app_content %}
 
 <div class="row">
-    <div class="col-md-4">
-        <h3>Join room</h3>
-        <form class="form" method="post" role="form" action="{{ url_for('chat_create') + '/' + room_id }}">
-            {{ form.csrf_token }}
-            <input id="room_id" name="room_id" type="hidden" value="{{ room_id }}">
-            {{ wtf.form_errors(form, hiddens="only") }}
-            {{ wtf.render_field(form.password) }}
-            {{ wtf.render_field(form.submit) }}
-        </form>
+  <div class="col-md-12">
+    <div class="dialog slide-down" id="create-room-dialog">
+      <h5>Join {{ room.name}}</h5>
+      <form method="post" role="form" action="{{ url_for('chat_create') + '/' + room.id }}">
+        {{ form.csrf_token }}
+        <div class="input-line">
+          {{ form.password.label() }}:
+          {{ form.password() }}
+          <button type="button" onclick="togglePasswordVisibility()">
+            <i id="visibility-icon" class="material-icons">
+              visibility_off
+            </i>
+          </button>
+        </div>
+        <input class="btn btn-secondary" id="submit" name="submit"
+          type="submit" value="Go"
+        >
+      </form>
     </div>
+  </div>
 </div>
+<script>
+  function togglePasswordVisibility() {
+    const pwInput = document.getElementById('password');
+    const visibilityIcon = document.getElementById('visibility-icon');
+    if (pwInput.type === 'password') {
+      pwInput.type = 'text';
+      visibilityIcon.innerHTML = 'visibility';
+    } else {
+      pwInput.type = 'password';
+      visibilityIcon.innerHTML = 'visibility_off';
+    }
+  }
+</script>
 
 {% endblock %}

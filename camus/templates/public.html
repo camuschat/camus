@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "bootstrap/form.html" as wtf %}
+
+{% block app_content %}
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="dialog slide-down" id="public-rooms-dialog">
+      <h5>Public rooms</h5>
+      {% if not public_rooms|length %}
+          No rooms are available
+      {% else %}
+        <table>
+          <thead>
+            <tr>
+              <th>Room</th>
+              <th>Participants</th>
+              <th>Last active</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for room in public_rooms %}
+              <tr>
+                  <td>
+                    <a
+                      class="boldlink"
+                      id="room-link-{{ room.id }}"
+                      href={{ url_for('chat_create') + '/' + room.id }}
+                    >
+                      {{ room.name }}
+                    </a>
+                  </td>
+                  <td>
+                    {{ room.clients|length }} / 
+                    {{ room.guest_limit if room.guest_limit is not none
+                      else "&#8734;"|safe }}
+                  </td>
+                  <td>
+                    {{ room.active_ago }} minutes ago
+                  </td>
+              </tr>
+            {% endfor %}
+          <tbody>
+        </table>
+      {% endif %}
+      <div class="footer-link">
+        <h6>
+          &#8627;<a href="/chat">Create a room</a>
+        </h6>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
