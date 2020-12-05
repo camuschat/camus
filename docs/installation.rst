@@ -10,11 +10,9 @@ Make sure you have `snapd`_ installed. Install `Camus`_:
 
    $ sudo snap install camus
 
-Run Camus:
-
-::
-
-   $ camus
+Once installed, Camus runs automatically as a Snap service. See the Snap
+`service management`_ documentation for details on starting and stopping
+services.
 
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
@@ -55,6 +53,7 @@ same room in multiple tabs and each tab will act as a separate client.
 
 .. _snapd: https://snapcraft.io/docs/installing-snapd
 .. _Camus: https://snapcraft.io/camus
+.. _service management: https://snapcraft.io/docs/service-management
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _virtual environment: https://docs.python.org/3/tutorial/venv.html

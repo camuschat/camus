@@ -35,11 +35,9 @@ Make sure you have `snapd`_ installed. Install Camus:
 
    $ sudo snap install camus
 
-Run Camus:
-
-::
-
-   $ camus
+Once installed, Camus runs automatically as a Snap service. See the Snap
+`service management`_ documentation for details on starting and stopping
+services.
 
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
@@ -144,6 +142,7 @@ v0.3+
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 .. _snapd: https://snapcraft.io/docs/installing-snapd
+.. _service management: https://snapcraft.io/docs/service-management
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
