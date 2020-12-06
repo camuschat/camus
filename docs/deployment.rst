@@ -63,6 +63,12 @@ Limitations
   you want to minimize the risk of users experiencing WebRTC connection issues,
   you should configure a TURN server, such as `Coturn`_.
 
+DigitalOcean with Terraform
+---------------------------
+
+You can deploy Camus on a `DigitalOcean`_ droplet using `Terraform Camus`_. See the
+`documentation`_ there for instructions.
+
 .. _Heroku: https://www.heroku.com/
 .. _app.json: https://github.com/mrgnr/camus/blob/master/app.json
 .. _Procfile: https://github.com/mrgnr/camus/blob/master/Procfile
@@ -71,3 +77,6 @@ Limitations
 .. _configure: https://github.com/mrgnr/camus/blob/master/camus/config.py
 .. _configuration documentation: https://devcenter.heroku.com/articles/config-vars
 .. _Coturn: https://github.com/coturn/coturn
+.. _DigitalOcean: https://www.digitalocean.com/
+.. _Terraform Camus: https://github.com/mrgnr/terraform-camus
+.. _documentation: https://github.com/mrgnr/terraform-camus/blob/main/README.md
