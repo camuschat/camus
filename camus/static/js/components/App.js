@@ -6,7 +6,7 @@ import {addChatMessage} from '../slices/messages';
 import {addConnection, removeConnection, updateConnection} from '../slices/connections';
 import {addFeed, removeFeed, updateFeed} from '../slices/feeds';
 import {addIceServer} from '../slices/iceServers';
-import {Manager} from '../rtcclient.js';
+import {Manager} from '../rtcclient/rtcclient';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
 import IceServers from './IceServers.js';

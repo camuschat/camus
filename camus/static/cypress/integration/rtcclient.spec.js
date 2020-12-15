@@ -1,4 +1,4 @@
-import {EventEmitter, VideoPeer} from '../../js/rtcclient.js';
+import {EventEmitter, VideoPeer} from '../../js/rtcclient/rtcclient';
 
 describe('Test EventEmitter', () => {
     it('can add a listener', () => {
