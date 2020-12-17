@@ -9,10 +9,8 @@ export default class Manager extends EventEmitter {
         this.username = 'Major Tom';
         this.signaler = new Signaler();
         this.videoPeers = new Map();
+        this.mediaTracks = new Map();
         this.localVideoStream = new MediaStream();
-        // TODO: array of tracks
-        this.videoTrack = null;
-        this.audioTrack = null;
         this.textMessages = [];
         this.messageHandler = new MessageHandler(this, this.signaler);
         this.id = null;
@@ -40,64 +38,77 @@ export default class Manager extends EventEmitter {
         return this._iceServers;
     }
 
-    async setAudioTrack(track) {
-        await this.setTrack(track);
-        this.audioTrack = track;
-    }
+    addTrack(name, track) {
+        if (this.mediaTracks.has(name)) {
+            throw new Error(`Track with name "${name}" already exists.`);
+        }
 
-    async setVideoTrack(track) {
-        await this.setTrack(track);
-        this.videoTrack = track;
-    }
-
-    async setTrack(track) {
+        // Add track to each peer
         for (let peer of this.videoPeers.values()) {
-            await peer.setTrack(track, this.localVideoStream);
+            peer.addTrack(track);
+        }
+
+        this.mediaTracks.set(name, track);
+        this.localVideoStream.addTrack(track);
+    }
+
+    async replaceTrack(name, track) {
+        if (!this.mediaTracks.has(name)) {
+            throw new Error(`Track with name "${name}" does not exist.`);
+        }
+
+        const oldTrack = this.mediaTracks.get(name);
+
+        // Replace track on each peer
+        for (let peer of this.videoPeers.values()) {
+            await peer.replaceTrack(oldTrack.id, track);
+        }
+
+        this.mediaTracks.set(name, track);
+        this.localVideoStream.removeTrack(oldTrack);
+        this.localVideoStream.addTrack(track);
+    }
+
+    async setTrack(name, track) {
+        if (this.mediaTracks.has(name)) {
+            await this.replaceTrack(name, track);
+        } else {
+            this.addTrack(name, track);
         }
     }
 
-    get audioEnabled() {
-        return this.audioTrack && this.audioTrack.enabled;
-    }
-
-    set audioEnabled(enabled) {
-        if (this.audioTrack) this.audioTrack.enabled = enabled;
-    }
-
-    get videoEnabled() {
-        return this.videoTrack && this.videoTrack.enabled;
-    }
-
-    set videoEnabled(enabled) {
-        if (this.videoTrack) this.videoTrack.enabled = enabled;
-    }
-
-    stopAudio() {
-        if (this.audioTrack) {
-            this.audioTrack.enabled = false;
-            this.audioTrack.stop();
+    removeTrack(name) {
+        if (!this.mediaTracks.has(name)) {
+            throw new Error(`Track with name "${name}" does not exist.`);
         }
-    }
 
-    stopVideo() {
-        if (this.videoTrack) {
-            this.videoTrack.enabled = false;
-            this.videoTrack.stop();
+        const track = this.mediaTracks.get(name);
+
+        // Remove track from each peer
+        for (let peer of this.videoPeers.values()) {
+            peer.removeTrack(track.id);
         }
+
+        this.mediaTracks.delete(name);
+        this.localVideoStream.removeTrack(track);
     }
 
-    async createVideoPeer(client) {
-        const peer = new VideoPeer(client, this.signaler, this.id < client.id, this.iceServers);
+    stopTrack(name) {
+        if (!this.mediaTracks.has(name)) {
+            throw new Error(`Track with name "${name}" does not exist.`);
+        }
+
+        const track = this.mediaTracks.get(name);
+        track.enabled = false;
+        track.stop();
+    }
+
+    createVideoPeer(client) {
+        const peer = new VideoPeer(
+            client, this.signaler, this.id < client.id, this.iceServers,
+            this.mediaTracks.values()
+        );
         this.videoPeers.set(client.id, peer);
-        peer.connect();
-
-        if (this.localVideoStream && this.videoTrack) {
-            await peer.setTrack(this.videoTrack, this.localVideoStream);
-        }
-
-        if (this.localVideoStream && this.audioTrack) {
-            await peer.setTrack(this.audioTrack, this.localVideoStream);
-        }
 
         console.log('Created video peer ', peer.client_id);
         this.emit('videopeer', peer);
@@ -105,9 +116,9 @@ export default class Manager extends EventEmitter {
         return peer;
     }
 
-    async getOrCreateVideoPeer(client) {
+    getOrCreateVideoPeer(client) {
         if (!this.videoPeers.has(client.id)) {
-            return await this.createVideoPeer(client);
+            return this.createVideoPeer(client);
         }
 
         return this.videoPeers.get(client.id);
@@ -124,10 +135,10 @@ export default class Manager extends EventEmitter {
 
     async findPeers() {
         const roomInfo = await this.signaler.get_room_info();
-        await this.updatePeers(roomInfo);
+        this.updatePeers(roomInfo);
     }
 
-    async updatePeers(roomInfo) {
+    updatePeers(roomInfo) {
         // Remove peers not in room
         const roomClientIds = roomInfo.clients.map(({id}) => id);
         const peerClientIds = Array.from(this.videoPeers.keys());
@@ -140,7 +151,7 @@ export default class Manager extends EventEmitter {
         // Add peers in room
         for (const client of roomInfo.clients) {
             if (client.id !== this.id) {
-                await this.getOrCreateVideoPeer(client);
+                this.getOrCreateVideoPeer(client);
             }
         }
 

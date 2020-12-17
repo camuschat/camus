@@ -1,7 +1,7 @@
 import EventEmitter from './EventEmitter'
 
 export default class VideoPeer extends EventEmitter {
-    constructor(client, signaler, polite, iceServers=[]) {
+    constructor(client, signaler, polite, iceServers=[], tracks=[]) {
         super();
         this.client_id = client.id;
         this._username = client.username;
@@ -14,6 +14,10 @@ export default class VideoPeer extends EventEmitter {
         this._iceServers = iceServers;
 
         this.createPeerConnection(iceServers);
+
+        for (let track of tracks) {
+            this.addTrack(track);
+        }
     }
 
     set username(username) {
@@ -135,15 +139,6 @@ export default class VideoPeer extends EventEmitter {
         return this.connection.signalingState;
     }
 
-    remoteDescription() {
-        const description = this.connection.remoteDescription;
-        if (description) {
-            return description.sdp;
-        } else {
-            return null;
-        }
-    }
-
     async onOffer(offer) {
         /* Perfect negotiation:
          * 1. If we are ready to accept the offer (i.e. we're not in the process of making our
@@ -204,36 +199,65 @@ export default class VideoPeer extends EventEmitter {
         }
     }
 
-    async setTrack(track, stream=null) {
-        // TODO: generalize for transceiver arrays
+    addTrack(track) {
+        this.connection.addTrack(track);
+    }
+
+    async replaceTrack(id, track) {
         const trackSender = this.connection.getSenders().find(sender =>
-            sender.track && sender.track.kind === track.kind);
+            sender.track && sender.track.id === id);
 
         if (trackSender) {
             console.log('Replacing track on sender ', trackSender);
             await trackSender.replaceTrack(track);
         } else {
-            if (stream) this.connection.addTrack(track, stream);
-            else this.connection.addTrack(track);
+            throw new Error(`Track with id "${id}" does not exist.`);
         }
     }
 
-    getTrack(kind) {
-        // TODO: generalize for transceiver arrays
+    removeTrack(id) {
         const trackSender = this.connection.getSenders().find(sender =>
-            sender.track && sender.track.kind === kind);
+            sender.track && sender.track.id === id);
 
-        if (trackSender) return trackSender.track;
-        else return null;
+        if (trackSender) {
+            console.log('Removing track');
+            this.connection.removeTrack(trackSender);
+        } else {
+            throw new Error(`Track with id "${id}" does not exist.`);
+        }
+    }
+
+    disableRemoteTrack(id) {
+        const transceiver = this.connection.getTransceivers().find(t =>
+            t.sender.track && t.sender.track.id === id);
+
+        if (transceiver) {
+            console.log('Disable remote track');
+            transceiver.direction = 'sendonly';
+        } else {
+            throw new Error(`Track with id "${id}" does not exist.`);
+        }
+    }
+
+    enableRemoteTrack(id) {
+        const transceiver = this.connection.getTransceivers().find(t =>
+            t.sender.track && t.sender.track.id === id);
+
+        if (transceiver) {
+            console.log('Enable remote track');
+            transceiver.direction = 'sendrecv';
+        } else {
+            throw new Error(`Track with id "${id}" does not exist.`);
+        }
     }
 
     disableRemoteVideo() {
-        // TODO: disable all transceivers in array
+        // TODO: remove
         this.videoTransceiver.direction = 'sendonly';
     }
 
     enableRemoteVideo() {
-        // TODO: enable all transceivers in array
+        // TODO: remove
         this.videoTransceiver.direction = 'sendrecv';
     }
 

@@ -54,9 +54,9 @@ function* doSetLocalAudio(action) {
 
     try {
         if (track) {
-            yield apply(manager, manager.setAudioTrack, [track]);
+            yield apply(manager, manager.setTrack, ['audio', track]);
         } else {
-            yield apply(manager, manager.stopAudio);
+            yield apply(manager, manager.stopTrack, ['audio']);
         }
 
         yield put({type: 'MANAGER_UPDATED'});
@@ -71,9 +71,9 @@ function* doSetLocalVideo(action) {
 
     try {
         if (track) {
-            yield apply(manager, manager.setVideoTrack, [track]);
+            yield apply(manager, manager.setTrack, ['video', track]);
         } else {
-            yield apply(manager, manager.stopVideo);
+            yield apply(manager, manager.stopTrack, ['video']);
         }
 
         yield put({type: 'MANAGER_UPDATED'});
