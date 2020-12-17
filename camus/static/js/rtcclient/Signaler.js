@@ -69,23 +69,119 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    greeting() {
-        const data = {'receiver': 'ground control',
-                      'type': 'greeting',
-                      'data': 'This is Major Tom to Ground Control: ' +
-                              'I\'m stepping through the door. ' +
-                              'And the stars look very different today.'};
-        this.send(data);
+    async ping() {
+        const time = new Date().getTime();
+        const data = {
+            receiver: 'ground control',
+            type: 'ping',
+            data: time
+        };
+        const responseParams = {
+            sender: 'ground control',
+            type: 'pong',
+            data: time
+        };
+        return await this.sendReceive(data, responseParams);
+    }
+
+    async get_room_info() {
+        const data = {
+            receiver: 'ground control',
+            type: 'get-room-info'
+        };
+        const responseParams = {
+            sender: 'ground control',
+            type: 'room-info'
+        };
+        const response = await this.sendReceive(data, responseParams);
+        return response.data;
+    }
+
+    async fetchIceServers() {
+        const data = {
+            receiver: 'ground control',
+            type: 'get-ice-servers'
+        }
+        const responseParams = {
+            sender: 'ground control',
+            type: 'ice-servers'
+        }
+        const response = await this.sendReceive(data, responseParams);
+        return response.data;
+    }
+
+    text(text, from, receiver, time) {
+        receiver = ifDefined(receiver, 'room');
+        time = ifDefined(time, new Date().getTime());
+        this.send({
+            receiver,
+            type: 'text',
+            data: {
+                from,
+                time,
+                text
+            }
+        });
+    }
+
+    profile(username) {
+        this.send({
+            receiver: 'ground control',
+            type: 'profile',
+            data: { username }
+        });
+    }
+
+    offer(receiver, description) {
+        this.send({
+            receiver,
+            type: 'offer',
+            data: description
+        });
+    }
+
+    answer(receiver, description) {
+        this.send({
+            receiver,
+            type: 'answer',
+            data: description
+        });
+    }
+
+    bye(receiver) {
+        this.send({
+            receiver,
+            type: 'bye',
+            data: new Date().getTime()
+        });
+    }
+
+    icecandidate(receiver, candidate) {
+        this.send({
+            receiver,
+            type: 'icecandidate',
+            data: candidate
+        });
+    }
+
+    greeting(receiver, text) {
+        receiver = ifDefined(receiver, 'ground control');
+        text = ifDefined(
+            receiver,
+            "This is Major Tom to Ground Control: I'm stepping through the " +
+            "door. And the stars look very different today."
+        );
+        this.send({
+            receiver,
+            type: 'greeting',
+            data: text
+        });
     }
 
     shutdown() {
         if (this.socket.readyState === WebSocket.OPEN) {
             // Say bye to Ground Control
-            const time = new Date().getTime();
-            const data = {'receiver': 'ground control',
-                        'type': 'bye',
-                        'data': time};
-            this.send(data);
+            this.bye('ground control');
         }
 
         // Shutdown socket
@@ -93,4 +189,8 @@ export default class Signaler extends EventEmitter {
 
         this.emit('shutdown');
     }
+}
+
+function ifDefined(item1, item2) {
+    return item1 !== undefined ? item1 : item2;
 }

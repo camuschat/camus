@@ -38,20 +38,10 @@ function* doSetUsername(action) {
 function* doSendChatMessage(action) {
     const manager = yield getContext('manager');
     const message = action.payload;
+    const from = manager.username;
 
     try {
-        const time = new Date().getTime();
-        const data = {
-            receiver: 'room',
-            type: 'text',
-            data: {
-                from: manager.username,
-                time: time,
-                text: message
-            }
-        };
-
-        yield apply(manager.signaler, manager.signaler.send, [data]);
+        yield apply(manager.signaler, manager.signaler.text, [message, from]);
         yield put({type: 'MANAGER_UPDATED'});
     } catch (err) {
         yield put({type: 'MANAGER_ERROR', payload: err});

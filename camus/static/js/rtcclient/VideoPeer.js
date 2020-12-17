@@ -107,11 +107,7 @@ export default class VideoPeer extends EventEmitter {
         // Send ICE candidates as they are gathered
         this.connection.onicecandidate = ({candidate}) => {
             if (candidate) {
-                this.signaler.send({
-                    receiver: this.client_id,
-                    type: 'icecandidate',
-                    data: candidate.toJSON()
-                });
+                this.signaler.icecandidate(this.client_id, candidate.toJSON());
             }
         };
     }
@@ -186,11 +182,7 @@ export default class VideoPeer extends EventEmitter {
             await this.connection.setLocalDescription(answer);
 
             const description = this.connection.localDescription.toJSON();
-            this.signaler.send({
-                receiver: this.client_id,
-                type: description.type,
-                data: description
-            });
+            this.signaler.answer(this.client_id, description);
         } catch(err) {
             console.error(err);
         }
@@ -261,11 +253,7 @@ export default class VideoPeer extends EventEmitter {
         }
 
         // Say bye to peer
-        const time = new Date().getTime();
-        const data = {"receiver": this.client_id,
-                      "type": "bye",
-                      "data": time};
-        this.signaler.send(data);
+        this.signaler.bye(this.client_id);
 
         this.emit('shutdown');
 

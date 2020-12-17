@@ -10,6 +10,7 @@ export default class Manager extends EventEmitter {
         this.signaler = new Signaler();
         this.videoPeers = new Map();
         this.localVideoStream = new MediaStream();
+        // TODO: array of tracks
         this.videoTrack = null;
         this.audioTrack = null;
         this.textMessages = [];
@@ -20,12 +21,7 @@ export default class Manager extends EventEmitter {
 
     setUsername(username) {
         this.username = username;
-
-        const data = {receiver: 'ground control',
-                      type: 'profile',
-                      data: {username: this.username}
-        };
-        this.signaler.send(data);
+        this.signaler.profile(username);
     }
 
     setIceServers(iceServers) {
@@ -127,7 +123,7 @@ export default class Manager extends EventEmitter {
     }
 
     async findPeers() {
-        const roomInfo = await this.get_room_info();
+        const roomInfo = await this.signaler.get_room_info();
         await this.updatePeers(roomInfo);
     }
 
@@ -170,38 +166,8 @@ export default class Manager extends EventEmitter {
     }
 
     async get_self_id() {
-        const time = new Date().getTime();
-        const data = {"receiver": "ground control",
-                    "type": "ping",
-                    "data": time};
-        const responseParams = {"sender": "ground control",
-                            "type": "pong",
-                            "data": time};
-        const response = await this.signaler.sendReceive(data, responseParams);
+        const response = await this.signaler.ping();
         return response.receiver;
-
-    }
-
-    async get_room_info() {
-        const data = {"receiver": "ground control",
-                    "type": "get-room-info"};
-        const responseParams = {"sender": "ground control",
-                              "type": "room-info"};
-        const response = await this.signaler.sendReceive(data, responseParams);
-        return response.data;
-    }
-
-    async fetchIceServers() {
-        const data = {
-            'receiver': 'ground control',
-            'type': 'get-ice-servers'
-        }
-        const responseParams = {
-            'sender': 'ground control',
-            'type': 'ice-servers'
-        }
-        const response = await this.signaler.sendReceive(data, responseParams);
-        return response.data;
     }
 
     shutdown() {
@@ -221,7 +187,7 @@ export default class Manager extends EventEmitter {
         }
 
         this.id = await this.get_self_id();
-        this.iceServers = await this.fetchIceServers();
+        this.iceServers = await this.signaler.fetchIceServers();
         await this.findPeers();
     }
 }
