@@ -229,7 +229,8 @@ export default class VideoPeer extends EventEmitter {
 
     disableRemoteTrack(id) {
         const transceiver = this.connection.getTransceivers().find(t =>
-            t.sender.track && t.sender.track.id === id);
+            t.receiver && t.receiver.track && t.receiver.track.id === id
+        );
 
         if (transceiver) {
             console.log('Disable remote track');
@@ -241,7 +242,8 @@ export default class VideoPeer extends EventEmitter {
 
     enableRemoteTrack(id) {
         const transceiver = this.connection.getTransceivers().find(t =>
-            t.sender.track && t.sender.track.id === id);
+            t.receiver && t.receiver.track && t.receiver.track.id === id
+        );
 
         if (transceiver) {
             console.log('Enable remote track');
@@ -252,13 +254,19 @@ export default class VideoPeer extends EventEmitter {
     }
 
     disableRemoteVideo() {
-        // TODO: remove
-        this.videoTransceiver.direction = 'sendonly';
+        this.connection.getTransceivers().filter(t =>
+            t.receiver && t.receiver.track && t.receiver.track.kind === 'video'
+        ).forEach(t =>
+            t.direction = 'sendonly'
+        );
     }
 
     enableRemoteVideo() {
-        // TODO: remove
-        this.videoTransceiver.direction = 'sendrecv';
+        this.connection.getTransceivers().filter(t =>
+            t.receiver && t.receiver.track && t.receiver.track.kind === 'video'
+        ).forEach(t =>
+            t.direction = 'sendrecv'
+        );
     }
 
     restartIce() {
