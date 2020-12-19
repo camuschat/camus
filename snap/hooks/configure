@@ -1,0 +1,65 @@
+#!/bin/sh
+
+. "$SNAP/bin/management-script"
+
+# Supported keys:
+# - stun.host (string)
+#   The hostname or IP address of the STUN server.
+#
+# - stun.port (integer)
+#   The port of the STUN server
+#
+# - turn.host (string)
+#   The hostname or IP address of the TURN server.
+#
+# - turn.port (integer)
+#   The port of the TURN server
+#
+# - turn.static-auth-secret (string)
+#   The static secret used to generate TURN credentials.
+#
+# - twilio.account-sid (string)
+#   A Twilio account SID.
+#
+# - twilio.auth-token (string)
+#   A Twilio account auth token or API key secret.
+#
+# - twilio.key-sid (string)
+#   A Twilio API key SID.
+#
+
+handle_stun_config()
+{
+    camus_stun_host="$(stun_host)"
+    camus_stun_port="$(stun_port)"
+
+    set_stun_host "$camus_stun_host"
+    set_stun_port "$camus_stun_port"
+}
+
+handle_turn_config()
+{
+    camus_turn_host="$(turn_host)"
+    camus_turn_port="$(turn_port)"
+    camus_turn_static_auth_secret="$(turn_static_auth_secret)"
+
+    set_turn_host "$camus_turn_host"
+    set_turn_port "$camus_turn_port"
+    set_turn_static_auth_secret "$camus_turn_static_auth_secret"
+}
+
+handle_twilio_config()
+{
+    camus_twilio_account_sid="$(twilio_account_sid)"
+    camus_twilio_auth_token="$(twilio_auth_token)"
+    camus_twilio_key_sid="$(twilio_key_sid)"
+
+    set_twilio_account_sid "$camus_twilio_account_sid"
+    set_twilio_auth_token "$camus_twilio_auth_token"
+    set_twilio_key_sid "$camus_twilio_key_sid"
+}
+
+handle_turn_config && \
+handle_stun_config && \
+handle_twilio_config && \
+snapctl restart camus

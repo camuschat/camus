@@ -1,0 +1,89 @@
+#!/bin/sh
+
+stun_host()
+{
+	host="$(snapctl get stun.host)"
+	echo "$host"
+}
+
+set_stun_host()
+{
+	snapctl set stun.host="$1"
+}
+
+stun_port()
+{
+	port="$(snapctl get stun.port)"
+	echo "$port"
+}
+
+set_stun_port()
+{
+	snapctl set stun.port="$1"
+}
+
+turn_host()
+{
+	host="$(snapctl get turn.host)"
+	echo "$host"
+}
+
+set_turn_host()
+{
+	snapctl set turn.host="$1"
+}
+
+turn_port()
+{
+	port="$(snapctl get turn.port)"
+	echo "$port"
+}
+
+set_turn_port()
+{
+	snapctl set turn.port="$1"
+}
+
+turn_static_auth_secret()
+{
+	secret="$(snapctl get turn.static-auth-secret)"
+	echo "$secret"
+}
+
+set_turn_static_auth_secret()
+{
+	snapctl set turn.static-auth-secret="$1"
+}
+
+twilio_account_sid()
+{
+	host="$(snapctl get twilio.account-sid)"
+	echo "$host"
+}
+
+set_twilio_account_sid()
+{
+	snapctl set twilio.account-sid="$1"
+}
+
+twilio_auth_token()
+{
+	host="$(snapctl get twilio.auth-token)"
+	echo "$host"
+}
+
+set_twilio_auth_token()
+{
+	snapctl set twilio.auth-token="$1"
+}
+
+twilio_key_sid()
+{
+	host="$(snapctl get twilio.key-sid)"
+	echo "$host"
+}
+
+set_twilio_key_sid()
+{
+	snapctl set twilio.key-sid="$1"
+}

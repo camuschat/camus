@@ -12,14 +12,28 @@ confinement: strict
 
 apps:
   camus:
-    command: bin/camus
+    command: bin/camus-wrapper
     daemon: simple
     restart-condition: always
     plugs:
       - network-bind
       - network
 
+hooks:
+  configure:
+    plugs: [network, network-bind]
+
 parts:
   camus:
     plugin: python
     source: .
+
+  utilities:
+    plugin: dump
+    source: snap/local/utilities/
+
+  bin:
+    plugin: dump
+    source: snap/local/bin/
+    organize:
+      '*': bin/
