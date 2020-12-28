@@ -2,3 +2,4 @@
 -r docs.txt
 
 bpython
+litecli
