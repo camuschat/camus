@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from camus import db
 
 class Room(db.Model):
+    __tablename__ = 'rooms'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
     slug = db.Column(db.String(64), index=True, unique=True)
@@ -15,7 +16,7 @@ class Room(db.Model):
     guest_limit = db.Column(db.Integer, default=100)
     is_public = db.Column(db.Boolean, default=False)
     created = db.Column(db.DateTime, default=datetime.utcnow)
-    active = db.Column(db.DateTime, default=datetime.utcnow)
+    active = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     clients = db.relationship('Client', backref='room')
 
@@ -31,6 +32,8 @@ class Room(db.Model):
 
     def authenticate(self, password=None):
         """Attempt to authenticate access to the room."""
+
+        # TODO: return token that can be used to connect to websocket
 
         if password is None:
             return self.password_hash is None
@@ -51,12 +54,13 @@ class Room(db.Model):
 
 
 class Client(db.Model):
+    __tablename__ = 'clients'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), default='Major Tom')
     uuid = db.Column(db.String(32), unique=True, default=uuid.uuid4().hex)
-    seen = db.Column(db.DateTime, default=datetime.utcnow)
+    seen = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
-    room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
 
     def __repr__(self):
         return '<Client {}>'.format(self.uuid)

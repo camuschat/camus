@@ -9,7 +9,9 @@ from time import time
 from twilio.rest import Client as TwilioClient
 from twilio.base.exceptions import TwilioException, TwilioRestException
 
-from camus import app, db
+from quart import current_app
+
+from camus import db
 from camus.models import Client, Room
 
 
@@ -82,14 +84,14 @@ async def reap_rooms():
 def get_ice_servers(username):
     """Get a list of configured ICE servers."""
 
-    stun_host = app.config['STUN_HOST']
-    stun_port = app.config['STUN_PORT']
+    stun_host = current_app.config['STUN_HOST']
+    stun_port = current_app.config['STUN_PORT']
     stun_url = 'stun:{}:{}'.format(stun_host, stun_port)
     servers = [{'urls': [stun_url]}]
 
-    turn_host = app.config['TURN_HOST']
-    turn_port = app.config['TURN_PORT']
-    turn_key = app.config['TURN_STATIC_AUTH_SECRET']
+    turn_host = current_app.config['TURN_HOST']
+    turn_port = current_app.config['TURN_PORT']
+    turn_key = current_app.config['TURN_STATIC_AUTH_SECRET']
 
     if turn_host and turn_port and turn_key:
         turn_url = 'turn:{}:{}'.format(turn_host, turn_port)
@@ -108,9 +110,9 @@ def get_ice_servers(username):
 def get_twilio_ice_servers():
     """Fetch a list of ICE servers provided by Twilio."""
 
-    account_sid = app.config['TWILIO_ACCOUNT_SID']
-    auth_token = app.config['TWILIO_AUTH_TOKEN']
-    key_sid = app.config['TWILIO_KEY_SID']
+    account_sid = current_app.config['TWILIO_ACCOUNT_SID']
+    auth_token = current_app.config['TWILIO_AUTH_TOKEN']
+    key_sid = current_app.config['TWILIO_KEY_SID']
 
     try:
         twilio = TwilioClient(key_sid, auth_token, account_sid)

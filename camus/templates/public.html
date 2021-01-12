@@ -25,7 +25,7 @@
                     <a
                       class="boldlink"
                       id="room-link-{{ room.slug }}"
-                      href={{ url_for('chat_create') + '/' + room.slug }}
+                      href={{ '/room/' + room.slug }}
                     >
                       {{ room.name }}
                     </a>
@@ -45,7 +45,7 @@
       {% endif %}
       <div class="footer-link">
         <h6>
-          &#8627;<a href="/chat">Create a room</a>
+          &#8627;<a href="/">Create a room</a>
         </h6>
       </div>
     </div>
