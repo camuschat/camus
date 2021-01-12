@@ -1,5 +1,7 @@
 # base
 FROM python:3.9-slim-buster AS base
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 RUN apt-get update && apt-get install -y \
     gcc
 ADD requirements.txt /app/
@@ -9,15 +11,17 @@ RUN pip install -r /app/requirements.txt
 
 # test (server)
 FROM base AS test-server
-ADD . /app
-ENV QUART_APP camus
+ENV QUART_APP camus:create_app()
 ENV QUART_ENV development
 RUN pip install -r /app/requirements/test.txt
+ADD . /app
 
 
 # dev
-FROM test-server AS dev
+FROM base AS dev
+ENV QUART_APP camus:create_app()
+ENV QUART_ENV development
 RUN apt-get update && apt-get install -y \
     vim
-ENV QUART_ENV development
 RUN pip install -r /app/requirements/dev.txt
+ADD . /app
