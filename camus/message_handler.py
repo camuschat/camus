@@ -9,18 +9,6 @@ from camus.models import Client
 from camus.util import get_ice_servers
 
 
-_message_handler = None
-
-
-def get_message_handler():
-    """Retrieve the global MessageHandler object."""
-
-    global _message_handler
-    if _message_handler is None:
-        _message_handler = MessageHandler()
-    return _message_handler
-
-
 class MessageHandler:
     """Receives, processes, and sends messages.
 
@@ -31,9 +19,17 @@ class MessageHandler:
 
     def __init__(self):
         self._address = 'ground control'
-        self.inbox = asyncio.Queue()
+        self.inbox = None
         self.outbox = defaultdict(asyncio.Queue)
+        self._inbox_task = None
+
+    def start(self):
+        self.inbox = asyncio.Queue()
         self._inbox_task = asyncio.create_task(self._process_inbox())
+
+    def stop(self):
+        if self._inbox_task:
+            self._inbox_task.cancel()
 
     def send(self, message):
         """Add a message to the outbox."""
@@ -52,16 +48,16 @@ class MessageHandler:
         """Remove and process messages from the inbox."""
 
         while True:
-            client_uuid, data = await self.inbox.get()
-            message = Message(data)
-            message.sender = client_uuid
-
-            # Update seen & active timestamps for client and room
-            client = Client.query.filter_by(uuid=client_uuid).first()
-            client.seen = client.room.active = datetime.datetime.utcnow()
-            db.session.commit()
-
             try:
+                client_uuid, data = await self.inbox.get()
+                message = Message(data)
+                message.sender = client_uuid
+
+                # Update seen & active timestamps for client and room
+                client = Client.query.filter_by(uuid=client_uuid).first()
+                client.seen = client.room.active = datetime.datetime.utcnow()
+                db.session.commit()
+
                 # Message intended for the server
                 if message.receiver == self._address:
                     self._handle_local_message(message)

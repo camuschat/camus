@@ -1,11 +1,12 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 from slugify import slugify
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from camus import db
+
 
 class Room(db.Model):
     __tablename__ = 'rooms'
@@ -33,12 +34,12 @@ class Room(db.Model):
     def authenticate(self, password=None):
         """Attempt to authenticate access to the room."""
 
-        # TODO: return token that can be used to connect to websocket
+        if ((password is None and self.password_hash is None)
+                or (password and check_password_hash(self.password_hash, password))):
+            return Client(uuid=uuid.uuid4().hex, room=self)
 
-        if password is None:
-            return self.password_hash is None
+        return None
 
-        return check_password_hash(self.password_hash, password)
 
     def is_full(self):
         """Check whether the room's guest limit has been reached.

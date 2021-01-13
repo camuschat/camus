@@ -1,13 +1,12 @@
 import asyncio
-import uuid
+import logging
 
 import sqlalchemy
 from quart import (Blueprint, copy_current_websocket_context, flash, redirect,
-                   render_template, websocket)
+                   render_template, session, websocket)
 
-from camus import db
+from camus import db, message_handler
 from camus.forms import CreateRoomForm, JoinRoomForm
-from camus.message_handler import get_message_handler
 from camus.models import Client, Room
 
 bp = Blueprint('main', __name__)
@@ -19,7 +18,7 @@ async def about():
 
 
 @bp.route('/', methods=['GET', 'POST'])
-async def chat_create():
+async def index():
     create_room_form = CreateRoomForm()
     if create_room_form.validate_on_submit():
         form = create_room_form
@@ -45,13 +44,19 @@ async def chat_create():
 
 
 @bp.route('/room/<room_id>', methods=['GET', 'POST'])
-async def chat_room(room_id):
+async def room(room_id):
     room = Room.query.filter_by(slug=room_id).first_or_404()
 
     if room.is_full():
         return 'Guest limit already reached', 418
 
-    if room.authenticate():  # i.e. a password is not required
+    # No password is required to join the room
+    client = room.authenticate()
+    if client:
+        db.session.add(client)
+        db.session.commit()
+        session['id'] = client.uuid
+
         return await render_template(
             'chatroom.html', title='Camus | {}'.format(room.name))
 
@@ -61,8 +66,12 @@ async def chat_room(room_id):
     if form.validate_on_submit():
         password = form.password.data
 
-        if room.authenticate(password):
-            # TODO: Generate token to be used with websocket
+        client = room.authenticate(password)
+        if client:
+            db.session.add(client)
+            db.session.commit()
+            session['id'] = client.uuid
+
             return await render_template(
                 'chatroom.html', title='Camus | {}'.format(room.name))
 
@@ -77,17 +86,19 @@ async def chat_room(room_id):
 
 
 @bp.websocket('/room/<room_id>/ws')
-async def chat_room_ws(room_id):
-    message_handler = get_message_handler()
+async def room_ws(room_id):
+    # Verify that the room exists
+    Room.query.filter_by(slug=room_id).first_or_404()
+
+    # Verify the client using a secure cookie
+    client = Client.query.filter_by(uuid=session.get('id', None)).first()
+    if client:
+        logging.info(f'Accepted websocket connection for client {client.uuid}')
+        await websocket.accept()
+    else:
+        return 'Forbidden', 403
+
     inbox, outbox = message_handler.inbox, message_handler.outbox
-
-    room = Room.query.filter_by(slug=room_id).first()
-    if room is None:
-        return  # close the websocket
-
-    client = Client(uuid=uuid.uuid4().hex, room=room)
-    db.session.add(client)
-    db.session.commit()
 
     send_task = asyncio.create_task(
         copy_current_websocket_context(ws_send)(outbox[client.uuid]),
@@ -98,6 +109,7 @@ async def chat_room_ws(room_id):
     try:
         await asyncio.gather(send_task, receive_task)
     finally:
+        logging.info(f'Terminating websocket connection for client {client.uuid}')
         send_task.cancel()
         receive_task.cancel()
 

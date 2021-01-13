@@ -1,6 +1,7 @@
 import pytest
 
 from camus import create_app, db
+from camus.message_handler import MessageHandler
 from camus.config import TestConfig
 
 
@@ -22,3 +23,12 @@ async def app():
 def client(app):
     """A test client for the app."""
     return app.test_client()
+
+
+@pytest.fixture
+async def message_handler(app):
+    _message_handler = MessageHandler()
+    async with app.app_context():
+        _message_handler.start()
+        yield _message_handler
+        _message_handler.stop()

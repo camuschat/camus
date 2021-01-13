@@ -1,6 +1,11 @@
+import json
+
 import pytest
 
-from camus import db
+from quart import session
+from quart.testing.connections import WebsocketResponse
+
+from camus import db, message_handler
 from camus.models import Client, Room
 
 
@@ -24,13 +29,14 @@ async def test_public(client):
 
 @pytest.mark.asyncio
 async def test_enter_room(client):
-    room = Room()
-    room.set_name('My room')
-
     async with client.app.app_context():
+        # Create a room
+        room = Room()
+        room.set_name('My room')
         db.session.add(room)
         db.session.commit()
 
+        # Enter the room
         response = await client.get(f'/room/{room.slug}')
 
     assert response.status_code == 200
@@ -42,14 +48,15 @@ async def test_enter_room(client):
 
 @pytest.mark.asyncio
 async def test_enter_room_with_password(client):
-    room = Room()
-    room.set_name('My password-protected room')
-    room.set_password('cat')
-
     async with client.app.app_context():
+        # Create a room
+        room = Room()
+        room.set_name('My password-protected room')
+        room.set_password('cat')
         db.session.add(room)
         db.session.commit()
 
+        # Enter the room
         response = await client.post(f'/room/{room.slug}', json={
             'password': 'cat'
         })
@@ -63,14 +70,15 @@ async def test_enter_room_with_password(client):
 
 @pytest.mark.asyncio
 async def test_enter_room_with_wrong_password(client):
-    room = Room()
-    room.set_name('My password-protected room')
-    room.set_password('cat')
-
     async with client.app.app_context():
+        # Create a room
+        room = Room()
+        room.set_name('My password-protected room')
+        room.set_password('cat')
         db.session.add(room)
         db.session.commit()
 
+        # Attempt to enter the room
         response = await client.post(f'/room/{room.slug}', json={
             'password': 'dog'
         })
@@ -83,13 +91,14 @@ async def test_enter_room_with_wrong_password(client):
 
 @pytest.mark.asyncio
 async def test_enter_room_with_guest_limit(client):
-    room = Room(guest_limit=2)
-    room.set_name('My small room')
-
     async with client.app.app_context():
+        # Create a room
+        room = Room(guest_limit=2)
+        room.set_name('My small room')
         db.session.add(room)
         db.session.commit()
 
+        # Enter the room
         response = await client.get(f'/room/{room.slug}')
 
     assert response.status_code == 200
@@ -101,15 +110,16 @@ async def test_enter_room_with_guest_limit(client):
 
 @pytest.mark.asyncio
 async def test_enter_full_room_with_guest_limit(client):
-    room = Room(guest_limit=2)
-    room.set_name('My full small room')
-    client1 = Client(uuid='1234', room=room)
-    client2 = Client(uuid='5678', room=room)
-
     async with client.app.app_context():
+        # Create a room
+        room = Room(guest_limit=2)
+        room.set_name('My full small room')
+        client1 = Client(uuid='1234', room=room)
+        client2 = Client(uuid='5678', room=room)
         db.session.add_all([room, client1, client2])
         db.session.commit()
 
+        # Attempt to enter the room
         response = await client.get(f'/room/{room.slug}')
 
     assert response.status_code == 418
@@ -152,6 +162,66 @@ async def test_create_room_with_guest_limit(client):
     # We should be redirected to the room
     assert 'Password room' in data
     assert 'react-root' in data
+
+
+@pytest.mark.asyncio
+async def test_websocket(client):
+    async with client.app.app_context():
+        message_handler.start()
+
+        # Create a room
+        room = Room()
+        room.set_name('My room')
+        db.session.add(room)
+        db.session.commit()
+
+        # Enter the room to set cookie for websocket auth
+        async with client:
+            await client.get(f'/room/{room.slug}')
+            assert session.get('id', None) is not None
+
+        # Connect to the websocket and send a ping
+        async with client.websocket(f'/room/{room.slug}/ws') as ws:
+            await ws.send(json.dumps({
+                'type': 'ping',
+                'sender': '1234',
+                'receiver': 'ground control',
+                'data': '9999'
+            }))
+            response = await ws.receive()
+
+            assert ws.accepted
+            assert 'pong' in response
+
+        message_handler.stop()
+
+
+@pytest.mark.asyncio
+async def test_websocket_without_entering_room(client):
+    async with client.app.app_context():
+        message_handler.start()
+
+        # Create a room
+        room = Room()
+        room.set_name('My room')
+        db.session.add(room)
+        db.session.commit()
+
+        # Attempt to connect to the websocket (without entering room first)
+        async with client.websocket(f'/room/{room.slug}/ws') as ws:
+            with pytest.raises(WebsocketResponse) as err:
+                await ws.send(json.dumps({
+                    'type': 'ping',
+                    'sender': '1234',
+                    'receiver': 'ground control',
+                    'data': '9999'
+                }))
+                await ws.receive()
+
+            assert not ws.accepted
+            assert err.value.response.status_code == 403
+
+        message_handler.stop()
 
 
 async def _create_room(client, name, password='', public='No', guest_limit='0'):

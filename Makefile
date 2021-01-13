@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 images = camus:prod camus:latest camus:test-server camus:dev
-containers = camus-dev
+containers = camus-dev camus-test-server
 
 .PHONY: help
 help:
@@ -35,7 +35,7 @@ test-server:  ## Run server tests
         /bin/bash -c "pip install -e /opt/camus && python -m pytest /opt/camus/test"
 
 .PHONY: test-client
-test-client: clean-containers serve  ## Run client tests
+test-client: clean-containers serve-test  ## Run client tests
 	@docker run --rm -it \
         --mount type=bind,source="$(CURDIR)/camus/static",target="/e2e" \
 		--net host \
@@ -49,6 +49,17 @@ serve: clean-containers  ## Run development server
         --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
         --workdir="/opt/camus" \
 		--env-file dev.env \
+        -p 5000:5000 \
+        camus:dev \
+        /usr/local/bin/quart run --host 0.0.0.0
+
+.PHONY: serve-test
+serve-test: clean-containers  ## Run test server
+	@docker run --rm -d \
+        --name camus-test-server \
+        --mount type=bind,source="$(CURDIR)",target="/opt/camus" \
+        --workdir="/opt/camus" \
+		-e DATABASE_URL="sqlite://" \
         -p 5000:5000 \
         camus:dev \
         /usr/local/bin/quart run --host 0.0.0.0
