@@ -21,13 +21,11 @@ import quart.flask_patch
 from quart import Quart
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 from .config import Config
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
-migrate = Migrate()
 
 from .message_handler import MessageHandler
 message_handler = MessageHandler()
