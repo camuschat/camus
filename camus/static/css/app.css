@@ -405,6 +405,12 @@ main {
     border-radius: 0.5em;
 }
 
+.enter-room-modal .invitation {
+    display: flex;
+    width: 100%;
+    margin: 0px 0px 10px;
+}
+
 .modal-overlay {
     position: fixed;
     z-index: 9998;

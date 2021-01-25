@@ -21,6 +21,7 @@ class EnterRoomModal extends Component {
 
         this.onSelectDevice = this.onSelectDevice.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleCopyLink = this.handleCopyLink.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -53,6 +54,21 @@ class EnterRoomModal extends Component {
                         devices={this.state.cameras}
                         onSelectDevice={this.onSelectDevice}
                     />
+                    <label>
+                        Invitation link
+                        <div className='input-line invitation'>
+                            <button type='button' onClick={this.handleCopyLink}>
+                                <i className='material-icons'>content_copy</i>
+                            </button>
+                            <input
+                                className='invitation-link'
+                                name='invitation-link'
+                                type='text'
+                                value={window.location.href}
+                                readOnly={true}
+                            />
+                        </div>
+                    </label>
                     <input type='submit' value='Enter room' />
                 </form>
                 <div className='video-container'>
@@ -127,6 +143,13 @@ class EnterRoomModal extends Component {
         this.setState({
             nickname: nickname
         });
+    }
+
+    handleCopyLink() {
+        const link = document.querySelector('.invitation-link');
+        link.focus();
+        link.select();
+        document.execCommand('copy');
     }
 
     handleSubmit() {
