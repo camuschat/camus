@@ -1,4 +1,4 @@
 -r test.txt
 -r docs.txt
 
-bpython==0.19
+bpython
