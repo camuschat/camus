@@ -265,6 +265,27 @@ summary:focus {
     padding-left: 20px;
 }
 
+.invite-box {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    width: 300px;
+    padding: 10px;
+    background-color: #aaa;
+    border-color: darkgray;
+}
+
+.invite-box input {
+    padding: 0;
+    border: none;
+    color: #333;
+}
+
+.invite-box input[type=button]:hover {
+    text-decoration: underline;
+}
+
 .headline {
     color: #ddd;
 }
