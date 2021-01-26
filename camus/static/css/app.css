@@ -141,7 +141,7 @@ summary:focus {
 }
 
 .fade-in {
-    animation: fadeIn 1s ease-out;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .dialog {
@@ -257,6 +257,13 @@ summary:focus {
     border-radius: 4px;
 }
 
+.dialog .btn-cancel {
+    color: #ddd;
+    background-color: #888;
+    border: none;
+    border-radius: 4px;
+}
+
 .dialog details {
     margin-top: 20px;
 }
@@ -284,6 +291,16 @@ summary:focus {
 
 .invite-box input[type=button]:hover {
     text-decoration: underline;
+}
+
+.exit-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    min-width: 300px;
+    text-align: center;
 }
 
 .headline {
@@ -427,11 +444,14 @@ main {
 }
 
 .modal-overlay {
-    position: fixed;
+    position: absolute;
+    top: 0px;
+    left: 0px;
     z-index: 9998;
-
     height: 100%;
     width: 100%;
+    background-color: #000;
+    opacity: 0.5;
 }
 
 .video-stage {
@@ -637,7 +657,6 @@ input[type=range]:focus::-moz-range-track {
     display: flex;
     justify-content: center;
     overflow-x: hidden;
-    opacity: 0.5;
 }
 
 .media-control-bar button,
@@ -645,7 +664,8 @@ input[type=range]:focus::-moz-range-track {
 .ice-servers button {
     border: none;
     border-radius: 4px;
-    background-color: #fff;
+    background-color: #aaa;
+    color: #333;
     padding: 6px 12px;
     margin: 0 4px;
 }
@@ -656,14 +676,16 @@ input[type=range]:focus::-moz-range-track {
 .chat-message-bar button:focus,
 .ice-servers button:hover,
 .ice-servers button:focus {
-    background-color: #eee;
+    background-color: #999;
+    color: #111;
     outline: none;
 }
 
 .media-control-bar button:active,
 .chat-message-bar button:active,
 .ice-servers button:active {
-    background-color: #ddd;
+    background-color: #888;
+    color: #000;
 }
 
 .sidebar {
@@ -676,8 +698,7 @@ input[type=range]:focus::-moz-range-track {
     border: 1px dotted lightgray;
     border-radius: 0.5em;
 
-    background-color: #fff;
-    opacity: 0.5;
+    background-color: #aaa;
 }
 
 .sidebar.collapsed {
@@ -687,19 +708,22 @@ input[type=range]:focus::-moz-range-track {
 .sidebar .icon-button {
     border: none;
     border-radius: 4px;
-    background-color: #fff;
+    background-color: #aaa;
+    color: #333;
     padding: 6px 12px;
     margin: 2px;
 }
 
 .sidebar .icon-button:hover,
 .sidebar .icon-button:focus {
-    background-color: #eee;
+    background-color: #999;
+    color: #111;
     outline: none;
 }
 
 .sidebar .icon-button:active {
-    background-color: #ddd;
+    background-color: #888;
+    color: #000;
 }
 
 .chat-message-bar {
@@ -792,6 +816,19 @@ input[type=range]:focus::-moz-range-track {
     width: 100%;
 }
 
+.chat-message-bar input,
+.ice-server input {
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: inherit;
+}
+
+.chat-message-bar input:focus,
+.ice-server input:focus {
+    border-color: #333;
+    outline: none;
+}
+
 .ice-server input:invalid {
-    border-color: red;
+    border-color: #a00;
 }

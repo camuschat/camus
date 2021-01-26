@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {setLocalAudio, setLocalVideo} from '../slices/feeds';
 import {updateAudioDevice, updateVideoDevice, updateDisplayDevice} from '../slices/devices';
 import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
+import ExitDialog from './ExitDialog.js';
 
 class MediaControlBar extends Component {
     constructor(props) {
@@ -55,6 +56,7 @@ class MediaControlBar extends Component {
                     getMedia={getDisplayMedia}
                     icons={{on: 'screen_share', off: 'stop_screen_share'}}
                 />
+                <HangUpButton />
             </div>
         );
     }
@@ -187,3 +189,39 @@ MediaToggleButton.propTypes = {
     getMedia: PropTypes.func.isRequired,
     onTrack: PropTypes.func.isRequired
 };
+
+class HangUpButton extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showExitDialog: false,
+        };
+
+        this.onClick = this.onClick.bind(this);
+        this.onCloseExitDialog = this.onCloseExitDialog.bind(this);
+    }
+
+    render() {
+        return (<>
+            { this.state.showExitDialog &&
+            <ExitDialog onClose={this.onCloseExitDialog} />
+            }
+            <button onClick={this.onClick}>
+                <i className='material-icons' style={{color: '#a00'}}>call_end</i>
+            </button>
+        </>);
+    }
+
+    onClick() {
+        this.setState({
+            showExitDialog: true
+        });
+    }
+
+    onCloseExitDialog() {
+        this.setState({
+            showExitDialog: false
+        });
+    }
+}
