@@ -127,7 +127,7 @@ v0.3+
 -  [ ] User accounts, persistent user settings
 -  [ ] Support `SFU`_ for client scalability
 
-.. |Build Status| image:: https://travis-ci.org/mrgnr/camus.svg?branch=master
+.. |Build Status| image:: https://travis-ci.com/mrgnr/camus.svg?branch=master
    :target: https://travis-ci.org/mrgnr/camus
 .. |docs| image:: https://img.shields.io/readthedocs/camus/latest
    :target: https://docs.camus.chat
