@@ -10,6 +10,7 @@ import {Manager} from '../rtcclient.js';
 import ChatMessageBar from './ChatMessageBar.js';
 import ConnectionInfoBar from './ConnectionInfoBar.js';
 import IceServers from './IceServers.js';
+import Invite from './Invite.js';
 import EnterRoomModal from './EnterRoomModal.js';
 import MediaControlBar from './MediaControlBar.js';
 import Sidebar from './Sidebar.js';
@@ -68,6 +69,7 @@ class App extends Component {
 
         return (<>
             <main>
+            <Invite />
                 <VideoStage 
                     ref={this.videoStage}
                 />

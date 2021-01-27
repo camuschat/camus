@@ -1,5 +1,7 @@
 # base
-FROM python:3.8-slim-buster AS base
+FROM python:3.9-slim-buster AS base
+RUN apt-get update && apt-get install -y \
+    gcc
 ADD requirements.txt /app/
 ADD ./requirements/ /app/requirements/
 RUN pip install -r /app/requirements.txt
