@@ -17,6 +17,7 @@ yourself using :ref:`pip <Installation:Using Python>` or
    development
    configuration
    deployment
+   tutorials/index
    license
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
