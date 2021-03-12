@@ -3,7 +3,7 @@ describe('Create room', () => {
     it('Should create and enter a public room', () => {
         const roomName = 'public-room';
 
-        cy.visit('/chat');
+        cy.visit('/');
 
         // Create a room
         const form = cy.get('form[id="create-room-form"]');
@@ -31,7 +31,7 @@ describe('Create room', () => {
     it('Should create and enter a non-public room', () => {
         const roomName = 'nonpublic-room';
 
-        cy.visit('/chat');
+        cy.visit('/');
 
         // Create a room
         const form = cy.get('form[id="create-room-form"]');
@@ -60,7 +60,7 @@ describe('Create room', () => {
         const roomName = 'password-room';
         const password = 'secret password';
 
-        cy.visit('/chat');
+        cy.visit('/');
 
         // Create a room
         const createForm = cy.get('form[id="create-room-form"]');

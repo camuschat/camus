@@ -1,113 +1,122 @@
 import asyncio
+import logging
 
-from quart import (copy_current_websocket_context, flash, redirect,
-                   render_template, websocket)
+import sqlalchemy
+from quart import (Blueprint, copy_current_websocket_context, flash, redirect,
+                   render_template, session, websocket)
 
-from camus import app
+from camus import db, message_handler
 from camus.forms import CreateRoomForm, JoinRoomForm
+from camus.models import Client, Room
 
-from camus import chat
-from camus.chat import ChatException
-
-
-@app.route('/')
-@app.route('/index')
-async def index():
-    return redirect('/chat')
+bp = Blueprint('main', __name__)
 
 
-@app.route('/about')
+@bp.route('/about')
 async def about():
-    return redirect('/chat#why-camus')
+    return redirect('/#why-camus')
 
 
-@app.route('/chat', methods=['GET', 'POST'])
-async def chat_create():
-    manager = chat.get_chat_manager()
-
+@bp.route('/', methods=['GET', 'POST'])
+async def index():
     create_room_form = CreateRoomForm()
     if create_room_form.validate_on_submit():
         form = create_room_form
-        room_name = form.room_name.data
-        password = None if not len(form.password.data) else form.password.data
+        name = form.room_name.data
+        password = form.password.data
         is_public = form.public.data
-        guest_limit = (None if form.guest_limit.data == 0
-                       else form.guest_limit.data)
-        admin_list = []
+        guest_limit = form.guest_limit.data
 
         try:
-            room = manager.create_room(
-                room_name, password=password, guest_limit=guest_limit,
-                admin_list=admin_list, is_public=is_public)
-            return redirect('/chat/{}'.format(room.id), code=307)
-        except ChatException:
-            await flash('The room name "{}" is not available'
-                        .format(room_name))
+            room = Room(guest_limit=guest_limit, is_public=is_public)
+            room.set_name(name)
+            if password:
+                room.set_password(password)
+            db.session.add(room)
+            db.session.commit()
 
-    form_join = JoinRoomForm()
-    public_rooms = manager.get_public_rooms()
+            return redirect('/room/{}'.format(room.slug), code=307)
+        except sqlalchemy.exc.IntegrityError:
+            await flash('The room name "{}" is not available'.format(name))
+
     return await render_template(
-        'chat.html', create_room_form=create_room_form, form_join=form_join,
-        public_rooms=public_rooms)
+        'chat.html', create_room_form=create_room_form)
 
 
-@app.route('/chat/<room_id>', methods=['GET', 'POST'])
-async def chat_room(room_id):
-    manager = chat.get_chat_manager()
-    room = manager.get_room(room_id)
-
-    if room is None:
-        return '404', 404
+@bp.route('/room/<room_id>', methods=['GET', 'POST'])
+async def room(room_id):
+    room = Room.query.filter_by(slug=room_id).first_or_404()
 
     if room.is_full():
         return 'Guest limit already reached', 418
 
-    if room.authenticate():  # i.e. a password is not required
+    # No password is required to join the room
+    client = room.authenticate()
+    if client:
+        db.session.add(client)
+        db.session.commit()
+        session['id'] = client.uuid
+
         return await render_template(
             'chatroom.html', title='Camus | {}'.format(room.name))
 
+    # A password is required to join the room
+    status_code = 200
     form = JoinRoomForm()
     if form.validate_on_submit():
         password = form.password.data
 
-        if room.authenticate(password):
-            # TODO: Generate token to be used with websocket
+        client = room.authenticate(password)
+        if client:
+            db.session.add(client)
+            db.session.commit()
+            session['id'] = client.uuid
+
             return await render_template(
                 'chatroom.html', title='Camus | {}'.format(room.name))
+
+        # Authentication failed
+        status_code = 401
         await flash('Invalid password')
 
-    return await render_template(
-        'join-room.html', title='Camus | Join a room', form=form, room=room)
+    return (
+        (await render_template('join-room.html', title='Camus | Join a room',
+                               form=form, room=room)),
+        status_code)
 
 
-@app.websocket('/chat/<room_id>/ws')
-async def chat_room_ws(room_id):
-    manager = chat.get_chat_manager()
-    room = manager.get_room(room_id)
+@bp.websocket('/room/<room_id>/ws')
+async def room_ws(room_id):
+    # Verify that the room exists
+    Room.query.filter_by(slug=room_id).first_or_404()
 
-    if room is None:
-        return  # close the websocket
+    # Verify the client using a secure cookie
+    client = Client.query.filter_by(uuid=session.get('id', None)).first()
+    if client:
+        logging.info(f'Accepted websocket connection for client {client.uuid}')
+        await websocket.accept()
+    else:
+        return 'Forbidden', 403
 
-    client = manager.create_client()
-    room.add_client(client)
+    inbox, outbox = message_handler.inbox, message_handler.outbox
 
     send_task = asyncio.create_task(
-        copy_current_websocket_context(ws_send)(client.outbox),
+        copy_current_websocket_context(ws_send)(outbox[client.uuid]),
     )
     receive_task = asyncio.create_task(
-        copy_current_websocket_context(ws_receive)(client.inbox),
+        copy_current_websocket_context(ws_receive)(client.uuid, inbox),
     )
     try:
         await asyncio.gather(send_task, receive_task)
     finally:
+        logging.info(f'Terminating websocket connection for client {client.uuid}')
         send_task.cancel()
         receive_task.cancel()
 
 
-@app.route('/public')
+@bp.route('/public')
 async def public():
-    manager = chat.get_chat_manager()
-    public_rooms = manager.get_public_rooms()
+    public_rooms = Room.query.filter_by(is_public=True).all()
 
     return await render_template(
         'public.html', title='Camus Video Chat | Public Rooms',
@@ -120,7 +129,7 @@ async def ws_send(queue):
         await websocket.send(message)
 
 
-async def ws_receive(queue):
+async def ws_receive(client_id, queue):
     while True:
         message = await websocket.receive()
-        await queue.put(message)
+        await queue.put((client_id, message))

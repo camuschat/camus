@@ -12,3 +12,10 @@ class Config(object):
     TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
     TWILIO_KEY_SID = os.environ.get('TWILIO_KEY_SID')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'camus.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+class TestConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    WTF_CSRF_ENABLED = False

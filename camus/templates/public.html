@@ -24,8 +24,8 @@
                   <td>
                     <a
                       class="boldlink"
-                      id="room-link-{{ room.id }}"
-                      href={{ url_for('chat_create') + '/' + room.id }}
+                      id="room-link-{{ room.slug }}"
+                      href={{ '/room/' + room.slug }}
                     >
                       {{ room.name }}
                     </a>
@@ -36,7 +36,7 @@
                       else "&#8734;"|safe }}
                   </td>
                   <td>
-                    {{ room.active_ago }} minutes ago
+                    {{ room.active_ago() }} minutes ago
                   </td>
               </tr>
             {% endfor %}
@@ -45,7 +45,7 @@
       {% endif %}
       <div class="footer-link">
         <h6>
-          &#8627;<a href="/chat">Create a room</a>
+          &#8627;<a href="/">Create a room</a>
         </h6>
       </div>
     </div>

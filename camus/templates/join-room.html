@@ -8,7 +8,7 @@
   <div class="col-md-12">
     <div class="dialog slide-down" id="create-room-dialog">
       <h5>Join {{ room.name}}</h5>
-      <form method="post" role="form" action="{{ url_for('chat_create') + '/' + room.id }}">
+      <form method="post" role="form" action="{{ room.slug }}">
         {{ form.csrf_token }}
         <div class="input-line">
           {{ form.password.label() }}:
