@@ -40,7 +40,7 @@ test-client: clean-containers serve-test  ## Run client tests
         --mount type=bind,source="$(CURDIR)/camus/static",target="/e2e" \
         --net host \
         -w /e2e \
-        cypress/included:4.11.0
+        cypress/included:6.6.0
 
 .PHONY: serve
 serve: clean-containers  ## Run development server

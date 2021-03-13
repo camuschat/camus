@@ -1,5 +1,5 @@
-import {createStore} from 'redux';
-import reducer, {addChatMessage} from '../../../js/slices/messages';
+import { createStore } from 'redux';
+import reducer, { addChatMessage } from '../../../js/slices/messages';
 
 describe('Test messages slice of Redux store', () => {
     it('can add a chat message', () => {
@@ -18,6 +18,6 @@ describe('Test messages slice of Redux store', () => {
         const state = store.getState();
 
         // Verify result
-        expect(state).contains(chatMessage);
+        expect(state).includes(chatMessage);
     });
 });

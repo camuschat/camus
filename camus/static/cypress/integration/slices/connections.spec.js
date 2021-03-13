@@ -1,5 +1,9 @@
-import {createStore} from 'redux';
-import reducer, {addConnection, removeConnection, updateConnection} from '../../../js/slices/connections';
+import { createStore } from 'redux';
+import reducer, {
+    addConnection,
+    removeConnection,
+    updateConnection
+} from '../../../js/slices/connections';
 
 describe('Test connections slice of Redux store', () => {
     it('can add a connection', () => {

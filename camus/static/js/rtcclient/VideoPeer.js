@@ -96,11 +96,16 @@ export default class VideoPeer extends EventEmitter {
                 if (this.connection.signalingState !== 'stable') return;
                 await this.connection.setLocalDescription(offer);
                 const description = this.connection.localDescription.toJSON();
-                this.signaler.send({
-                    receiver: this.client_id,
-                    type: description.type,
-                    data: description
-                });
+
+                if (description.type === 'offer') {
+                    console.log(`[${this.client_id}] onnegotiationneeded: send offer`);
+                    this.signaler.offer(this.client_id, description);
+                } else if (description.type === 'answer') {
+                    console.log(`[${this.client_id}] onnegotiationneeded: send answer`);
+                    this.signaler.answer(this.client_id, description);
+                } else {
+                    console.error('onnegotiationneeded: unknown description type');
+                }
             } catch(err) {
                 console.error(err);
             } finally {
@@ -118,7 +123,6 @@ export default class VideoPeer extends EventEmitter {
 
     connect() {
         // Adding transceivers triggers onnegotiationneeded()
-        // TODO: keep an array of video transceivers
         this.videoTransceiver = this.connection.addTransceiver('video');
         this.audioTransceiver = this.connection.addTransceiver('audio');
     }
@@ -201,6 +205,10 @@ export default class VideoPeer extends EventEmitter {
 
     addTrack(track) {
         this.connection.addTrack(track);
+    }
+
+    getTracks() {
+        return this.connection.getSenders().map(sender => sender.track);
     }
 
     async replaceTrack(id, track) {

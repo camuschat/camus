@@ -167,7 +167,7 @@ export default class Signaler extends EventEmitter {
     greeting(receiver, text) {
         receiver = ifDefined(receiver, 'ground control');
         text = ifDefined(
-            receiver,
+            text,
             "This is Major Tom to Ground Control: I'm stepping through the " +
             "door. And the stars look very different today."
         );
