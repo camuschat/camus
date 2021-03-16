@@ -1,6 +1,9 @@
-language: generic
+language: node
+node_js:
+  - 12
 
 install:
+  - npm version
   - cd $TRAVIS_BUILD_DIR/camus/static && npm install && cd $TRAVIS_BUILD_DIR
 
 services:
