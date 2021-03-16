@@ -1,8 +1,8 @@
 Installation
 ============
 
-Using Snap
-----------
+Snap
+----
 
 Make sure you have `snapd`_ installed. Install `Camus`_:
 
@@ -17,8 +17,8 @@ services.
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
 
-Using Python
-------------
+Pip
+---
 
 Camus requires `Python 3.7`_ or higher since it makes use of `Quart`_ and async
 syntax. As usual, it's best to use a `virtual environment`_.
@@ -38,8 +38,8 @@ Run Camus:
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
 
-Using Docker
-------------
+Docker
+------
 
 You can find a `pre-built Docker image`_ on Docker Hub. Use the following
 command to pull the image and run a container:
