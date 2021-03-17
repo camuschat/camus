@@ -2,13 +2,27 @@ Server configuration
 ====================
 
 Secret key
----------------------
+----------
 
 The Camus server is based on `Quart`_, which requires a secret key for signing
 cookies and keeping sessions with clients secure. You can provide a secret
 key by setting the ``SECRET_KEY`` environment variable. If no secret key is
 provided, a new random 32 byte key is automatically generated each time the
 Camus server starts.
+
+Database
+--------
+
+Camus stores room and client information using a database, either `SQLite`_ or
+`Postgresql`_. By default, SQLite is used and stores the database in a local
+file on disk. For larger deployments, it is recommended to use Postgresql due
+to its higher performance and support for replication. You can specify which
+database to use by setting the ``DATABASE_URL`` environment variable. For
+example, to use Postgresql:
+
+.. code-block:: none
+
+   DATABASE_URL="postgresql://username:password@hostname"
 
 STUN and TURN servers
 ---------------------
@@ -68,8 +82,10 @@ Set the following environment variables on the server:
    TWILIO_KEY_SID  # (optional) if using an API key, the API key SID
 
 .. _Quart: https://gitlab.com/pgjones/quart
-.. _STUN: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols#STUN
-.. _TURN: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols#TURN
+.. _SQLite: https://sqlite.org/index.html
+.. _Postgresql: https://www.postgresql.org/
+.. _STUN: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols#stun
+.. _TURN: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols#turn
 .. _Coturn: https://github.com/coturn/coturn
 .. _Twilio: https://www.twilio.com/
 .. _create a (free) Twilio account: https://www.twilio.com/try-twilio

@@ -1,7 +1,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Camus'
-copyright = '2020, Morgan Robertson'
+copyright = '2021, Morgan Robertson'
 author = 'Morgan Robertson'
 
 
@@ -30,8 +30,7 @@ html_theme_options = {
         'Demo': 'https://camus.chat',
         'Source code': 'https://github.com/mrgnr/camus',
         'Issue tracker': 'https://github.com/mrgnr/camus/issues',
-        'Python packages': 'https://pypi.org/project/camus-chat/',
-        'Docker images': 'https://hub.docker.com/r/mrgnr/camus',
+        'Discussions': 'https://github.com/mrgnr/camus/discussions',
         'Donate': 'https://liberapay.com/mrgnr',
     },
 }

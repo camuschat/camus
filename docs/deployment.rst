@@ -52,13 +52,11 @@ Limitations
 ~~~~~~~~~~~
 
 - You should *not* use horizontal scaling (i.e. runnning Camus across multiple
-  dynos using the ``heroku ps:scale`` command). Camus currently stores all room
-  and client data in memory and has no backend storage, so there is no way to
-  synchronize data across multiple dynos. If you need to scale (which is
+  dynos using the ``heroku ps:scale`` command). Due to the stateful nature of
+  websockets and message queuing, Camus does not currently support running
+  multiple instances across multiple dynos. If you need to scale (which is
   probably not necessary unless you have hundreds or thousands of simultaneous
   users), use vertical scaling with the ``heroku ps:resize`` command instead.
-- Any time you restart the Camus app on Heroku, room and client data will be
-  lost, since Camus currently stores this data in memory.
 - By default, no TURN server is configured when you deploy Camus on Heroku. If
   you want to minimize the risk of users experiencing WebRTC connection issues,
   you should configure a TURN server, such as `Coturn`_.
@@ -74,7 +72,7 @@ You can deploy Camus on a `DigitalOcean`_ droplet using `Terraform Camus`_. See 
 .. _Procfile: https://github.com/mrgnr/camus/blob/master/Procfile
 .. _runtime.txt: https://github.com/mrgnr/camus/blob/master/runtime.txt
 .. _install the Heroku CLI tool: https://devcenter.heroku.com/articles/heroku-cli#download-and-install
-.. _configure: https://github.com/mrgnr/camus/blob/master/camus/config.py
+.. _configure: configuration.html
 .. _configuration documentation: https://devcenter.heroku.com/articles/config-vars
 .. _Coturn: https://github.com/coturn/coturn
 .. _DigitalOcean: https://www.digitalocean.com/
