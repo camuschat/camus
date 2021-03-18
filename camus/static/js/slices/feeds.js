@@ -57,7 +57,7 @@ const feedsSlice = createSlice({
     }
 });
 
-const {actions, reducer} = feedsSlice;
+const { actions, reducer } = feedsSlice;
 export const {
     addFeed,
     removeFeed,
@@ -66,5 +66,6 @@ export const {
     setLocalAudio,
     setLocalVideo,
     disableRemoteVideo,
-    enableRemoteVideo} = actions;
+    enableRemoteVideo
+} = actions;
 export default reducer;

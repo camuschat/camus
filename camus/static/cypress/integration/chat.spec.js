@@ -1,6 +1,5 @@
-
 describe('Create room', () => {
-    it('Should create and enter a public room', () => {
+    it('can create and enter a public room', () => {
         const roomName = 'public-room';
 
         cy.visit('/');
@@ -28,7 +27,7 @@ describe('Create room', () => {
         cy.get('#room-link-public-room')
     });
 
-    it('Should create and enter a non-public room', () => {
+    it('can create and enter a non-public room', () => {
         const roomName = 'nonpublic-room';
 
         cy.visit('/');
@@ -56,7 +55,7 @@ describe('Create room', () => {
         cy.get('#room-link-nonpublic-room').should('not.exist');
     });
 
-    it('Should create and enter a password-protected room', () => {
+    it('can create and enter a password-protected room', () => {
         const roomName = 'password-room';
         const password = 'secret password';
 

@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {swapFeeds} from '../slices/feeds';
+import { connect } from 'react-redux';
+import { swapFeeds } from '../slices/feeds';
 import VideoControlBar from './VideoControlBar';
 
 class VideoStage extends Component {

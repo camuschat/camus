@@ -15,6 +15,9 @@ const messagesSlice = createSlice({
     }
 });
 
-const {actions, reducer} = messagesSlice;
-export const {addChatMessage, sendChatMessage} = actions;
+const { actions, reducer } = messagesSlice;
+export const {
+    addChatMessage,
+    sendChatMessage
+} = actions;
 export default reducer;

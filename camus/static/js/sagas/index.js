@@ -1,9 +1,16 @@
-import {apply, put, takeEvery, takeLatest, getContext, select} from 'redux-saga/effects';
-import {setUsername} from '../slices/users';
-import {sendChatMessage} from '../slices/messages';
-import {setLocalAudio, setLocalVideo} from '../slices/feeds';
-import {setResolution} from '../slices/devices';
-import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
+import {
+    apply,
+    put,
+    takeEvery,
+    takeLatest,
+    getContext,
+    select
+} from 'redux-saga/effects';
+import { setUsername } from '../slices/users';
+import { sendChatMessage } from '../slices/messages';
+import { setLocalAudio, setLocalVideo } from '../slices/feeds';
+import { setResolution } from '../slices/devices';
+import { disableRemoteVideo, enableRemoteVideo } from '../slices/feeds';
 import {
     addIceServer,
     removeIceServer,
@@ -38,20 +45,10 @@ function* doSetUsername(action) {
 function* doSendChatMessage(action) {
     const manager = yield getContext('manager');
     const message = action.payload;
+    const from = manager.username;
 
     try {
-        const time = new Date().getTime();
-        const data = {
-            receiver: 'room',
-            type: 'text',
-            data: {
-                from: manager.username,
-                time: time,
-                text: message
-            }
-        };
-
-        yield apply(manager.signaler, manager.signaler.send, [data]);
+        yield apply(manager.signaler, manager.signaler.text, [message, from]);
         yield put({type: 'MANAGER_UPDATED'});
     } catch (err) {
         yield put({type: 'MANAGER_ERROR', payload: err});
@@ -64,9 +61,9 @@ function* doSetLocalAudio(action) {
 
     try {
         if (track) {
-            yield apply(manager, manager.setAudioTrack, [track]);
+            yield apply(manager, manager.setTrack, ['audio', track]);
         } else {
-            yield apply(manager, manager.stopAudio);
+            yield apply(manager, manager.stopTrack, ['audio']);
         }
 
         yield put({type: 'MANAGER_UPDATED'});
@@ -81,9 +78,9 @@ function* doSetLocalVideo(action) {
 
     try {
         if (track) {
-            yield apply(manager, manager.setVideoTrack, [track]);
+            yield apply(manager, manager.setTrack, ['video', track]);
         } else {
-            yield apply(manager, manager.stopVideo);
+            yield apply(manager, manager.stopTrack, ['video']);
         }
 
         yield put({type: 'MANAGER_UPDATED'});
@@ -117,7 +114,7 @@ function* doDisableRemoteVideo(action) {
     const id = action.payload;
 
     try {
-        const peer = manager.videoPeers.get(id);
+        const peer = manager.mediaPeers.get(id);
         yield apply(peer, peer.disableRemoteVideo);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
@@ -130,7 +127,7 @@ function* doEnableRemoteVideo(action) {
     const id = action.payload;
 
     try {
-        const peer = manager.videoPeers.get(id);
+        const peer = manager.mediaPeers.get(id);
         yield apply(peer, peer.enableRemoteVideo);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {

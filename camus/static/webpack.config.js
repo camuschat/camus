@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    'chat': path.resolve(__dirname, 'js/chat.js'),
+    'index': path.resolve(__dirname, 'js/index.js'),
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

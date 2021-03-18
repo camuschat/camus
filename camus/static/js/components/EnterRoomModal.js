@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {setUsername} from '../slices/users';
-import {updateAudioDevice, updateVideoDevice} from '../slices/devices';
-import {getCameras, getMics, getUserMedia, getUserVideo} from '../mediaUtils.js';
+import { connect } from 'react-redux';
+import { setUsername } from '../slices/users';
+import { updateAudioDevice, updateVideoDevice } from '../slices/devices';
+import { getCameras, getMics, getUserMedia, getUserVideo } from '../mediaUtils';
 
 class EnterRoomModal extends Component {
     constructor(props) {

@@ -1,7 +1,7 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {sendChatMessage} from '../slices/messages';
+import { connect } from 'react-redux';
+import { sendChatMessage } from '../slices/messages';
 
 class ChatMessageBar extends Component {
     constructor(props) {
@@ -68,7 +68,7 @@ function select(state) {
 
 export default connect(
     select,
-    {sendChatMessage}
+    { sendChatMessage }
 )(ChatMessageBar);
 
 class ChatMessageLog extends Component {

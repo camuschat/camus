@@ -1,12 +1,10 @@
-'use strict';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
-import { Manager } from './rtcclient.js';
-import App from './components/App.js';
+import { Manager } from './rtcclient';
+import App from './components/App';
 import connectionsReducer from './slices/connections';
 import devicesReducer from './slices/devices';
 import feedsReducer from './slices/feeds';
@@ -19,8 +17,6 @@ window.addEventListener('unhandledrejection', (event) => {
     console.log('An unhandled error occurred');
     console.log(event.promise);
     console.log(event.reason);
-
-    //alert('An unrecoverable error occurred. Please refresh the page to re-join the room.');
 });
 
 // Create RTC connection manager

@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {setLocalAudio, setLocalVideo} from '../slices/feeds';
-import {updateAudioDevice, updateVideoDevice, updateDisplayDevice} from '../slices/devices';
-import {getUserVideo, getUserAudio, getDisplayMedia} from '../mediaUtils.js';
-import ExitDialog from './ExitDialog.js';
+import { connect } from 'react-redux';
+import { setLocalAudio, setLocalVideo } from '../slices/feeds';
+import { updateAudioDevice, updateVideoDevice, updateDisplayDevice } from '../slices/devices';
+import { getUserVideo, getUserAudio, getDisplayMedia } from '../mediaUtils';
+import ExitDialog from './ExitDialog';
 
 class MediaControlBar extends Component {
     constructor(props) {
@@ -118,7 +118,13 @@ function select(state) {
 
 export default connect(
     select,
-    {setLocalAudio, setLocalVideo, updateAudioDevice, updateVideoDevice, updateDisplayDevice}
+    {
+        setLocalAudio,
+        setLocalVideo,
+        updateAudioDevice,
+        updateVideoDevice,
+        updateDisplayDevice
+    }
 )(MediaControlBar);
 
 class MediaToggleButton extends Component {

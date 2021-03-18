@@ -1,5 +1,9 @@
-import {createStore} from 'redux';
-import reducer, {addUser, updateUser, setUsername} from '../../../js/slices/users';
+import { createStore } from 'redux';
+import reducer, {
+    addUser,
+    updateUser,
+    setUsername
+} from '../../../js/slices/users';
 
 describe('Test users slice of Redux store', () => {
     it('can add a user', () => {
@@ -17,7 +21,7 @@ describe('Test users slice of Redux store', () => {
         const state = store.getState();
 
         // Verify result
-        expect(state).contains(user);
+        expect(state).includes(user);
     });
 
     it('can update a user', () => {

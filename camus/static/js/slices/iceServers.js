@@ -23,7 +23,7 @@ const iceServersSlice = createSlice({
     }
 });
 
-const {actions, reducer} = iceServersSlice;
+const { actions, reducer } = iceServersSlice;
 export const {
     addIceServer,
     removeIceServer,

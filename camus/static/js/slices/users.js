@@ -23,6 +23,10 @@ const usersSlice = createSlice({
     }
 });
 
-const {actions, reducer} = usersSlice;
-export const {addUser, updateUser, setUsername} = actions;
+const { actions, reducer } = usersSlice;
+export const {
+    addUser,
+    updateUser,
+    setUsername
+} = actions;
 export default reducer;

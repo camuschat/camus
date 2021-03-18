@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import fscreen from 'fscreen';
-import {connect} from 'react-redux';
-import {setResolution} from '../slices/devices';
-import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
-import {RESOLUTIONS} from '../mediaUtils.js';
+import { connect } from 'react-redux';
+import { setResolution } from '../slices/devices';
+import { disableRemoteVideo, enableRemoteVideo } from '../slices/feeds';
+import { RESOLUTIONS } from '../mediaUtils';
 
 class VideoControlBar extends Component {
     constructor(props) {

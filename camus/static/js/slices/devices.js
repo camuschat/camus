@@ -33,6 +33,11 @@ const devicesSlice = createSlice({
     }
 });
 
-const {actions, reducer} = devicesSlice;
-export const {updateAudioDevice, updateVideoDevice, updateDisplayDevice, setResolution} = actions;
+const { actions, reducer } = devicesSlice;
+export const {
+    updateAudioDevice,
+    updateVideoDevice,
+    updateDisplayDevice,
+    setResolution
+} = actions;
 export default reducer;

@@ -1,5 +1,3 @@
-'use strict';
-
 export const RESOLUTIONS = [
     2160,
     1080,
