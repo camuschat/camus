@@ -3,19 +3,20 @@ export default class MessageHandler {
         this.manager = manager;
         this.signaler = signaler;
         this.messageListeners = [];
-        this.handlers = {'ping': this.ping,
-                         'pong': this.pong,
-                         'text': this.text,
-                         'get-room-info': this.getRoomInfo,
-                         'room-info': this.roomInfo,
-                         'get-ice-servers': this.getIceServers,
-                         'ice-servers': this.iceServers,
-                         'profile': this.profile,
-                         'offer': this.offer,
-                         'answer': this.answer,
-                         'icecandidate': this.iceCandidate,
-                         'greeting': this.greeting,
-                         'bye': this.bye
+        this.handlers = {
+            'ping': this.ping,
+            'pong': this.pong,
+            'text': this.text,
+            'get-room-info': this.getRoomInfo,
+            'room-info': this.roomInfo,
+            'get-ice-servers': this.getIceServers,
+            'ice-servers': this.iceServers,
+            'profile': this.profile,
+            'offer': this.offer,
+            'answer': this.answer,
+            'icecandidate': this.iceCandidate,
+            'greeting': this.greeting,
+            'bye': this.bye
         };
     }
 
@@ -75,7 +76,7 @@ export default class MessageHandler {
     }
 
     async offer(message) {
-        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in offer');
         }
@@ -83,7 +84,7 @@ export default class MessageHandler {
     }
 
     async answer(message) {
-        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
         if (message.type !== message.data.type){
             throw new Error('! Type mismatch in answer');
         }
@@ -91,7 +92,7 @@ export default class MessageHandler {
     }
 
     async iceCandidate(message) {
-        const peer = await this.manager.getOrCreateVideoPeer({id: message.sender, username: 'Major Tom'});
+        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
         const iceCandidate = new RTCIceCandidate(message.data);
         await peer.onIceCandidate(iceCandidate);
     }
@@ -104,7 +105,7 @@ export default class MessageHandler {
         console.log('<< Received bye: ', message);
 
         const client_id = message.sender;
-        this.manager.removeVideoPeer(client_id);
+        this.manager.removeMediaPeer(client_id);
     }
 
     emptyMessage() {

@@ -1,6 +1,6 @@
 import EventEmitter from './EventEmitter';
-import VideoPeer from './VideoPeer';
-import MessageHandler from './MessageHandler.js';
+import MediaPeer from './MediaPeer';
+import MessageHandler from './MessageHandler';
 import Signaler from './Signaler';
 
 export default class Manager extends EventEmitter {
@@ -8,7 +8,7 @@ export default class Manager extends EventEmitter {
         super();
         this.username = 'Major Tom';
         this.signaler = new Signaler();
-        this.videoPeers = new Map();
+        this.mediaPeers = new Map();
         this.mediaTracks = new Map();
         this.localVideoStream = new MediaStream();
         this.textMessages = [];
@@ -29,7 +29,7 @@ export default class Manager extends EventEmitter {
     set iceServers(iceServers) {
         this._iceServers = iceServers;
 
-        this.videoPeers.forEach(peer => {
+        this.mediaPeers.forEach(peer => {
             peer.iceServers = iceServers;
         });
     }
@@ -44,7 +44,7 @@ export default class Manager extends EventEmitter {
         }
 
         // Add track to each peer
-        for (let peer of this.videoPeers.values()) {
+        for (let peer of this.mediaPeers.values()) {
             peer.addTrack(track);
         }
 
@@ -60,7 +60,7 @@ export default class Manager extends EventEmitter {
         const oldTrack = this.mediaTracks.get(name);
 
         // Replace track on each peer
-        for (let peer of this.videoPeers.values()) {
+        for (let peer of this.mediaPeers.values()) {
             await peer.replaceTrack(oldTrack.id, track);
         }
 
@@ -85,7 +85,7 @@ export default class Manager extends EventEmitter {
         const track = this.mediaTracks.get(name);
 
         // Remove track from each peer
-        for (let peer of this.videoPeers.values()) {
+        for (let peer of this.mediaPeers.values()) {
             peer.removeTrack(track.id);
         }
 
@@ -103,33 +103,33 @@ export default class Manager extends EventEmitter {
         track.stop();
     }
 
-    createVideoPeer(client) {
-        const peer = new VideoPeer(
+    createMediaPeer(client) {
+        const peer = new MediaPeer(
             client, this.signaler, this.id < client.id, this.iceServers,
             this.mediaTracks.values()
         );
-        this.videoPeers.set(client.id, peer);
+        this.mediaPeers.set(client.id, peer);
 
         console.log('Created video peer ', peer.client_id);
-        this.emit('videopeer', peer);
+        this.emit('mediapeer', peer);
 
         return peer;
     }
 
-    getOrCreateVideoPeer(client) {
-        if (!this.videoPeers.has(client.id)) {
-            return this.createVideoPeer(client);
+    getOrCreateMediaPeer(client) {
+        if (!this.mediaPeers.has(client.id)) {
+            return this.createMediaPeer(client);
         }
 
-        return this.videoPeers.get(client.id);
+        return this.mediaPeers.get(client.id);
     }
 
-    removeVideoPeer(id) {
-        const peer = this.videoPeers.get(id);
+    removeMediaPeer(id) {
+        const peer = this.mediaPeers.get(id);
         if (peer) {
             peer.shutdown();
-            this.videoPeers.delete(id);
-            this.emit('videopeerremoved', peer);
+            this.mediaPeers.delete(id);
+            this.emit('mediapeerremoved', peer);
         }
     }
 
@@ -141,22 +141,22 @@ export default class Manager extends EventEmitter {
     updatePeers(roomInfo) {
         // Remove peers not in room
         const roomClientIds = roomInfo.clients.map(({id}) => id);
-        const peerClientIds = Array.from(this.videoPeers.keys());
+        const peerClientIds = Array.from(this.mediaPeers.keys());
         const removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
 
         removeIds.forEach((id) => {
-            this.removeVideoPeer(id);
+            this.removeMediaPeer(id);
         });
 
         // Add peers in room
         for (const client of roomInfo.clients) {
             if (client.id !== this.id) {
-                this.getOrCreateVideoPeer(client);
+                this.getOrCreateMediaPeer(client);
             }
         }
 
         // Update information for each peer
-        this.videoPeers.forEach((peer, peer_id) => {
+        this.mediaPeers.forEach((peer, peer_id) => {
             const client = roomInfo.clients.find(client => client.id === peer_id);
             if (client) {
                 peer.username = client.username;
@@ -168,12 +168,12 @@ export default class Manager extends EventEmitter {
         this.messageHandler.addMessageListener(messageParams, listener);
     }
 
-    shutdownVideoPeers() {
-        this.videoPeers.forEach((peer) => {
+    shutdownMediaPeers() {
+        this.mediaPeers.forEach((peer) => {
             peer.shutdown();
         });
 
-        this.videoPeers.clear();
+        this.mediaPeers.clear();
     }
 
     async get_self_id() {
@@ -182,7 +182,7 @@ export default class Manager extends EventEmitter {
     }
 
     shutdown() {
-        this.shutdownVideoPeers();
+        this.shutdownMediaPeers();
         this.signaler.shutdown();
     }
 

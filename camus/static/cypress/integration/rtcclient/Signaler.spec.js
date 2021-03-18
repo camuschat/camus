@@ -1,4 +1,4 @@
-import { Signaler } from '../../../js/rtcclient/rtcclient';
+import { Signaler } from '../../../js/rtcclient';
 
 describe('Test Signaler', () => {
     describe('can send standard message types', () => {

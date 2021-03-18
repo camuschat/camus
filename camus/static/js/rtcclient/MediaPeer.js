@@ -1,6 +1,6 @@
 import EventEmitter from './EventEmitter'
 
-export default class VideoPeer extends EventEmitter {
+export default class MediaPeer extends EventEmitter {
     constructor(client, signaler, polite, iceServers=[], tracks=[]) {
         super();
         this.client_id = client.id;

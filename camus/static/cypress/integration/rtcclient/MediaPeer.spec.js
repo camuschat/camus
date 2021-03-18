@@ -1,9 +1,9 @@
-import { VideoPeer } from '../../../js/rtcclient/rtcclient';
+import { MediaPeer } from '../../../js/rtcclient';
 
-describe('Test VideoPeer', () => {
+describe('Test ideoPeer', () => {
     it('can initialize a connection', () => {
         const signaler = createSignaler();
-        const peer = new VideoPeer({id: 'abc', username: 'Bill'}, signaler, false);
+        const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
 
         expect(peer.client_id).to.equal('abc');
         expect(peer.username).to.equal('Bill');
@@ -16,8 +16,8 @@ describe('Test VideoPeer', () => {
         retries: 2
     }, () => {
         const signaler = createSignaler();
-        const peer1 = new VideoPeer({id: 'abc', username: 'Bill'}, signaler, false);
-        const peer2 = new VideoPeer({id: 'def', username: 'Ted'}, signaler, true);
+        const peer1 = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
+        const peer2 = new MediaPeer({id: 'def', username: 'Ted'}, signaler, true);
 
         // Note: the mapping between id and peer appears reversed here since the
         // client_id refers to the other peer
@@ -106,7 +106,7 @@ function createAudioTrack() {
 
 function createDummyPeer() {
     const signaler = createSignaler();
-    const peer = new VideoPeer({id: 'abc', username: 'Bill'}, signaler, false);
+    const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
     peer.connection.onnegotiationneeded = () => {};  // Disable negotiation for this test
     peer.connect();  // Trigger setup of transceivers
     return peer;

@@ -1,20 +1,24 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {addUser, updateUser} from '../slices/users';
-import {addChatMessage} from '../slices/messages';
-import {addConnection, removeConnection, updateConnection} from '../slices/connections';
-import {addFeed, removeFeed, updateFeed} from '../slices/feeds';
-import {addIceServer} from '../slices/iceServers';
-import {Manager} from '../rtcclient/rtcclient';
-import ChatMessageBar from './ChatMessageBar.js';
-import ConnectionInfoBar from './ConnectionInfoBar.js';
-import IceServers from './IceServers.js';
-import Invite from './Invite.js';
-import EnterRoomModal from './EnterRoomModal.js';
-import MediaControlBar from './MediaControlBar.js';
-import Sidebar from './Sidebar.js';
-import VideoStage from './VideoStage.js';
+import { connect } from 'react-redux';
+import { addUser, updateUser } from '../slices/users';
+import { addChatMessage } from '../slices/messages';
+import {
+    addConnection,
+    removeConnection,
+    updateConnection
+} from '../slices/connections';
+import { addFeed, removeFeed, updateFeed } from '../slices/feeds';
+import { addIceServer } from '../slices/iceServers';
+import { Manager } from '../rtcclient';
+import ChatMessageBar from './ChatMessageBar';
+import ConnectionInfoBar from './ConnectionInfoBar';
+import IceServers from './IceServers';
+import Invite from './Invite';
+import EnterRoomModal from './EnterRoomModal';
+import MediaControlBar from './MediaControlBar';
+import Sidebar from './Sidebar';
+import VideoStage from './VideoStage';
 
 class App extends Component {
     constructor(props) {
@@ -30,8 +34,8 @@ class App extends Component {
         this.onSubmitModal = this.onSubmitModal.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
         this.onReceiveIceServers = this.onReceiveIceServers.bind(this);
-        this.onVideoPeer = this.onVideoPeer.bind(this);
-        this.onVideoPeerRemoved = this.onVideoPeerRemoved.bind(this);
+        this.onMediaPeer = this.onMediaPeer.bind(this);
+        this.onMediaPeerRemoved = this.onMediaPeerRemoved.bind(this);
         this.onPeerTrack = this.onPeerTrack.bind(this);
         this.onPeerConnectionChange = this.onPeerConnectionChange.bind(this);
         this.onPeerUsernameChange = this.onPeerUsernameChange.bind(this);
@@ -41,8 +45,8 @@ class App extends Component {
     componentDidMount() {
         this.manager.addMessageListener({type: 'text'}, this.onReceiveChatMessage);
         this.manager.addMessageListener({type: 'ice-servers'}, this.onReceiveIceServers);
-        this.manager.on('videopeer', this.onVideoPeer);
-        this.manager.on('videopeerremoved', this.onVideoPeerRemoved);
+        this.manager.on('mediapeer', this.onMediaPeer);
+        this.manager.on('mediapeerremoved', this.onMediaPeerRemoved);
 
         window.addEventListener('beforeunload', () => {
             this.manager.shutdown();
@@ -116,7 +120,7 @@ class App extends Component {
         });
     }
 
-    onVideoPeer(peer) {
+    onMediaPeer(peer) {
         peer.on('track', (track, streams) => {
             this.onPeerTrack(peer, track, streams);
         });
@@ -165,7 +169,7 @@ class App extends Component {
         this.props.addConnection(connection);
     }
 
-    onVideoPeerRemoved(peer) {
+    onMediaPeerRemoved(peer) {
         this.props.removeFeed(peer.client_id);
         this.props.removeConnection(peer.client_id);
     }

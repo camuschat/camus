@@ -1,4 +1,4 @@
-import { EventEmitter } from '../../../js/rtcclient/rtcclient';
+import { EventEmitter } from '../../../js/rtcclient';
 
 describe('Test EventEmitter', () => {
     it('can add a listener', () => {

@@ -1,9 +1,16 @@
-import {apply, put, takeEvery, takeLatest, getContext, select} from 'redux-saga/effects';
-import {setUsername} from '../slices/users';
-import {sendChatMessage} from '../slices/messages';
-import {setLocalAudio, setLocalVideo} from '../slices/feeds';
-import {setResolution} from '../slices/devices';
-import {disableRemoteVideo, enableRemoteVideo} from '../slices/feeds';
+import {
+    apply,
+    put,
+    takeEvery,
+    takeLatest,
+    getContext,
+    select
+} from 'redux-saga/effects';
+import { setUsername } from '../slices/users';
+import { sendChatMessage } from '../slices/messages';
+import { setLocalAudio, setLocalVideo } from '../slices/feeds';
+import { setResolution } from '../slices/devices';
+import { disableRemoteVideo, enableRemoteVideo } from '../slices/feeds';
 import {
     addIceServer,
     removeIceServer,
@@ -107,7 +114,7 @@ function* doDisableRemoteVideo(action) {
     const id = action.payload;
 
     try {
-        const peer = manager.videoPeers.get(id);
+        const peer = manager.mediaPeers.get(id);
         yield apply(peer, peer.disableRemoteVideo);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
@@ -120,7 +127,7 @@ function* doEnableRemoteVideo(action) {
     const id = action.payload;
 
     try {
-        const peer = manager.videoPeers.get(id);
+        const peer = manager.mediaPeers.get(id);
         yield apply(peer, peer.enableRemoteVideo);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
