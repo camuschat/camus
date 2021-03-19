@@ -19,7 +19,7 @@
           {{ create_room_form.csrf_token }}
           <div class="input-line">
             {{ create_room_form.room_name.label(hidden=True) }}
-            {{ create_room_form.room_name() }}
+            {{ create_room_form.room_name(**{'aria-label': 'Room name'}) }}
             <input class="btn btn-secondary" id="submit" name="submit"
               type="submit" value="Go"
             >
@@ -28,8 +28,9 @@
             <summary>Advanced options</summary>
             <div class="input-line">
               {{ create_room_form.password.label() }}:
-              {{ create_room_form.password() }}
-              <button type="button" onclick="togglePasswordVisibility()">
+              {{ create_room_form.password(**{'aria-label': 'Room password'}) }}
+              <button type="button" id="password-visibility-button" onclick="togglePasswordVisibility()"
+                  aria-label="Toggle password visibility" aria-pressed="false">
                 <i id="visibility-icon" class="material-icons">
                   visibility_off
                 </i>
@@ -121,12 +122,15 @@
 <script>
   function togglePasswordVisibility() {
     const pwInput = document.getElementById('password');
+    const visibilityButton = document.getElementById('password-visibility-button');
     const visibilityIcon = document.getElementById('visibility-icon');
     if (pwInput.type === 'password') {
       pwInput.type = 'text';
+      visibilityButton.setAttribute('aria-pressed', true);
       visibilityIcon.innerHTML = 'visibility';
     } else {
       pwInput.type = 'password';
+      visibilityButton.setAttribute('aria-pressed', false);
       visibilityIcon.innerHTML = 'visibility_off';
     }
   }

@@ -73,14 +73,15 @@ class App extends Component {
 
         return (<>
             <main>
-            <Invite />
                 <VideoStage 
                     ref={this.videoStage}
                 />
                 <MediaControlBar />
+                <Invite />
             </main>
             <Sidebar
                 buttonIcons={['message', 'people', 'settings']}
+                buttonAriaLabels={['chat window', 'users window', 'settings window']}
                 onToggle={this.onSidebarToggle}
             >
                 <ChatMessageBar />

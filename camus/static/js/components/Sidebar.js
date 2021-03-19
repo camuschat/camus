@@ -20,32 +20,41 @@ export default class Sidebar extends Component {
             isCollapsed
         } = this.state;
 
-        if (isCollapsed) {
-            return (
-                <section className='sidebar collapsed'>
-                    {this.renderToggleButtons()}
-                </section>
-            );
-        }
-
+        const label = this.props.buttonAriaLabels[currentChild];
         return (
-            <section className='sidebar'>
-                <button className='icon-button' onClick={this.hide}>
-                    <i className='material-icons'>close</i>
-                </button>
-                {this.props.children[currentChild]}
+            <section
+                className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}
+                aria-labelledby='sidebar-title'
+            >
+                <h1 id='sidebar-title' className='sr-only'>
+                    Sidebar
+                </h1>
+                {isCollapsed && this.renderToggleButtons()}
+                {!isCollapsed && <>
+                    <button
+                        className='icon-button'
+                        onClick={this.hide}
+                        aria-label={`Close ${label}`}
+                    >
+                        <i className='material-icons'>close</i>
+                    </button>
+                    {this.props.children[currentChild]}
+                </>}
             </section>
         );
     }
 
     renderToggleButtons() {
+        const icons = this.props.buttonIcons;
+        const labels = this.props.buttonAriaLabels;
         return (
             <ul className='sidebar-toggle-buttons'>
-                {this.props.buttonIcons.map((icon) =>
+                {icons.map((icon, idx) =>
                     <li key={icon}>
                         <SidebarToggleButton
                             icon={icon}
                             onClick={this.onToggleButtonClick}
+                            ariaLabel={`Open ${labels[idx]}`}
                         />
                     </li>
                 )}
@@ -74,6 +83,7 @@ export default class Sidebar extends Component {
 
 Sidebar.propTypes = {
     buttonIcons: PropTypes.arrayOf(PropTypes.string).isRequired,
+    buttonAriaLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
     onToggle: PropTypes.func.isRequired,
     children: PropTypes.oneOfType([
         PropTypes.arrayOf(PropTypes.node),
@@ -89,7 +99,11 @@ class SidebarToggleButton extends Component {
 
     render() {
         return (
-            <button className='icon-button' onClick={this.onClick}>
+            <button
+                className='icon-button'
+                onClick={this.onClick}
+                aria-label={this.props.ariaLabel}
+            >
                 <i className='material-icons'>
                     {this.props.icon}
                 </i>
@@ -104,5 +118,6 @@ class SidebarToggleButton extends Component {
 
 SidebarToggleButton.propTypes = {
     icon: PropTypes.string.isRequired,
-    onClick: PropTypes.func.isRequired
+    onClick: PropTypes.func.isRequired,
+    ariaLabel: PropTypes.string.isRequired
 };

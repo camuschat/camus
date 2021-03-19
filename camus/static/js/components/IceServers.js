@@ -34,7 +34,7 @@ class IceServers extends Component {
         const servers = iceServers.filter(server => server.kind === kind);
 
         return (
-            <div className='ice-servers'>
+            <section className='ice-servers' aria-label={`${kind} servers`}>
                 <h6>{title}</h6>
                 <ul>
                     {servers.filter(server =>
@@ -50,11 +50,14 @@ class IceServers extends Component {
                     )}
                 </ul>
                 {allowEditing &&
-                <button onClick={() => this.newServer(kind)}>
+                <button
+                    onClick={() => this.newServer(kind)}
+                    aria-label={`Add a ${kind} server`}
+                >
                     <i className='material-icons'>add</i>
                 </button>
                 }
-            </div>
+            </section>
         );
     }
 
@@ -172,10 +175,17 @@ class IceServer extends Component {
                             />
                         </label>
                         {allowEditing && <>
-                            <button type='button' onClick={this.handleDelete}>
+                            <button
+                                type='button'
+                                onClick={this.handleDelete}
+                                aria-label={`Delete this ${server.kind} server`}
+                            >
                                 <i className='material-icons'>delete</i>
                             </button>
-                            <button type='submit'>
+                            <button
+                                type='submit'
+                                aria-label={`Save this ${server.kind} server`}
+                            >
                                 <i className='material-icons'>save</i>
                             </button>
                         </>}

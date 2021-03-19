@@ -34,12 +34,15 @@ class ChatMessageBar extends Component {
                 <ChatMessageLog messages={this.props.messages} />
                 <form>
                     <input
-                        type="text"
-                        placeholder="Send a group chat message"
+                        type='text'
+                        placeholder='Send a group chat message'
                         value={this.state.value}
                         onChange={this.handleChange}
                     />
-                    <button onClick={this.handleSubmit}>
+                    <button
+                        onClick={this.handleSubmit}
+                        aria-label='Send chat message'
+                    >
                         <i className='material-icons'>send</i>
                     </button>
                 </form>
@@ -101,7 +104,7 @@ class ChatMessage extends Component {
                     {this.props.from}
                 </p>
                 <p className='chat-message-time'>
-                    {new Date(this.props.timestamp).toLocaleTimeString("en-US")}
+                    {new Date(this.props.timestamp).toLocaleTimeString('en-US')}
                 </p>
                 <p className='chat-message-text'>
                     {this.props.text}
