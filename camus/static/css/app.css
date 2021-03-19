@@ -152,6 +152,10 @@ summary:focus {
     border-radius: 4px;
 }
 
+.dialog .title {
+    font-size: 1.25rem;
+}
+
 .dialog table {
     table-layout: fixed;
     width: 100%;
@@ -171,6 +175,7 @@ summary:focus {
 .dialog .footer-link {
     text-align: right;
     color: #555;
+    font-size: 1rem;
 }
 
 .dialog .footer-link hr {
@@ -309,6 +314,8 @@ summary:focus {
 
 .sub-headline {
     color: #bbb;
+    font-size: 2rem;
+    line-height: 1.2;
 }
 
 .create-room-area {
@@ -317,6 +324,16 @@ summary:focus {
 
 .info-area {
     min-height: 100vh;
+    line-height: 1.2;
+}
+
+.info-area .main-headline {
+    font-size: 2rem;
+    color: #ddd;
+}
+
+.info-area .sub-headline {
+    font-size: 1.5rem;
 }
 
 .info-box {
@@ -325,8 +342,18 @@ summary:focus {
     margin-bottom: 40px;
 }
 
+.info-box .headline {
+    font-size: 1.5rem;
+    color: #ddd;
+}
+
 .info-box .material-icons {
     font-size: 3em;
+}
+
+.info-box p {
+    color: #bbb;
+    font-size: 1.25rem;
 }
 
 .info-box a {
