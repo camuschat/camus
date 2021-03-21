@@ -91,6 +91,12 @@ Documentation
 See the official documentation at https://docs.camus.chat for more information
 about configuring and running Camus.
 
+Contributing
+------------
+
+If you want to make a contribution, please read the `Contributing`_ guidelines
+first.
+
 .. |Build Status| image:: https://travis-ci.com/mrgnr/camus.svg?branch=master
    :target: https://travis-ci.com/mrgnr/camus
 .. |docs| image:: https://img.shields.io/readthedocs/camus/latest
@@ -129,3 +135,4 @@ about configuring and running Camus.
 .. _#6: https://github.com/mrgnr/camus/pull/6
 .. _#7: https://github.com/mrgnr/camus/pull/7
 .. _SFU: https://webrtcglossary.com/sfu
+.. _Contributing: https://github.com/mrgnr/camus/blob/master/CONTRIBUTING.rst
