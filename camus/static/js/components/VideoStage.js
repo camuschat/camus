@@ -34,7 +34,14 @@ class VideoStage extends Component {
         };
 
         return (
-            <ul id='video-stage' className='video-stage'>
+            <ul
+                id='video-stage'
+                className='video-stage'
+                aria-labelledby='video-stage-title'
+            >
+                <h1 id='video-stage-title' className='sr-only'>
+                    Video feeds
+                </h1>
                 {feeds.map((feed) =>
                     <VideoFeed
                         key={feed.id}
@@ -176,7 +183,12 @@ class VideoFeed extends Component {
                 onDragStart={this.onDragStart}
                 onDragOver={this.onDragOver}
                 onDrop={this.onDrop}
+                tabIndex={0}
+                aria-labelledby={`video-feed-${feed.id}`}
             >
+                <h2 id={`video-feed-${feed.id}`} className='sr-only'>
+                    {`Video feed for user ${feed.username}`}
+                </h2>
                 <p className='video-tag'>{feed.username}</p>
                 <div
                     ref={this.videoContainer}

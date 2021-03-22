@@ -9,6 +9,8 @@ export default class Invite extends Component {
             toggled: false
         };
 
+        this.toggleExpandButton = React.createRef();
+
         this.handleToggle = this.handleToggle.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleCopyLink = this.handleCopyLink.bind(this);
@@ -20,9 +22,20 @@ export default class Invite extends Component {
         }
 
         return (
-            <div className='dialog slide-down invite-box'>
+            <div
+                className='dialog slide-down invite-box'
+                role='dialog'
+                aria-labelledby='share-link-title'
+            >
+                <h1 id='share-link-title' className='sr-only'>
+                    Share the link to invite others
+                </h1>
                 <div className='input-line'>
-                    <button className='icon-button' onClick={this.handleClose}>
+                    <button
+                        className='icon-button'
+                        onClick={this.handleClose}
+                        aria-label='Close dialog'
+                    >
                         <i className='material-icons'>close</i>
                     </button>
                     <input
@@ -30,11 +43,16 @@ export default class Invite extends Component {
                         type='button'
                         value='Share the link to invite others'
                         readOnly={true}
+                        ref={this.toggleExpandButton}
                     />
                 </div>
                 { this.state.toggled &&
                 <div className='input-line'>
-                    <button type='button' onClick={this.handleCopyLink}>
+                    <button
+                        type='button'
+                        onClick={this.handleCopyLink}
+                        aria-label='Copy the room link'
+                    >
                         <i className='material-icons'>content_copy</i>
                     </button>
                     <input

@@ -54,12 +54,22 @@ class VideoControlBar extends Component {
         return (
             <div className='video-control-bar'>
                 {showVisibilityControls &&
-                <button className='toggle-visibility' onClick={this.toggleVisibility}>
+                <button
+                    className='toggle-visibility'
+                    onClick={this.toggleVisibility}
+                    aria-label={`Toggle mute video for feed ${feed.username}`}
+                    aria-pressed={!feed.videoEnabled}
+                >
                     <i className='material-icons'>{feed.videoEnabled ? 'visibility' : 'visibility_off'}</i>
                 </button>
                 }
                 {showAudioControls && <>
-                <button className='toggle-audio' onClick={this.toggleAudioMute}>
+                <button
+                    className='toggle-audio'
+                    onClick={this.toggleAudioMute}
+                    aria-label={`Toggle mute audio for feed ${feed.username}`}
+                    aria-pressed={this.state.volumeMuted}
+                >
                     <i className='material-icons'>{volumeIcon}</i>
                 </button>
                 <input
@@ -68,22 +78,35 @@ class VideoControlBar extends Component {
                     min='0' max='1' step='0.1'
                     value={volumeMuted ? 0 : volume}
                     onChange={this.handleVolumeChange}
+                    aria-label={`Audio volume slider for feed ${feed.username}`}
                 />
                 </>}
                 {showResolutionControls && videoDevice.active &&
-                <button className='toggle-settings' onClick={this.toggleSettings}>
+                <button
+                    className='toggle-settings'
+                    onClick={this.toggleSettings}
+                    aria-label='Toggle video settings menu for your camera'
+                >
                     <i className='material-icons'>settings</i>
                 </button>
                 }
                 {showResolutionControls && videoDevice.active &&
                     showSettings && this.renderSettings()}
                 {pipSupported &&
-                <button className='toggle-pip' onClick={this.togglePictureInPicture}>
+                <button
+                    className='toggle-pip'
+                    onClick={this.togglePictureInPicture}
+                    aria-label={`Toggle picture-in-picture video for feed ${feed.username}`}
+                >
                     <i className='material-icons'>picture_in_picture</i>
                 </button>
                 }
                 {fscreen.fullscreenEnabled &&
-                <button className='toggle-fullscreen' onClick={this.toggleFullscreen}>
+                <button
+                    className='toggle-fullscreen'
+                    onClick={this.toggleFullscreen}
+                    aria-label={`Toggle fullscreen video for feed ${feed.username}`}
+                >
                     <i className='material-icons'>fullscreen</i>
                 </button>
                 }
@@ -152,9 +175,9 @@ class VideoControlBar extends Component {
 
         if (video && video.webkitSetPresentationMode) {
             video.webkitSetPresentationMode(
-                video.webkitPresentationMode === "picture-in-picture"
-                ? "inline"
-                : "picture-in-picture"
+                video.webkitPresentationMode === 'picture-in-picture'
+                ? 'inline'
+                : 'picture-in-picture'
             );
         } else if (document.pictureInPictureElement) {
             document.exitPictureInPicture().catch(err => {

@@ -1,29 +1,25 @@
 {% extends "base.html" %}
 {% import "bootstrap/form.html" as wtf %}
 
-{% block app_content %}
+{% block header_content %}
+  <h1 class="headline">Camus</h1>
+  <p class="sub-headline">
+    Peer-to-peer<br/>
+    group video chat.
+  </p>
+{% endblock %}
 
-<div class="create-room-area">
-  <div class="row">
-    <div class="col-md-12 fade-in">
-      <h1 class="headline">
-        Camus
-      </h1>
-      <h2 class="sub-headline">
-        Peer-to-peer<br/>
-        group video chat.
-      </h2>
-    </div>
-  </div>
+{% block app_content %}
+<main class="create-room-area">
   <div class="row">
     <div class="col-md-12">
       <div class="dialog slide-down" id="create-room-dialog">
-        <h5>Create a room</h5>
+        <h2 class="title">Create a room</h2>
         <form method="post" id="create-room-form">
           {{ create_room_form.csrf_token }}
           <div class="input-line">
             {{ create_room_form.room_name.label(hidden=True) }}
-            {{ create_room_form.room_name() }}
+            {{ create_room_form.room_name(**{'aria-label': 'Room name'}) }}
             <input class="btn btn-secondary" id="submit" name="submit"
               type="submit" value="Go"
             >
@@ -32,8 +28,9 @@
             <summary>Advanced options</summary>
             <div class="input-line">
               {{ create_room_form.password.label() }}:
-              {{ create_room_form.password() }}
-              <button type="button" onclick="togglePasswordVisibility()">
+              {{ create_room_form.password(**{'aria-label': 'Room password'}) }}
+              <button type="button" id="password-visibility-button" onclick="togglePasswordVisibility()"
+                  aria-label="Toggle password visibility" aria-pressed="false">
                 <i id="visibility-icon" class="material-icons">
                   visibility_off
                 </i>
@@ -50,24 +47,24 @@
           </details>
         </form>
         <div class="footer-link">
-          <h6>
-            &#8627;<a href="/public">Find a public room</a>
-          </h6>
+          <span>
+            &#8627;<a class="footer-link" href="/public">Find a public room</a>
+          </span>
         </div>
       </div>
     </div>
   </div>
-</div>
+</main>
 <div class="info-area" id="why-camus">
   <div class="row fade-in">
     <div class="col-md-3 info-box fade-in">
     </div>
     <div class="col-md-6 info-box fade-in">
-      <h2 class="headline">Why Camus?</h2>
-      <h4 class="sub-headline">
+      <h2 class="main-headline">Why Camus?</h2>
+      <p class="sub-headline">
         Camus is a modern video chat application, relying on the latest
         standards and technologies.
-      </h4>
+      </p>
     </div>
     <div class="col-md-3 info-box fade-in">
     </div>
@@ -75,65 +72,67 @@
   <div class="row">
     <div class="col-md-5 info-box fade-in">
       <i class="material-icons headline">stars</i>
-      <h4 class="headline">Low latency, high quality audio and video</h4>
-      <h5 class="sub-headline">
+      <h3 class="headline">Low latency, high quality audio and video</h3>
+      <p class="info">
         Camus uses <a href="https://webrtc.org/">WebRTC</a>, the latest
         standard for audio and video streaming, to create direct
         browser-to-browser connections.
-      </h5>
+      </p>
     </div>
     <div class="col-md-2">
     </div>
     <div class="col-md-5 info-box fade-in">
       <i class="material-icons headline">extension</i>
-      <h4 class="headline">
+      <h3 class="headline">
         Video controls, screen-sharing, text chat, and more
-      </h4>
-      <h5 class="sub-headline">
+      </h3>
+      <p class="info">
         Set your camera resolution, toggle fullscreen or picture-in-picture
         mode, share your desktop, and send text messages.
-      </h5>
+      </p>
     </div>
   </div>
   <div class="row">
     <div class="col-md-5 info-box fade-in">
       <i class="material-icons headline">visibility_off</i>
-      <h4 class="headline">No ads, no trackers</h4>
-      <h5 class="sub-headline">
+      <h3 class="headline">No ads, no trackers</h3>
+      <p class="info">
         Camus <a href="https://themarkup.org/blacklight?url=camus.chat">
           will not track you
         </a>, pester you with annoying ads, or give away
         your personal data.
-      </h5>
+      </p>
     </div>
     <div class="col-md-2">
     </div>
     <div class="col-md-5 info-box fade-in">
       <i class="material-icons headline">groups</i>
-      <h4 class="headline">Users are in control</h4>
-      <h5 class="sub-headline">
+      <h3 class="headline">Users are in control</h3>
+      <p class="info">
         Camus is, and always will be,
         <a href="https://github.com/mrgnr/camus">
           100% open-source software</a>. You can even
         <a href="https://docs.camus.chat/en/latest/deployment.html">
           deploy your own server.
         </a>
-      </h5>
+      </p>
     </div>
   </div>
 </div>
 <script>
   function togglePasswordVisibility() {
     const pwInput = document.getElementById('password');
+    const visibilityButton = document.getElementById('password-visibility-button');
     const visibilityIcon = document.getElementById('visibility-icon');
     if (pwInput.type === 'password') {
       pwInput.type = 'text';
+      visibilityButton.setAttribute('aria-pressed', true);
       visibilityIcon.innerHTML = 'visibility';
     } else {
       pwInput.type = 'password';
+      visibilityButton.setAttribute('aria-pressed', false);
       visibilityIcon.innerHTML = 'visibility_off';
     }
   }
 </script>
-
 {% endblock %}
