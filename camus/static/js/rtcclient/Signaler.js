@@ -3,7 +3,12 @@ import EventEmitter from './EventEmitter'
 export default class Signaler extends EventEmitter {
     constructor() {
         super();
+        this.connect = this.connect.bind(this);
+        this.connect();
+    }
 
+
+    connect() {
         const protocol = (location.protocol.startsWith('https')) ? 'wss' : 'ws';
         const url = `${protocol}://${location.host}${location.pathname}/ws`;
         this.socket = new WebSocket(url);
@@ -14,10 +19,12 @@ export default class Signaler extends EventEmitter {
 
         this.socket.onclose = () => {
             this.emit('close');
+            setTimeout(this.connect, 5000);
         };
 
         this.socket.onerror = (event) => {
             this.emit('error', event);
+            this.socket.close();
         };
 
         this.socket.onmessage = (event) => {
