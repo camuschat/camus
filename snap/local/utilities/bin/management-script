@@ -1,5 +1,42 @@
 #!/bin/sh
 
+SQLITE_DIR="$SNAP_DATA/sqlite"
+DEFAULT_DATABASE_URL="sqlite:///$SQLITE_DIR/camus.db"
+
+mkdir -p "$SQLITE_DIR"
+chmod 770 "$SQLITE_DIR"
+
+secret_key()
+{
+    key="$(snapctl get secret-key)"
+    if [ -z "$key" ]; then
+        key="$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64)"
+        set_secret_key $key
+    fi
+    echo "$key"
+}
+
+set_secret_key()
+{
+    snapctl set secret-key="$1"
+}
+
+database_url()
+{
+    url="$(snapctl get database-url)"
+    if [ -z "$url" ]; then
+        url="$DEFAULT_DATABASE_URL"
+        set_database_url $url
+    fi
+
+    echo "$url"
+}
+
+set_database_url()
+{
+    snapctl set database-url="$1"
+}
+
 stun_host()
 {
 	host="$(snapctl get stun.host)"
