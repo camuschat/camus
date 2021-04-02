@@ -28,6 +28,12 @@
 #   A Twilio API key SID.
 #
 
+handle_main_config()
+{
+    set_secret_key "$(secret_key)"
+    set_database_url "$(database_url)"
+}
+
 handle_stun_config()
 {
     camus_stun_host="$(stun_host)"
@@ -59,6 +65,7 @@ handle_twilio_config()
     set_twilio_key_sid "$camus_twilio_key_sid"
 }
 
+handle_main_config && \
 handle_turn_config && \
 handle_stun_config && \
 handle_twilio_config && \

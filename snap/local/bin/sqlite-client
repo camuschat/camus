@@ -1,0 +1,8 @@
+#!/bin/sh
+
+. "$SNAP/bin/management-script"
+
+DATABASE_URL="$(database_url)"
+DATABASE_PATH=$(echo $DATABASE_URL | sed -e "s/^sqlite:\/\/\///")
+
+"$SNAP/bin/litecli" "$DATABASE_PATH"

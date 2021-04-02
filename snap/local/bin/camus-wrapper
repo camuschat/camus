@@ -2,6 +2,8 @@
 
 . "$SNAP/bin/management-script"
 
+SECRET_KEY="$(secret_key)"
+DATABASE_URL="$(database_url)"
 STUN_HOST="$(stun_host)"
 STUN_PORT="$(stun_port)"
 TURN_HOST="$(turn_host)"
@@ -10,6 +12,8 @@ TURN_STATIC_AUTH_SECRET="$(turn_static_auth_secret)"
 TWILIO_ACCOUNT_SID="$(twilio_account_sid)"
 TWILIO_AUTH_TOKEN="$(twilio_auth_token)"
 TWILIO_KEY_SID="$(twilio_key_sid)"
+export SECRET_KEY
+export DATABASE_URL
 export STUN_HOST
 export STUN_PORT
 export TURN_HOST

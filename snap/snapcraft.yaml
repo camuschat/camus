@@ -10,7 +10,15 @@ description: |
 grade: stable
 confinement: strict
 
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+  - build-on: ppc64el
+  - build-on: s390x
+
 apps:
+  # Camus server daemon
   camus:
     command: bin/camus-wrapper
     daemon: simple
@@ -18,6 +26,10 @@ apps:
     plugs:
       - network-bind
       - network
+
+  # SQLite client
+  sqlite-client:
+    command: bin/sqlite-client
 
 hooks:
   configure:
@@ -27,6 +39,8 @@ parts:
   camus:
     plugin: python
     source: .
+    python-packages:
+      - litecli
 
   utilities:
     plugin: dump
