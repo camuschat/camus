@@ -43,6 +43,14 @@ async def index():
         'chat.html', create_room_form=create_room_form)
 
 
+# The `/chat` route is deprecated.
+@bp.route('/chat')
+async def chat_index():
+    return redirect('/', code=307)
+
+
+# The `/chat/` route is deprecated. Prefer`/room/` instead.
+@bp.route('/chat/<room_id>', methods=['GET', 'POST'])
 @bp.route('/room/<room_id>', methods=['GET', 'POST'])
 async def room(room_id):
     room = Room.query.filter_by(slug=room_id).first_or_404()
@@ -85,6 +93,8 @@ async def room(room_id):
         status_code)
 
 
+# The `/chat/` route is deprecated. Prefer`/room/` instead.
+@bp.websocket('/chat/<room_id>/ws')
 @bp.websocket('/room/<room_id>/ws')
 async def room_ws(room_id):
     # Verify that the room exists

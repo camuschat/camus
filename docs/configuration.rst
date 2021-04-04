@@ -81,6 +81,61 @@ Set the following environment variables on the server:
    TWILIO_AUTH_TOKEN  # your Twilio account auth token, or if using an API key, the API key secret
    TWILIO_KEY_SID  # (optional) if using an API key, the API key SID
 
+Snap configuration
+------------------
+
+If using the `Snap package`_, you can view and modify the server settings using
+``snap get`` and ``snap set``. See `Managing snap configuration`_ for details
+on how to use these commands.
+
+View the current settings:
+
+.. code-block:: none
+
+   $ sudo snap get camus
+   Key           Value
+   database-url  sqlite:////var/snap/camus/96/sqlite/camus.db
+   secret-key    ySWCYfc79GurPmTxmwYQ16bIPaRbLNoPt0bIDkiztpb85NrVO6N8tZhTj4C010sn
+   stun          {...}
+   turn          {...}
+   twilio        {...}
+
+For example, set the ``SECRET_KEY``:
+
+.. code-block:: none
+
+   $ sudo snap set camus secret-key=mySecretKey
+
+The Snap package also provides the ``camus.sqlite-client`` command for
+administering the database with `LiteCLI`_ when using SQLite (which is the
+default database option):
+
+.. code-block:: none
+
+   $ sudo camus.sqlite-client
+
+   Version: 1.6.0
+   Mail: https://groups.google.com/forum/#!forum/litecli-users
+   GitHub: https://github.com/dbcli/litecli
+
+   /var/snap/camus/96/sqlite/camus.db> .tables
+   +---------+
+   | name    |
+   +---------+
+   | clients |
+   | rooms   |
+   +---------+
+   Time: 0.007s
+
+   /var/snap/camus/96/sqlite/camus.db> select * from rooms
+   +----+-----------+-----------+---------------+-------------+-----------+----------------------------+----------------------------+
+   | id | name      | slug      | password_hash | guest_limit | is_public | created                    | active                     |
+   +----+-----------+-----------+---------------+-------------+-----------+----------------------------+----------------------------+
+   | 1  | test-room | test-room | <null>        | 0           | 0         | 2021-04-02 17:09:30.511584 | 2021-04-02 17:09:30.981780 |
+   +----+-----------+-----------+---------------+-------------+-----------+----------------------------+----------------------------+
+   1 row in set
+   Time: 0.004s
+
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _SQLite: https://sqlite.org/index.html
 .. _Postgresql: https://www.postgresql.org/
@@ -90,3 +145,6 @@ Set the following environment variables on the server:
 .. _Twilio: https://www.twilio.com/
 .. _create a (free) Twilio account: https://www.twilio.com/try-twilio
 .. _Coturn documentation: https://github.com/coturn/coturn/wiki/turnserver#turn-rest-api
+.. _Snap package: https://snapcraft.io/camus
+.. _Managing snap configuration: https://snapcraft.io/docs/configuration-in-snaps
+.. _LiteCLI: https://litecli.com/

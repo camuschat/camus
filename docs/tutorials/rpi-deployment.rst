@@ -101,8 +101,8 @@ Copy the following into the file and save it. Note that the value for
       }
 
       # Settings required for websockets
-      location ~ ^/chat/(?<room_id>.+)/ws {
-         proxy_pass http://camus_upstream/chat/$room_id/ws;
+      location ~ ^/room/(?<room_id>.+)/ws {
+         proxy_pass http://camus_upstream/room/$room_id/ws;
          proxy_http_version 1.1;
          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
          proxy_set_header Host $host;

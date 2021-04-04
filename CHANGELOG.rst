@@ -1,11 +1,20 @@
 Version 0.3.0
 -------------
 
-Unreleased
+Released 2021-04-04
 
-- Refactor the server and add support for database (SQLite or Postgresql)
-- Refactor the WebRTC client and add support for multiple audio/video tracks
-- Update documentation
+- Major refactoring of the server and the WebRTC client
+- Add support for a database (SQLite or Postgresql) on the server
+- Add support for multiple audio/video tracks to the WebRTC client
+- Improve support for screenreaders and keyboard-based navigation
+- Automatically reconnect websocket on failure/disconnection
+- Update the Snap package for database support
+- Add tutorial for deploying on Raspberry Pi
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+- Rename the `/chat` route to `/room`
 
 Version 0.2.3
 -------------
