@@ -1,21 +1,23 @@
 export default class EventEmitter {
+    events: Map<string, Function[]>;
+
     constructor() {
         this.events = new Map();
     }
 
-    listeners(event) {
+    listeners(event: string): Function[] {
         return this.events.get(event) || [];
     }
 
-    on(event, callback) {
+    on(event: string, callback: Function): void {
         if (!this.events.has(event)) {
             this.events.set(event, []);
         }
 
-        this.events.get(event).push(callback);
+        this.events.get(event)!.push(callback);
     }
 
-    removeListener(event, callback) {
+    removeListener(event: string, callback: Function): void {
         const listeners = this.events.get(event);
         if (listeners && listeners.includes(callback)) {
             const index = listeners.indexOf(callback);
@@ -23,10 +25,10 @@ export default class EventEmitter {
         }
     }
 
-    emit(event, ...args) {
+    emit(event: string, ...args: any[]): void {
         if (this.events.has(event)) {
             const callbacks = this.events.get(event);
-            callbacks.forEach((callback) => {
+            callbacks && callbacks.forEach((callback) => {
                 callback(...args);
             });
         }

@@ -1,38 +1,43 @@
+import { Answer, IceCandidate, IceServer, Message, Offer, PongMessage, RoomInfo } from './types';
 import EventEmitter from './EventEmitter'
 
 export default class Signaler extends EventEmitter {
+    socket: WebSocket;
+
     constructor() {
         super();
         this.connect = this.connect.bind(this);
-        this.connect();
+        this.socket = this.connect();
     }
 
 
-    connect() {
+    connect(): WebSocket {
         const protocol = (location.protocol.startsWith('https')) ? 'wss' : 'ws';
         const url = `${protocol}://${location.host}${location.pathname}/ws`;
-        this.socket = new WebSocket(url);
+        const socket = new WebSocket(url);
 
-        this.socket.onopen = () => {
+        socket.onopen = () => {
             this.emit('open');
         };
 
-        this.socket.onclose = () => {
+        socket.onclose = () => {
             this.emit('close');
             setTimeout(this.connect, 5000);
         };
 
-        this.socket.onerror = (event) => {
+        socket.onerror = (event) => {
             this.emit('error', event);
-            this.socket.close();
+            socket.close();
         };
 
-        this.socket.onmessage = (event) => {
+        socket.onmessage = (event) => {
             this.emit('message', JSON.parse(event.data));
         };
+
+        return socket;
     }
 
-    get connectionState() {
+    get connectionState(): string {
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:
                 return "connecting";
@@ -47,16 +52,16 @@ export default class Signaler extends EventEmitter {
         }
     }
 
-    send(data) {
+    send(data: Message): void {
         this.socket.send(JSON.stringify(data));
     }
 
-    sendReceive(data, responseParams) {
+    sendReceive(data: Message, responseParams: object): Promise<Message> {
         // return a Promise that resolves when an appropriate response is received
         return new Promise((resolve) => {
-            function matchResponse(message) {
+            function matchResponse(message: Message) {
                 for (const key in responseParams) {
-                    if (!(message.hasOwnProperty(key) && message[key] === responseParams[key])) {
+                    if (!(key in message && (message as any)[key] === (responseParams as any)[key])) {
                         return false;
                     }
                 }
@@ -64,7 +69,7 @@ export default class Signaler extends EventEmitter {
             }
 
             const signaler = this;
-            function onMessage(message) {
+            function onMessage(message: Message) {
                 if (matchResponse(message)) {
                     signaler.removeListener('message', onMessage);
                     resolve(message);
@@ -76,7 +81,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    async ping() {
+    async ping(): Promise<PongMessage> {
         const time = new Date().getTime();
         const data = {
             receiver: 'ground control',
@@ -88,10 +93,11 @@ export default class Signaler extends EventEmitter {
             type: 'pong',
             data: time
         };
-        return await this.sendReceive(data, responseParams);
+        const response = await this.sendReceive(data, responseParams);
+        return response as PongMessage;
     }
 
-    async get_room_info() {
+    async getRoomInfo(): Promise<RoomInfo> {
         const data = {
             receiver: 'ground control',
             type: 'get-room-info'
@@ -101,10 +107,10 @@ export default class Signaler extends EventEmitter {
             type: 'room-info'
         };
         const response = await this.sendReceive(data, responseParams);
-        return response.data;
+        return response.data as RoomInfo;
     }
 
-    async fetchIceServers() {
+    async fetchIceServers(): Promise<IceServer[]> {
         const data = {
             receiver: 'ground control',
             type: 'get-ice-servers'
@@ -114,12 +120,12 @@ export default class Signaler extends EventEmitter {
             type: 'ice-servers'
         }
         const response = await this.sendReceive(data, responseParams);
-        return response.data;
+        return response.data as IceServer[];
     }
 
-    text(text, from, receiver, time) {
-        receiver = ifDefined(receiver, 'room');
-        time = ifDefined(time, new Date().getTime());
+    text(text: string, from: string, receiver?: string, time?: number): void {
+        receiver = receiver ? receiver : 'room';
+        time = time ? time : new Date().getTime();
         this.send({
             receiver,
             type: 'text',
@@ -131,7 +137,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    profile(username) {
+    profile(username: string): void {
         this.send({
             receiver: 'ground control',
             type: 'profile',
@@ -139,7 +145,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    offer(receiver, description) {
+    offer(receiver: string, description: Offer): void {
         this.send({
             receiver,
             type: 'offer',
@@ -147,7 +153,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    answer(receiver, description) {
+    answer(receiver: string, description: Answer): void {
         this.send({
             receiver,
             type: 'answer',
@@ -155,7 +161,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    bye(receiver) {
+    bye(receiver: string): void {
         this.send({
             receiver,
             type: 'bye',
@@ -163,7 +169,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    icecandidate(receiver, candidate) {
+    icecandidate(receiver: string, candidate: IceCandidate): void {
         this.send({
             receiver,
             type: 'icecandidate',
@@ -171,13 +177,11 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    greeting(receiver, text) {
-        receiver = ifDefined(receiver, 'ground control');
-        text = ifDefined(
-            text,
+    greeting(receiver?: string, text?: string): void {
+        receiver = receiver ? receiver: 'ground control';
+        text = text ?  text :
             "This is Major Tom to Ground Control: I'm stepping through the " +
-            "door. And the stars look very different today."
-        );
+            "door. And the stars look very different today.";
         this.send({
             receiver,
             type: 'greeting',
@@ -185,7 +189,7 @@ export default class Signaler extends EventEmitter {
         });
     }
 
-    shutdown() {
+    shutdown(): void {
         if (this.socket.readyState === WebSocket.OPEN) {
             // Say bye to Ground Control
             this.bye('ground control');
@@ -196,8 +200,4 @@ export default class Signaler extends EventEmitter {
 
         this.emit('shutdown');
     }
-}
-
-function ifDefined(item1, item2) {
-    return item1 !== undefined ? item1 : item2;
 }

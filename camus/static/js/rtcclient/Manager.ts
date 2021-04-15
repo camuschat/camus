@@ -1,9 +1,20 @@
+import { Client, IceServer, Message, RoomInfo, Text } from './types';
 import EventEmitter from './EventEmitter';
 import MediaPeer from './MediaPeer';
 import MessageHandler from './MessageHandler';
 import Signaler from './Signaler';
 
 export default class Manager extends EventEmitter {
+    id: string;
+    username: string;
+    mediaPeers: Map<string, MediaPeer>;
+    textMessages: Text[];
+    signaler: Signaler;
+    mediaTracks: Map<string, MediaStreamTrack>;
+    localVideoStream: MediaStream;
+    messageHandler: MessageHandler;
+    private _iceServers: IceServer[];
+
     constructor() {
         super();
         this.username = 'Major Tom';
@@ -13,20 +24,20 @@ export default class Manager extends EventEmitter {
         this.localVideoStream = new MediaStream();
         this.textMessages = [];
         this.messageHandler = new MessageHandler(this, this.signaler);
-        this.id = null;
+        this.id = '';
         this._iceServers = [];
     }
 
-    setUsername(username) {
+    setUsername(username: string): void {
         this.username = username;
         this.signaler.profile(username);
     }
 
-    setIceServers(iceServers) {
+    setIceServers(iceServers: IceServer[]): void {
         this.iceServers = iceServers;
     }
 
-    set iceServers(iceServers) {
+    set iceServers(iceServers: IceServer[]) {
         this._iceServers = iceServers;
 
         this.mediaPeers.forEach(peer => {
@@ -34,17 +45,17 @@ export default class Manager extends EventEmitter {
         });
     }
 
-    get iceServers() {
+    get iceServers(): IceServer[] {
         return this._iceServers;
     }
 
-    addTrack(name, track) {
+    addTrack(name: string, track: MediaStreamTrack): void {
         if (this.mediaTracks.has(name)) {
             throw new Error(`Track with name "${name}" already exists.`);
         }
 
         // Add track to each peer
-        for (let peer of this.mediaPeers.values()) {
+        for (const peer of this.mediaPeers.values()) {
             peer.addTrack(track);
         }
 
@@ -52,7 +63,7 @@ export default class Manager extends EventEmitter {
         this.localVideoStream.addTrack(track);
     }
 
-    async replaceTrack(name, track) {
+    async replaceTrack(name: string, track: MediaStreamTrack): Promise<void> {
         if (!this.mediaTracks.has(name)) {
             throw new Error(`Track with name "${name}" does not exist.`);
         }
@@ -60,16 +71,16 @@ export default class Manager extends EventEmitter {
         const oldTrack = this.mediaTracks.get(name);
 
         // Replace track on each peer
-        for (let peer of this.mediaPeers.values()) {
-            await peer.replaceTrack(oldTrack.id, track);
+        for (const peer of this.mediaPeers.values()) {
+            await peer.replaceTrack(oldTrack!.id, track);
         }
 
         this.mediaTracks.set(name, track);
-        this.localVideoStream.removeTrack(oldTrack);
+        this.localVideoStream.removeTrack(oldTrack!);
         this.localVideoStream.addTrack(track);
     }
 
-    async setTrack(name, track) {
+    async setTrack(name: string, track: MediaStreamTrack): Promise<void> {
         if (this.mediaTracks.has(name)) {
             await this.replaceTrack(name, track);
         } else {
@@ -77,7 +88,7 @@ export default class Manager extends EventEmitter {
         }
     }
 
-    removeTrack(name) {
+    removeTrack(name: string): void {
         if (!this.mediaTracks.has(name)) {
             throw new Error(`Track with name "${name}" does not exist.`);
         }
@@ -85,46 +96,43 @@ export default class Manager extends EventEmitter {
         const track = this.mediaTracks.get(name);
 
         // Remove track from each peer
-        for (let peer of this.mediaPeers.values()) {
-            peer.removeTrack(track.id);
+        for (const peer of this.mediaPeers.values()) {
+            peer.removeTrack(track!.id);
         }
 
         this.mediaTracks.delete(name);
-        this.localVideoStream.removeTrack(track);
+        this.localVideoStream.removeTrack(track!);
     }
 
-    stopTrack(name) {
+    stopTrack(name: string): void {
         if (!this.mediaTracks.has(name)) {
             throw new Error(`Track with name "${name}" does not exist.`);
         }
 
         const track = this.mediaTracks.get(name);
-        track.enabled = false;
-        track.stop();
+        track!.enabled = false;
+        track!.stop();
     }
 
-    createMediaPeer(client) {
+    createMediaPeer(client: Client): MediaPeer {
         const peer = new MediaPeer(
             client, this.signaler, this.id < client.id, this.iceServers,
-            this.mediaTracks.values()
+            [...this.mediaTracks.values()]
         );
         this.mediaPeers.set(client.id, peer);
 
-        console.log('Created video peer ', peer.client_id);
+        console.log('Created video peer ', peer.id);
         this.emit('mediapeer', peer);
 
         return peer;
     }
 
-    getOrCreateMediaPeer(client) {
-        if (!this.mediaPeers.has(client.id)) {
-            return this.createMediaPeer(client);
-        }
-
-        return this.mediaPeers.get(client.id);
+    getOrCreateMediaPeer(client: Client): MediaPeer {
+        const existingPeer = this.mediaPeers.get(client.id);
+        return existingPeer ? existingPeer : this.createMediaPeer(client);
     }
 
-    removeMediaPeer(id) {
+    removeMediaPeer(id: string): void {
         const peer = this.mediaPeers.get(id);
         if (peer) {
             peer.shutdown();
@@ -133,14 +141,14 @@ export default class Manager extends EventEmitter {
         }
     }
 
-    async findPeers() {
-        const roomInfo = await this.signaler.get_room_info();
+    async findPeers(): Promise<void> {
+        const roomInfo = await this.signaler.getRoomInfo();
         this.updatePeers(roomInfo);
     }
 
-    updatePeers(roomInfo) {
+    updatePeers(roomInfo: RoomInfo): void {
         // Remove peers not in room
-        const roomClientIds = roomInfo.clients.map(({id}) => id);
+        const roomClientIds = roomInfo.clients.map(({ id }) => id);
         const peerClientIds = Array.from(this.mediaPeers.keys());
         const removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
 
@@ -164,11 +172,11 @@ export default class Manager extends EventEmitter {
         });
     }
 
-    addMessageListener(messageParams, listener) {
+    addMessageListener(messageParams: object, listener: Function): void {
         this.messageHandler.addMessageListener(messageParams, listener);
     }
 
-    shutdownMediaPeers() {
+    shutdownMediaPeers(): void {
         this.mediaPeers.forEach((peer) => {
             peer.shutdown();
         });
@@ -176,19 +184,19 @@ export default class Manager extends EventEmitter {
         this.mediaPeers.clear();
     }
 
-    async get_self_id() {
+    async getSelfId(): Promise<string> {
         const response = await this.signaler.ping();
         return response.receiver;
     }
 
-    shutdown() {
+    shutdown(): void {
         this.shutdownMediaPeers();
         this.signaler.shutdown();
     }
 
-    async start() {
+    async start(): Promise<void> {
         // Set up message handler
-        this.signaler.on('message', (message) => {
+        this.signaler.on('message', (message: Message) => {
             this.messageHandler.handleMessage(message);
         });
 
@@ -197,7 +205,7 @@ export default class Manager extends EventEmitter {
             await new Promise(r => {setTimeout(r, 100)});
         }
 
-        this.id = await this.get_self_id();
+        this.id = await this.getSelfId();
         this.iceServers = await this.signaler.fetchIceServers();
         await this.findPeers();
     }

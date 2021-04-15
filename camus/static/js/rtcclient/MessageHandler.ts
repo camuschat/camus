@@ -1,5 +1,14 @@
+import { Message } from './types';
+import Manager from './Manager';
+import Signaler from './Signaler';
+
 export default class MessageHandler {
-    constructor(manager, signaler) {
+    manager: Manager;
+    signaler: Signaler;
+    messageListeners: [object, Function][];
+    handlers: { [key: string]: Function; };
+
+    constructor(manager: Manager, signaler: Signaler) {
         this.manager = manager;
         this.signaler = signaler;
         this.messageListeners = [];
@@ -20,11 +29,15 @@ export default class MessageHandler {
         };
     }
 
-    addMessageListener(messageParams, listener) {
+    addMessageListener(messageParams: object, listener: Function): void {
         this.messageListeners.push([messageParams, listener]);
     }
 
-    async handleMessage(message) {
+    async handleMessage(message: Message): Promise<void> {
+        const handler = this.handlers[message.type];
+        if (handler) {
+            handler.call(this, message);
+        }
         await this.handlers[message.type].call(this, message);
 
         this.messageListeners.forEach(([messageParams, listener]) => {
@@ -35,89 +48,103 @@ export default class MessageHandler {
         });
     }
 
-    async ping(message) {
+    async ping(message: Message): Promise<void> {
         console.log('<< Received ping: ', message);
 
-        const response = this.emptyMessage();
-        response.receiver = message.sender;
-        response.type = 'pong';
-        response.data = message.data;
-        this.signaler.send(response);
+        if (message.sender) {
+            const response = this.emptyMessage();
+            response.receiver = message.sender;
+            response.type = 'pong';
+            response.data = message.data;
+            this.signaler.send(response);
+        }
     }
 
-    async pong(message) {
+    async pong(message: Message): Promise<void> {
         console.log('<< Received pong: ', message);
     }
 
-    async text(message) {
+    async text(message: Message): Promise<void> {
         console.log('<< Received text: ', message);
         this.manager.textMessages.push(message.data);
     }
 
-    async getRoomInfo(message) {
+    async getRoomInfo(message: Message): Promise<void> {
         console.log('<< Received get-room-info: ', message);
     }
 
-    async roomInfo(message) {
+    async roomInfo(message: Message): Promise<void> {
         console.log('<< Received room-info: ', message);
-        await this.manager.updatePeers(message.data);
+        this.manager.updatePeers(message.data);
     }
 
-    async getIceServers(message) {
+    async getIceServers(message: Message): Promise<void> {
         console.log('<< Received get-ice-servers: ', message);
     }
 
-    async iceServers(message) {
+    async iceServers(message: Message): Promise<void> {
         console.log('<< Received ice-servers: ', message);
     }
 
-    async profile(message) {
+    async profile(message: Message): Promise<void> {
         console.log('<< Received profile: ', message);
     }
 
-    async offer(message) {
-        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
-        if (message.type !== message.data.type){
-            throw new Error('! Type mismatch in offer');
+    async offer(message: Message): Promise<void> {
+        if (message.sender) {
+            const peer = this.manager.getOrCreateMediaPeer({
+                id: message.sender,
+                username: 'Major Tom'
+            });
+            await peer.onOffer(message.data);
         }
-        await peer.onOffer(message.data);
     }
 
-    async answer(message) {
-        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
-        if (message.type !== message.data.type){
-            throw new Error('! Type mismatch in answer');
+    async answer(message: Message): Promise<void> {
+        if (message.sender) {
+            const peer = this.manager.getOrCreateMediaPeer({
+                id: message.sender,
+                username: 'Major Tom'
+            });
+            await peer.onAnswer(message.data);
         }
-        await peer.onAnswer(message.data);
     }
 
-    async iceCandidate(message) {
-        const peer = await this.manager.getOrCreateMediaPeer({id: message.sender, username: 'Major Tom'});
-        const iceCandidate = new RTCIceCandidate(message.data);
-        await peer.onIceCandidate(iceCandidate);
+    async iceCandidate(message: Message): Promise<void> {
+        if (message.sender) {
+            const peer = this.manager.getOrCreateMediaPeer({
+                id: message.sender,
+                username: 'Major Tom'
+            });
+            const iceCandidate = new RTCIceCandidate(message.data);
+            await peer.onIceCandidate(iceCandidate);
+        }
     }
 
-    async greeting(message) {
+    async greeting(message: Message): Promise<void> {
         console.log('<< Received greeting: ', message);
     }
 
-    async bye(message) {
+    async bye(message: Message): Promise<void> {
         console.log('<< Received bye: ', message);
 
-        const client_id = message.sender;
-        this.manager.removeMediaPeer(client_id);
+        if (message.sender) {
+            this.manager.removeMediaPeer(message.sender);
+        }
     }
 
-    emptyMessage() {
-        return {sender: '',
-                receiver: '',
-                type: '',
-                data: ''};
+    emptyMessage(): Message {
+        return {
+            sender: '',
+            receiver: '',
+            type: '',
+            data: ''
+        };
     }
 
-    match(message, params) {
+    match(message: Message, params: object): boolean {
         for (const key in params) {
-            if (!(message.hasOwnProperty(key) && message[key] === params[key])) {
+            if (!(key in message && (message as any)[key] === (params as any)[key])) {
                 return false;
             }
         }
