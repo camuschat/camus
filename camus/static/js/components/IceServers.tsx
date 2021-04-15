@@ -1,20 +1,25 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import {
     addIceServer,
     removeIceServer,
-    updateIceServer
+    updateIceServer,
+    IceServer
 } from '../slices/iceServers';
+import { RootState } from '../store';
 
-class IceServers extends Component {
-    constructor(props) {
+interface IceServersProps extends PropsFromRedux {
+    allowEditing: boolean;
+}
+
+class IceServers extends Component<IceServersProps> {
+    constructor(props: IceServersProps) {
         super(props);
 
         this.newServer = this.newServer.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         return (
             <div className='ice-servers-bar'>
                 {this.renderServers('stun')}
@@ -23,7 +28,7 @@ class IceServers extends Component {
         );
     }
 
-    renderServers(kind) {
+    renderServers(kind: string): React.ReactNode {
         const {
             iceServers,
             updateIceServer,
@@ -40,7 +45,7 @@ class IceServers extends Component {
                     {servers.filter(server =>
                         server.urls && server.urls.length
                     ).map(server =>
-                        <IceServer
+                        <IceServerItem
                             key={server.id}
                             server={server}
                             onSave={updateIceServer}
@@ -61,7 +66,7 @@ class IceServers extends Component {
         );
     }
 
-    newServer(kind) {
+    newServer(kind: string): void {
         const server = {
             urls: [`${kind}:`],
             enabled: false,
@@ -71,35 +76,39 @@ class IceServers extends Component {
     }
 }
 
-IceServers.propTypes = {
-    iceServers: PropTypes.arrayOf(PropTypes.object).isRequired,
-    allowEditing: PropTypes.bool.isRequired,
-    addIceServer: PropTypes.func.isRequired,
-    updateIceServer: PropTypes.func.isRequired,
-    removeIceServer: PropTypes.func.isRequired,
+// Connect IceServers to Redux
+const mapState = (state: RootState) => ({
+    iceServers: state.iceServers
+});
+
+const mapDispatch = {
+    addIceServer,
+    updateIceServer,
+    removeIceServer
 };
 
-function select(state) {
-    const {
-        iceServers
-    } = state;
+const connector = connect(mapState, mapDispatch);
 
-    return {
-        iceServers
-    }
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(IceServers);
+
+
+interface IceServerItemProps {
+    server: IceServer;
+    allowEditing: boolean
+    onSave: Function;
+    onDelete: Function;
 }
 
-export default connect(
-    select,
-    {
-        addIceServer,
-        updateIceServer,
-        removeIceServer
-    },
-)(IceServers);
+interface IceServerItemState {
+    urls: string;
+    username: string;
+    credential: string;
+}
 
-class IceServer extends Component {
-    constructor(props) {
+class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
+    constructor(props: IceServerItemProps) {
         super(props);
 
         const {
@@ -121,7 +130,7 @@ class IceServer extends Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         const {
             server,
             allowEditing
@@ -133,7 +142,7 @@ class IceServer extends Component {
 
         // Extract the host from a server URL
         const hostMatch = server.urls[0].match(/(?:stun|turn):(?<host>[\w\d_.-]+)/);
-        const host = hostMatch ? hostMatch.groups.host : 'New server'
+        const host = hostMatch && hostMatch.groups ? hostMatch.groups.host : 'New server';
 
         return (
             <li className='ice-server'>
@@ -195,16 +204,17 @@ class IceServer extends Component {
         );
     }
 
-    handleInputChange(event) {
+    handleInputChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const name = event.target.name;
         const value = event.target.value;
 
+        // @ts-ignore
         this.setState({
             [name]: value
         });
     }
 
-    handleSubmit() {
+    handleSubmit(event: React.SyntheticEvent<HTMLFormElement>): void {
         event.preventDefault();
 
         const {
@@ -223,14 +233,7 @@ class IceServer extends Component {
         this.props.onSave(server);
     }
 
-    handleDelete() {
+    handleDelete(): void {
         this.props.onDelete(this.props.server.id);
     }
 }
-
-IceServer.propTypes = {
-    server: PropTypes.object.isRequired,
-    allowEditing: PropTypes.bool.isRequired,
-    onSave: PropTypes.func.isRequired,
-    onDelete: PropTypes.func.isRequired
-};

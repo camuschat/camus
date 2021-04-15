@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { sendChatMessage } from '../slices/messages';
+import { connect, ConnectedProps } from 'react-redux';
+import { Message, sendChatMessage } from '../slices/messages';
+import { RootState } from '../store';
 
-class ChatMessageBar extends Component {
-    constructor(props) {
+interface ChatMessageBarState {
+    value: string;
+}
+
+class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
+    constructor(props: PropsFromRedux) {
         super(props);
         this.state = {
             value: ''
@@ -13,12 +17,12 @@ class ChatMessageBar extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange(event) {
+    handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const value = event.target.value;
         this.setState({value: value});
     }
 
-    handleSubmit(event) {
+    handleSubmit(event: React.SyntheticEvent<HTMLButtonElement>): void {
         event.preventDefault();
 
         const trimmed = this.state.value.trim();
@@ -28,7 +32,7 @@ class ChatMessageBar extends Component {
         }
     }
 
-    render() {
+    render(): React.ReactNode {
         return (
             <div className='chat-message-bar'>
                 <ChatMessageLog messages={this.props.messages} />
@@ -51,31 +55,28 @@ class ChatMessageBar extends Component {
     }
 }
 
-ChatMessageBar.propTypes = {
-    users: PropTypes.arrayOf(PropTypes.object).isRequired,
-    messages: PropTypes.arrayOf(PropTypes.object).isRequired,
-    sendChatMessage: PropTypes.func.isRequired
+// Connect ChatMessageBar to Redux
+const mapState = (state: RootState) => ({
+    users: state.users,
+    messages: state.messages
+});
+
+const mapDispatch = {
+    sendChatMessage
 };
 
-function select(state) {
-    const {
-        users,
-        messages
-    } = state;
+const connector = connect(mapState, mapDispatch);
 
-    return {
-        users,
-        messages
-    }
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(ChatMessageBar);
+
+interface ChatMessageLogProps {
+    messages: Message[];
 }
 
-export default connect(
-    select,
-    { sendChatMessage }
-)(ChatMessageBar);
-
-class ChatMessageLog extends Component {
-    render() {
+class ChatMessageLog extends Component<ChatMessageLogProps> {
+    render(): React.ReactNode {
         return (
             <ul className='chat-message-log'>
                 {this.props.messages.map((message) =>
@@ -92,12 +93,14 @@ class ChatMessageLog extends Component {
     }
 }
 
-ChatMessageLog.propTypes = {
-    messages: PropTypes.arrayOf(PropTypes.object).isRequired,
-};
+interface ChatMessageProps {
+    from: string;
+    timestamp: number;
+    text: string;
+}
 
-class ChatMessage extends Component {
-    render() {
+class ChatMessage extends Component<ChatMessageProps> {
+    render(): React.ReactNode {
         return (
             <div className='chat-message'>
                 <p className='chat-message-from'>
@@ -113,9 +116,3 @@ class ChatMessage extends Component {
         );
     }
 }
-
-ChatMessage.propTypes = {
-    from: PropTypes.string.isRequired,
-    timestamp: PropTypes.number.isRequired,
-    text: PropTypes.string.isRequired
-};

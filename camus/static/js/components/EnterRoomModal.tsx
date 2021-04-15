@@ -1,12 +1,26 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { setUsername } from '../slices/users';
 import { updateAudioDevice, updateVideoDevice } from '../slices/devices';
 import { getCameras, getMics, getUserMedia, getUserVideo } from '../mediaUtils';
 
-class EnterRoomModal extends Component {
-    constructor(props) {
+interface EnterRoomModalProps extends PropsFromRedux {
+    isVisible: boolean;
+    onSubmit: Function;
+}
+
+interface EnterRoomModalState {
+    nickname: string;
+    audioDeviceId: string;
+    videoDeviceId: string;
+    mics: MediaDeviceInfo[];
+    cameras: MediaDeviceInfo[];
+}
+
+class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState> {
+    private videoPreview: React.RefObject<HTMLVideoElement>;
+
+    constructor(props: EnterRoomModalProps) {
         super(props);
 
         this.state = {
@@ -24,7 +38,7 @@ class EnterRoomModal extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         if (!this.props.isVisible) {
             return null;
         }
@@ -66,7 +80,7 @@ class EnterRoomModal extends Component {
         </>);
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         // Prompt the user for camera/microphone permission, then get a list of
         // available microphones and cameras
         getUserMedia().then(({audio, video}) => {
@@ -85,11 +99,11 @@ class EnterRoomModal extends Component {
         });
     }
 
-    componentWillUnmount() {
+    componentWillUnmount(): void {
         this.stopPreviewStream();
     }
 
-    onSelectDevice(kind, deviceId) {
+    onSelectDevice(kind: string, deviceId: string): void {
         if (kind === 'Camera') {
             this.stopPreviewStream();
 
@@ -103,8 +117,10 @@ class EnterRoomModal extends Component {
                 }).then(() => {
                     return getUserVideo({deviceId});
                 }).then(track => {
-                    const stream = new MediaStream([track]);
-                    this.videoPreview.current.srcObject = stream;
+                    if (track  && this.videoPreview.current) {
+                        const stream = new MediaStream([track]);
+                        this.videoPreview.current.srcObject = stream;
+                    }
                 });
             }
 
@@ -122,14 +138,14 @@ class EnterRoomModal extends Component {
         }
     }
 
-    handleChange(event) {
+    handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const nickname = event.target.value;
         this.setState({
             nickname: nickname
         });
     }
 
-    handleSubmit() {
+    handleSubmit(event: React.SyntheticEvent<HTMLFormElement>): void {
         event.preventDefault();
 
         const {
@@ -160,7 +176,7 @@ class EnterRoomModal extends Component {
         this.props.onSubmit();
     }
 
-    getMaxCameraResolution(deviceId) {
+    getMaxCameraResolution(deviceId: string): Promise<number> {
         // Determine the maximum camera resolution.
         // Note that we must stop the preview stream to turn off the camera
         // since the camera probably only supports a single resolution at
@@ -172,41 +188,47 @@ class EnterRoomModal extends Component {
         };
 
         return getUserVideo(videoConstraints).then(track => {
-            const resolution = track.getSettings().height;
-            track.stop();
+            let resolution = 0;
+            if (track) {
+                resolution = track.getSettings().height!;
+                track.stop();
+            }
             return resolution;
         });
     }
 
     stopPreviewStream() {
-        const stream = this.videoPreview.current.srcObject;
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+        if (this.videoPreview.current) {
+            const stream = this.videoPreview.current.srcObject as MediaStream;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            this.videoPreview.current.srcObject = null;
         }
-
-        this.videoPreview.current.srcObject = null;
     }
 }
 
-EnterRoomModal.propTypes = {
-    isVisible: PropTypes.bool.isRequired,
-    setUsername: PropTypes.func.isRequired,
-    updateAudioDevice: PropTypes.func.isRequired,
-    updateVideoDevice: PropTypes.func.isRequired,
-    onSubmit: PropTypes.func.isRequired
+// Connect ChatMessageBar to Redux
+const mapDispatch = {
+    setUsername,
+    updateAudioDevice,
+    updateVideoDevice
 };
 
-export default connect(
-    null,
-    {
-        setUsername,
-        updateAudioDevice,
-        updateVideoDevice
-    }
-)(EnterRoomModal);
+const connector = connect(null, mapDispatch);
 
-class DeviceSelect extends Component {
-    constructor(props) {
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(EnterRoomModal);
+
+interface DeviceSelectProps {
+    label: string;
+    devices: MediaDeviceInfo[];
+    onSelectDevice: Function;
+}
+
+class DeviceSelect extends Component<DeviceSelectProps> {
+    constructor(props: DeviceSelectProps) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
     }
@@ -227,14 +249,8 @@ class DeviceSelect extends Component {
         );
     }
 
-    handleChange(event) {
+    handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const deviceId = event.target.value;
         this.props.onSelectDevice(this.props.label, deviceId);
     }
 }
-
-DeviceSelect.propTypes = {
-    label: PropTypes.string.isRequired,
-    devices: PropTypes.array.isRequired,
-    onSelectDevice: PropTypes.func.isRequired
-};

@@ -1,7 +1,17 @@
 import React, { Component } from 'react';
 
-export default class Invite extends Component {
-    constructor(props) {
+interface InviteProps {
+}
+
+interface InviteState {
+    visible: boolean;
+    toggled: boolean;
+}
+
+export default class Invite extends Component<InviteProps, InviteState> {
+    private toggleExpandButton: React.RefObject<HTMLInputElement>;
+
+    constructor(props: InviteProps) {
         super(props);
 
         this.state = {
@@ -16,7 +26,7 @@ export default class Invite extends Component {
         this.handleCopyLink = this.handleCopyLink.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         if (!this.state.visible) {
             return null;
         }
@@ -68,23 +78,23 @@ export default class Invite extends Component {
         );
     }
 
-    handleToggle() {
+    handleToggle(): void {
         this.setState(state  => {
             const toggled = !state.toggled;
             return { toggled };
         });
     }
 
-    handleClose() {
+    handleClose(): void {
         this.setState(state  => {
             const visible = !state.visible;
             return { visible };
         });
     }
 
-    handleCopyLink() {
+    handleCopyLink(): void {
         // Copy the room link to the clipboard
-        const link = document.querySelector('.invitation-link');
+        const link = document.querySelector('.invitation-link') as HTMLInputElement;
         link.focus();
         link.select();
         document.execCommand('copy');

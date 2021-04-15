@@ -1,13 +1,29 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import fscreen from 'fscreen';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { setResolution } from '../slices/devices';
-import { disableRemoteVideo, enableRemoteVideo } from '../slices/feeds';
+import { disableRemoteVideo, enableRemoteVideo, Feed } from '../slices/feeds';
 import { RESOLUTIONS } from '../mediaUtils';
+import {RootState} from '../store';
 
-class VideoControlBar extends Component {
-    constructor(props) {
+interface VideoControlBarProps extends PropsFromRedux {
+    audioRef: React.RefObject<HTMLAudioElement>;
+    videoRef: React.RefObject<HTMLVideoElement>;
+    videoContainerRef: React.RefObject<HTMLDivElement>;
+    feed: Feed & { username: string };
+    showVisibilityControls: boolean;
+    showAudioControls: boolean;
+    showResolutionControls: boolean;
+}
+
+interface VideoControlBarState {
+    volume: number;
+    volumeMuted: boolean;
+    showSettings: boolean;
+}
+
+class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarState> {
+    constructor(props: VideoControlBarProps) {
         super(props);
 
         this.state = {
@@ -24,7 +40,7 @@ class VideoControlBar extends Component {
         this.toggleVisibility = this.toggleVisibility.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         const {
             volume,
             volumeMuted,
@@ -49,7 +65,7 @@ class VideoControlBar extends Component {
         // buttons if the browser supports these features
         const video = videoRef.current;
         const pipSupported = ('pictureInPictureEnabled' in document ||
-            video && video.webkitSetPresentationMode);
+            video && 'webkitSetPresentationMode' in video);
 
         return (
             <div className='video-control-bar'>
@@ -114,7 +130,7 @@ class VideoControlBar extends Component {
         );
     }
 
-    renderSettings() {
+    renderSettings(): React.ReactNode {
         const videoDevice = this.props.videoDevice;
         const selectedResolution = `${videoDevice.resolution}p`;
 
@@ -138,69 +154,71 @@ class VideoControlBar extends Component {
         );
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         const audio = this.props.audioRef.current;
-        audio.muted = this.state.volumeMuted;
-        audio.volume = this.state.volume;
+        if (audio) {
+            audio.muted = this.state.volumeMuted;
+            audio.volume = this.state.volume;
+        }
     }
 
-    toggleAudioMute() {
+    toggleAudioMute(): void {
         this.setState(state  => {
             const volumeMuted = !state.volumeMuted;
             return { volumeMuted };
         });
     }
 
-    handleVolumeChange(event) {
-        const volume = event.target.value;
+    handleVolumeChange(event: React.ChangeEvent<HTMLInputElement>): void {
+        const volume = Number(event.target.value);
         const volumeMuted = false;
         this.setState({ volume, volumeMuted });
     }
 
-    toggleSettings() {
+    toggleSettings(): void {
         this.setState(state => {
             const showSettings = !state.showSettings;
             return { showSettings };
         });
     }
 
-    setQuality(value) {
+    setQuality(value: string): void {
         const resolution = Number(value.replace(/p/, ''));
         this.props.setResolution(resolution);
         this.setState({ showSettings: false });
     }
 
-    togglePictureInPicture() {
+    togglePictureInPicture(): void {
         const video = this.props.videoRef.current;
 
-        if (video && video.webkitSetPresentationMode) {
-            video.webkitSetPresentationMode(
-                video.webkitPresentationMode === 'picture-in-picture'
+        if (video && 'webkitSetPresentationMode' in video) {
+            (video as any).webkitSetPresentationMode(
+                (video as any).webkitPresentationMode === 'picture-in-picture'
                 ? 'inline'
                 : 'picture-in-picture'
             );
-        } else if (document.pictureInPictureElement) {
-            document.exitPictureInPicture().catch(err => {
-                console.error(err);
+        } else if ((document as any).pictureInPictureElement) {
+            (document as any).exitPictureInPicture().catch((error: any) => {
+                console.error(error);
             });
-        } else {
-            video.requestPictureInPicture().catch(err => {
-                console.error(err);
+        } else if (video) {
+            (video as any).requestPictureInPicture().catch((error: any) => {
+                console.error(error);
             });
         }
     }
 
-    toggleFullscreen() {
+    toggleFullscreen(): void {
         const videoContainer = this.props.videoContainerRef.current;
 
         if (fscreen.fullscreenElement) {
             fscreen.exitFullscreen();
-        } else {
+        } else if (videoContainer) {
             fscreen.requestFullscreen(videoContainer);
         }
     }
 
-    toggleVisibility() {
+    toggleVisibility(): void {
         const feed = this.props.feed;
         if (feed.videoEnabled) {
             this.props.disableRemoteVideo(feed.id);
@@ -210,35 +228,19 @@ class VideoControlBar extends Component {
     }
 }
 
-VideoControlBar.propTypes = {
-    audioRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
-    videoRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
-    videoContainerRef: PropTypes.shape({ current: PropTypes.instanceOf(Element) }).isRequired,
-    feed: PropTypes.object.isRequired,
-    showVisibilityControls: PropTypes.bool.isRequired,
-    showAudioControls: PropTypes.bool.isRequired,
-    showResolutionControls: PropTypes.bool.isRequired,
-    videoDevice: PropTypes.object.isRequired,
-    disableRemoteVideo: PropTypes.func.isRequired,
-    enableRemoteVideo: PropTypes.func.isRequired,
-    setResolution: PropTypes.func.isRequired
+// Connect VideoControlBar to Redux
+const mapState = (state: RootState) => ({
+    videoDevice: state.devices.video
+});
+
+const mapDispatch = {
+    setResolution,
+    disableRemoteVideo,
+    enableRemoteVideo
 };
 
-function select(state) {
-    const {
-        devices,
-    } = state;
+const connector = connect(mapState, mapDispatch);
 
-    return {
-        videoDevice: devices.video,
-    }
-}
+type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connect(
-    select,
-    {
-        setResolution,
-        disableRemoteVideo,
-        enableRemoteVideo
-    },
-)(VideoControlBar);
+export default connector(VideoControlBar);

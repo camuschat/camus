@@ -1,8 +1,19 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
-export default class Sidebar extends Component {
-    constructor(props) {
+interface SidebarProps {
+    buttonIcons: string[];
+    buttonAriaLabels: string[];
+    onToggle: Function;
+    children: React.ReactNode[];
+}
+
+interface SidebarState {
+    currentChild: number;
+    isCollapsed: boolean;
+}
+
+export default class Sidebar extends Component<SidebarProps, SidebarState> {
+    constructor(props: SidebarProps) {
         super(props);
 
         this.state = {
@@ -14,7 +25,7 @@ export default class Sidebar extends Component {
         this.hide = this.hide.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         const {
             currentChild,
             isCollapsed
@@ -44,7 +55,7 @@ export default class Sidebar extends Component {
         );
     }
 
-    renderToggleButtons() {
+    renderToggleButtons(): React.ReactNode {
         const icons = this.props.buttonIcons;
         const labels = this.props.buttonAriaLabels;
         return (
@@ -62,7 +73,7 @@ export default class Sidebar extends Component {
         );
     }
 
-    onToggleButtonClick(icon) {
+    onToggleButtonClick(icon: string): void {
         const childIndex = this.props.buttonIcons.indexOf(icon);
         this.setState({
             currentChild: childIndex,
@@ -72,7 +83,7 @@ export default class Sidebar extends Component {
         this.props.onToggle('open');
     }
 
-    hide() {
+    hide(): void {
         this.setState({
             isCollapsed: true
         });
@@ -81,23 +92,19 @@ export default class Sidebar extends Component {
     }
 }
 
-Sidebar.propTypes = {
-    buttonIcons: PropTypes.arrayOf(PropTypes.string).isRequired,
-    buttonAriaLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
-    onToggle: PropTypes.func.isRequired,
-    children: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.node),
-        PropTypes.node
-    ]).isRequired
-};
+interface SidebarToggleButtonProps {
+    icon: string;
+    onClick: Function;
+    ariaLabel: string;
+}
 
-class SidebarToggleButton extends Component {
-    constructor(props) {
+class SidebarToggleButton extends Component<SidebarToggleButtonProps> {
+    constructor(props: SidebarToggleButtonProps) {
         super(props);
         this.onClick = this.onClick.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         return (
             <button
                 className='icon-button'
@@ -111,13 +118,7 @@ class SidebarToggleButton extends Component {
         );
     }
 
-    onClick() {
+    onClick(): void {
         this.props.onClick(this.props.icon);
     }
 }
-
-SidebarToggleButton.propTypes = {
-    icon: PropTypes.string.isRequired,
-    onClick: PropTypes.func.isRequired,
-    ariaLabel: PropTypes.string.isRequired
-};

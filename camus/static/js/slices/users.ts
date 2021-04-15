@@ -1,24 +1,30 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+export interface User {
+    id: string;
+    username: string;
+}
+
+const initialState: User[] = [{
+    id: 'local',
+    username: 'Me'
+}];
 
 const usersSlice = createSlice({
     name: 'users',
-    initialState: [{id: 'local', username: 'Me'}],
+    initialState,
     reducers: {
-        addUser(state, action) {
-            state.push(action.payload);
+        addUser(state, { payload }: PayloadAction<User>) {
+            state.push(payload);
         },
-        updateUser(state, action) {
-            const user = action.payload;
-            return state.map(u => {
-                if (user.id === u.id) {
-                    return user;
-                }
-                return u;
-            });
+        updateUser(state, { payload }: PayloadAction<{ id: string }>) {
+            const { id } = payload;
+            const user = state.find(user => user.id === id);
+            Object.assign(user, payload);
         },
-        setUsername(state, action) {
-            const username = action.payload;
-            state.find(user => user.id === 'local').username = username;
+        setUsername(state, { payload }: PayloadAction<string>) {
+            const username = payload;
+            state.find(user => user.id === 'local')!.username = username;
         }
     }
 });

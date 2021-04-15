@@ -6,16 +6,19 @@ import {
     getContext,
     select
 } from 'redux-saga/effects';
+import { Manager, MediaPeer } from '../rtcclient';
 import { setUsername } from '../slices/users';
 import { sendChatMessage } from '../slices/messages';
-import { setLocalAudio, setLocalVideo } from '../slices/feeds';
+import { Feed, setLocalAudio, setLocalVideo } from '../slices/feeds';
 import { setResolution } from '../slices/devices';
 import { disableRemoteVideo, enableRemoteVideo } from '../slices/feeds';
 import {
     addIceServer,
     removeIceServer,
-    updateIceServer
+    updateIceServer,
+    IceServer
 } from '../slices/iceServers';
+import {PayloadAction} from '@reduxjs/toolkit';
 
 export default function* rootSaga() {
     yield takeLatest(setUsername.type, doSetUsername);
@@ -30,9 +33,9 @@ export default function* rootSaga() {
     yield takeEvery(updateIceServer.type, doSetIceServers);
 }
 
-function* doSetUsername(action) {
-    const manager = yield getContext('manager');
-    const username = action.payload;
+function* doSetUsername({ payload }: PayloadAction<string>) {
+    const manager: Manager = yield getContext('manager');
+    const username = payload;
 
     try {
         yield apply(manager, manager.setUsername, [username]);
@@ -42,9 +45,9 @@ function* doSetUsername(action) {
     }
 }
 
-function* doSendChatMessage(action) {
-    const manager = yield getContext('manager');
-    const message = action.payload;
+function* doSendChatMessage({ payload }: PayloadAction<string>) {
+    const manager: Manager = yield getContext('manager');
+    const message = payload;
     const from = manager.username;
 
     try {
@@ -55,9 +58,9 @@ function* doSendChatMessage(action) {
     }
 }
 
-function* doSetLocalAudio(action) {
-    const manager = yield getContext('manager');
-    const track = action.payload;
+function* doSetLocalAudio({ payload }: PayloadAction<MediaStreamTrack | null>) {
+    const manager: Manager = yield getContext('manager');
+    const track = payload;
 
     try {
         if (track) {
@@ -72,9 +75,9 @@ function* doSetLocalAudio(action) {
     }
 }
 
-function* doSetLocalVideo(action) {
-    const manager = yield getContext('manager');
-    const track = action.payload;
+function* doSetLocalVideo({ payload }: PayloadAction<MediaStreamTrack | null>) {
+    const manager: Manager = yield getContext('manager');
+    const track = payload;
 
     try {
         if (track) {
@@ -89,11 +92,14 @@ function* doSetLocalVideo(action) {
     }
 }
 
-function* doSetResolution(action) {
-    const resolution = action.payload;
+function* doSetResolution({ payload }: PayloadAction<number>) {
+    const resolution = payload;
 
     try {
-        const localFeed = yield select(state => state.feeds.find(feed => feed.id === 'local'));
+        const localFeed: Feed = yield select(state =>
+            state.feeds.find((feed: Feed) => feed.id === 'local')
+        );
+
         if (localFeed.videoStream) {
             const track = localFeed.videoStream.getVideoTracks()[0];
             const constraints = {
@@ -109,26 +115,26 @@ function* doSetResolution(action) {
     }
 }
 
-function* doDisableRemoteVideo(action) {
-    const manager = yield getContext('manager');
-    const id = action.payload;
+function* doDisableRemoteVideo({ payload }: PayloadAction<string>) {
+    const manager: Manager = yield getContext('manager');
+    const id = payload;
 
     try {
-        const peer = manager.mediaPeers.get(id);
-        yield apply(peer, peer.disableRemoteVideo);
+        const peer: MediaPeer = manager.mediaPeers.get(id) as MediaPeer;
+        yield apply(peer, peer.disableRemoteVideo, []);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
         yield put({type: 'PEER_ERROR', payload: err});
     }
 }
 
-function* doEnableRemoteVideo(action) {
-    const manager = yield getContext('manager');
-    const id = action.payload;
+function* doEnableRemoteVideo({ payload }: PayloadAction<string>) {
+    const manager: Manager = yield getContext('manager');
+    const id = payload;
 
     try {
-        const peer = manager.mediaPeers.get(id);
-        yield apply(peer, peer.enableRemoteVideo);
+        const peer: MediaPeer = manager.mediaPeers.get(id) as MediaPeer;
+        yield apply(peer, peer.enableRemoteVideo, []);
         yield put({type: 'PEER_UPDATED'});
     } catch(err) {
         yield put({type: 'PEER_ERROR', payload: err});
@@ -136,8 +142,8 @@ function* doEnableRemoteVideo(action) {
 }
 
 function* doSetIceServers() {
-    const manager = yield getContext('manager');
-    const iceServers = yield select(state => state.iceServers);
+    const manager: Manager = yield getContext('manager');
+    const iceServers: IceServer[] = yield select(state => state.iceServers);
     const servers = iceServers.filter(server => {
         return server.enabled
     }).map(server => {
@@ -146,7 +152,7 @@ function* doSetIceServers() {
             username: server.username,
             credential: server.credential
         });
-    });
+    }) as IceServer[];
 
     try {
         yield apply(manager, manager.setIceServers, [servers]);

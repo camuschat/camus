@@ -1,34 +1,59 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+export interface Device {
+    active: boolean;
+}
+
+export interface AudioDevice extends Device {
+    id: string;
+}
+
+export interface VideoDevice extends Device {
+    id: string;
+    resolution: number;
+    maxResolution: number;
+}
+
+export interface DisplayDevice extends Device {
+}
+
+interface DevicesState {
+    audio: AudioDevice;
+    video: VideoDevice;
+    display: DisplayDevice;
+}
+
+const initialState: DevicesState = {
+    audio: {
+        active: false,
+        id: ''
+    },
+    video: {
+        active: false,
+        id: '',
+        resolution: 480,
+        maxResolution: 0
+    },
+    display: {
+        active: false
+    }
+}
 
 const devicesSlice = createSlice({
     name: 'devices',
-    initialState: {
-        audio: {
-            active: false,
-            id: ''
-        },
-        video: {
-            active: false,
-            id: '',
-            resolution: 480,
-            maxResolution: 0
-        },
-        display: {
-            active: false
-        }
-    },
+    initialState,
     reducers: {
-        updateAudioDevice(state, action) {
-            Object.assign(state.audio, action.payload);
+        updateAudioDevice(state, { payload }: PayloadAction<object>) {
+            Object.assign(state.audio, payload);
         },
-        updateVideoDevice(state, action) {
-            Object.assign(state.video, action.payload);
+        updateVideoDevice(state, { payload }: PayloadAction<object>) {
+            Object.assign(state.video, payload);
         },
-        updateDisplayDevice(state, action) {
-            Object.assign(state.display, action.payload);
+        updateDisplayDevice(state, { payload }: PayloadAction<object>) {
+            Object.assign(state.display, payload);
         },
-        setResolution(state, action) {
-            state.video.resolution = action.payload;
+        setResolution(state, { payload }: PayloadAction<number>) {
+            state.video.resolution = payload;
         }
     }
 });

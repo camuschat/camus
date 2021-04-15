@@ -1,11 +1,17 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { swapFeeds } from '../slices/feeds';
+import { connect, ConnectedProps } from 'react-redux';
+import { Feed, swapFeeds } from '../slices/feeds';
+import {RootState} from '../store';
 import VideoControlBar from './VideoControlBar';
 
-class VideoStage extends Component {
-    constructor(props) {
+interface VideoStageState {
+    videoHeightAspect: number;
+    videoWidthAspect: number;
+    videoScaleFactor: number;
+}
+
+class VideoStage extends Component<PropsFromRedux, VideoStageState> {
+    constructor(props: PropsFromRedux) {
         super(props);
 
         this.state = {
@@ -17,7 +23,7 @@ class VideoStage extends Component {
         this.updateScaleFactor = this.updateScaleFactor.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         // Associate each feed with the corresponding username
         const users = this.props.users;
         const feeds = this.props.feeds.map(feed => {
@@ -54,14 +60,14 @@ class VideoStage extends Component {
         );
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         // Dynamically update the size of displayed video feeds when the
         // window is resized
-        window.addEventListener('resize', this.updateScaleFactor)
+        window.addEventListener('resize', () => this.updateScaleFactor())
         this.updateScaleFactor();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         const videoScaleFactor = this.calculateScaleFactor(
             this.props.feeds.length, this.state.videoHeightAspect, this.state.videoWidthAspect);
 
@@ -70,7 +76,7 @@ class VideoStage extends Component {
         }
     }
 
-    updateScaleFactor(scaleFactor=null) {
+    updateScaleFactor(scaleFactor?: number): void {
         this.setState((state, props)  => {
             const videoScaleFactor = (scaleFactor ?
                 scaleFactor :
@@ -85,8 +91,8 @@ class VideoStage extends Component {
         });
     }
 
-    calculateScaleFactor(nItems, heightAspect, widthAspect, minWidth=0) {
-        const container = document.querySelector('#video-stage');
+    calculateScaleFactor(nItems: number, heightAspect: number, widthAspect: number, minWidth = 0): number {
+        const container = document.querySelector('#video-stage') as HTMLElement;
 
         // "Normalize" the height and width of the container relative to the
         // aspect ratio of the contained items
@@ -95,8 +101,8 @@ class VideoStage extends Component {
 
         // The ratio of columns to rows should approximately match the 
         // normalized aspect ratio of the container
-        let rows = (Math.sqrt(nItems * (normHeight / normWidth)));
-        let columns = (Math.sqrt(nItems * (normWidth / normHeight)));
+        const rows = (Math.sqrt(nItems * (normHeight / normWidth)));
+        const columns = (Math.sqrt(nItems * (normWidth / normHeight)));
 
         // The product of rows and columns should be minimized such that it still
         // fits all the items
@@ -133,33 +139,34 @@ class VideoStage extends Component {
     }
 }
 
-VideoStage.propTypes = {
-    feeds: PropTypes.array.isRequired,
-    users: PropTypes.array.isRequired,
-    swapFeeds: PropTypes.func.isRequired
+// Connect VideoStage to Redux
+const mapState = (state: RootState) => ({
+    users: state.users,
+    feeds: state.feeds
+});
+
+const mapDispatch = {
+    swapFeeds
 };
 
-function select(state) {
-    const {
-        users,
-        feeds
-    } = state;
+const connector = connect(mapState, mapDispatch, null, { forwardRef: true });
 
-    return {
-        users,
-        feeds
-    }
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(VideoStage);
+
+interface VideoFeedProps {
+    feed: Feed & { username: string };
+    style: object;
+    onDragAndDrop: Function;
 }
 
-export default connect(
-    select,
-    {swapFeeds},
-    null,
-    {forwardRef: true}
-)(VideoStage);
+class VideoFeed extends Component<VideoFeedProps> {
+    private video: React.RefObject<HTMLVideoElement>;
+    private audio: React.RefObject<HTMLAudioElement>;
+    private videoContainer: React.RefObject<HTMLDivElement>;
 
-class VideoFeed extends Component {
-    constructor(props) {
+    constructor(props: VideoFeedProps) {
         super(props);
 
         // Create a ref for the <video> element so that we can act on the DOM
@@ -171,9 +178,11 @@ class VideoFeed extends Component {
         this.onDragStart = this.onDragStart.bind(this);
         this.onDragOver = this.onDragOver.bind(this);
         this.onDrop = this.onDrop.bind(this);
+        this.setAudio = this.setAudio.bind(this);
+        this.setVideo = this.setVideo.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         const feed = this.props.feed;
 
         return (
@@ -219,7 +228,7 @@ class VideoFeed extends Component {
         );
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         const {
             videoStream,
             audioStream,
@@ -227,11 +236,11 @@ class VideoFeed extends Component {
             videoEnabled
         } = this.props.feed;
 
-        this.video.current.srcObject = videoEnabled ? videoStream : null;
-        this.audio.current.srcObject = audioMuted ? null : audioStream;
+        this.setVideo(videoEnabled ? videoStream : null);
+        this.setAudio(audioMuted ? null : audioStream);
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(): void {
         const {
             videoStream,
             audioStream,
@@ -239,35 +248,34 @@ class VideoFeed extends Component {
             videoEnabled
         } = this.props.feed;
 
-        if (!videoEnabled) {
-            this.video.current.srcObject = null;
-        } else if (this.video.current.srcObject !== videoStream) {
-            this.video.current.srcObject = videoStream;
-        }
-
-        if (this.audio.current.srcObject !== audioStream) {
-            this.audio.current.srcObject = audioMuted ? null : audioStream;
-        }
+        this.setVideo(videoEnabled ? videoStream : null);
+        this.setAudio(audioMuted ? null : audioStream);
     }
 
-    onDragStart(evt) {
-        evt.dataTransfer.setData('id', this.props.feed.id);
+    onDragStart(event: React.DragEvent<HTMLLIElement>): void {
+        event.dataTransfer.setData('id', this.props.feed.id);
     }
 
-    onDragOver(evt) {
-        evt.preventDefault();
+    onDragOver(event: React.DragEvent<HTMLLIElement>): void {
+        event.preventDefault();
     }
 
-    onDrop(evt) {
-        evt.preventDefault();
-        const draggedId = evt.dataTransfer.getData('id');
+    onDrop(event: React.DragEvent<HTMLLIElement>): void {
+        event.preventDefault();
+        const draggedId = event.dataTransfer.getData('id');
         const targetId = this.props.feed.id;
         this.props.onDragAndDrop({id1: draggedId, id2: targetId});
     }
-}
 
-VideoFeed.propTypes = {
-    feed: PropTypes.object.isRequired,
-    style: PropTypes.object.isRequired,
-    onDragAndDrop: PropTypes.func.isRequired
-};
+    setAudio(stream: MediaStream | null): void {
+        if (this.audio.current && this.audio.current.srcObject !== stream) {
+            this.audio.current.srcObject = stream;
+        }
+    }
+
+    setVideo(stream: MediaStream | null): void {
+        if (this.video.current && this.video.current.srcObject !== stream) {
+            this.video.current.srcObject = stream;
+        }
+    }
+}

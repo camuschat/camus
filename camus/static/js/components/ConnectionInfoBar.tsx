@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
+import { Connection } from '../slices/connections';
+import { RootState } from '../store';
 
-class ConnectionInfoBar extends Component {
-    render() {
+class ConnectionInfoBar extends Component<PropsFromRedux> {
+    render(): React.ReactNode {
         // Associate each connection with the corresponding username
         const users = this.props.users;
         const connections = this.props.connections.map(conn => {
@@ -34,29 +35,24 @@ class ConnectionInfoBar extends Component {
     }
 }
 
-ConnectionInfoBar.propTypes = {
-    users: PropTypes.array.isRequired,
-    connections: PropTypes.array.isRequired
-};
+// Connect ConnectionInfoBar to Redux
+const mapState = (state: RootState) => ({
+    users: state.users,
+    connections: state.connections
+});
 
-function select(state) {
-    const {
-        users,
-        connections
-    } = state;
+const connector = connect(mapState);
 
-    return {
-        users,
-        connections
-    }
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(ConnectionInfoBar);
+
+interface ConnectionInfoNodeProps {
+    connection: Connection & { username: string };
 }
 
-export default connect(
-    select
-)(ConnectionInfoBar);
-
-class ConnectionInfoNode extends Component {
-    render() {
+class ConnectionInfoNode extends Component<ConnectionInfoNodeProps> {
+    render(): React.ReactNode {
         const connection = this.props.connection;
         return (
             <li className='connection-info-node'>
@@ -87,7 +83,3 @@ class ConnectionInfoNode extends Component {
         );
     }
 }
-
-ConnectionInfoNode.propTypes = {
-    connection: PropTypes.object.isRequired
-};

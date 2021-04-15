@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { setLocalAudio, setLocalVideo } from '../slices/feeds';
 import { updateAudioDevice, updateVideoDevice, updateDisplayDevice } from '../slices/devices';
 import { getUserVideo, getUserAudio, getDisplayMedia } from '../mediaUtils';
 import ExitDialog from './ExitDialog';
+import {RootState} from '../store';
 
-class MediaControlBar extends Component {
-    constructor(props) {
+class MediaControlBar extends Component<PropsFromRedux> {
+    constructor(props: PropsFromRedux) {
         super(props);
         this.onTrack = this.onTrack.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         const {
             videoDevice,
             audioDevice,
@@ -70,7 +70,7 @@ class MediaControlBar extends Component {
         );
     }
 
-    onTrack(kind, mediaTrack) {
+    onTrack(kind: string, mediaTrack: MediaStreamTrack): void {
         if (kind === 'camera') {
             this.props.setLocalVideo(mediaTrack);
 
@@ -102,53 +102,52 @@ class MediaControlBar extends Component {
     }
 }
 
-MediaControlBar.propTypes = {
-    audioDevice: PropTypes.object.isRequired,
-    videoDevice: PropTypes.object.isRequired,
-    displayDevice: PropTypes.object.isRequired,
-    setLocalAudio: PropTypes.func.isRequired,
-    setLocalVideo: PropTypes.func.isRequired,
-    updateAudioDevice: PropTypes.func.isRequired,
-    updateVideoDevice: PropTypes.func.isRequired,
-    updateDisplayDevice: PropTypes.func.isRequired
+// Connect MediaControlBar to Redux
+const mapState = (state: RootState) => ({
+    audioDevice: state.devices.audio,
+    videoDevice: state.devices.video,
+    displayDevice: state.devices.display
+});
+
+const mapDispatch = {
+    setLocalAudio,
+    setLocalVideo,
+    updateAudioDevice,
+    updateVideoDevice,
+    updateDisplayDevice
 };
 
-function select(state) {
-    const {
-        devices
-    } = state;
+const connector = connect(mapState, mapDispatch);
 
-    return {
-        audioDevice: devices.audio,
-        videoDevice: devices.video,
-        displayDevice: devices.display
-    }
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(MediaControlBar);
+
+interface MediaToggleButtonProps {
+    kind: string;
+    deviceConstraints: object | null;
+    isOn: boolean;
+    icons: { on: string, off: string };
+    getMedia: Function;
+    onTrack: Function;
+    ariaLabel: string;
 }
 
-export default connect(
-    select,
-    {
-        setLocalAudio,
-        setLocalVideo,
-        updateAudioDevice,
-        updateVideoDevice,
-        updateDisplayDevice
-    }
-)(MediaControlBar);
+class MediaToggleButton extends Component<MediaToggleButtonProps> {
+    private mediaTrack: MediaStreamTrack | null;
 
-class MediaToggleButton extends Component {
-    constructor(props) {
+    constructor(props: MediaToggleButtonProps) {
         super(props);
         this.mediaTrack = null;
 
         this.onClick = this.onClick.bind(this);
     }
 
-    mediaIsOn() {
-        return this.mediaTrack && this.mediaTrack.readyState === 'live';
+    mediaIsOn(): boolean {
+        return Boolean(this.mediaTrack && this.mediaTrack.readyState === 'live');
     }
 
-    render() {
+    render(): React.ReactNode {
         return (
             <button onClick={this.onClick}
                 aria-label={this.props.ariaLabel}
@@ -161,11 +160,11 @@ class MediaToggleButton extends Component {
         );
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         this.setMedia();
     }
 
-    setMedia() {
+    setMedia(): void {
         // Turn media on or off as specified by props
         if (this.props.isOn && !this.mediaIsOn()) {
             this.mediaOn();
@@ -174,7 +173,7 @@ class MediaToggleButton extends Component {
         }
     }
 
-    onClick() {
+    onClick(): void {
         // Toggle media when the button is clicked
         if (this.props.isOn) {
             this.mediaOff();
@@ -183,15 +182,15 @@ class MediaToggleButton extends Component {
         }
     }
 
-    mediaOn() {
-        this.props.getMedia(this.props.deviceConstraints).then((track) => {
+    mediaOn(): void {
+        this.props.getMedia(this.props.deviceConstraints).then((track: MediaStreamTrack) => {
             this.mediaTrack = track;
             this.props.onTrack(this.props.kind, track);
         });
     }
 
-    mediaOff() {
-        if (this.mediaIsOn()) {
+    mediaOff(): void {
+        if (this.mediaTrack && this.mediaIsOn()) {
             this.mediaTrack.enabled = false;
             this.mediaTrack.stop();
         }
@@ -199,18 +198,15 @@ class MediaToggleButton extends Component {
     }
 }
 
-MediaToggleButton.propTypes = {
-    kind: PropTypes.string.isRequired,
-    deviceConstraints: PropTypes.object,
-    isOn: PropTypes.bool.isRequired,
-    icons: PropTypes.object.isRequired,
-    getMedia: PropTypes.func.isRequired,
-    onTrack: PropTypes.func.isRequired,
-    ariaLabel: PropTypes.string.isRequired
-};
+interface HangUpButtonProps {
+}
 
-class HangUpButton extends Component {
-    constructor(props) {
+interface HangUpButtonState {
+    showExitDialog: boolean;
+}
+
+class HangUpButton extends Component<HangUpButtonProps, HangUpButtonState> {
+    constructor(props: HangUpButtonProps) {
         super(props);
 
         this.state = {
@@ -221,7 +217,7 @@ class HangUpButton extends Component {
         this.onCloseExitDialog = this.onCloseExitDialog.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         return (<>
             { this.state.showExitDialog &&
             <ExitDialog onClose={this.onCloseExitDialog} />
@@ -232,13 +228,13 @@ class HangUpButton extends Component {
         </>);
     }
 
-    onClick() {
+    onClick(): void {
         this.setState({
             showExitDialog: true
         });
     }
 
-    onCloseExitDialog() {
+    onCloseExitDialog(): void {
         this.setState({
             showExitDialog: false
         });

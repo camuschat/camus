@@ -1,13 +1,21 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+export interface Message {
+    from: string;
+    timestamp: number;
+    text: string;
+}
+
+const initialState: Message[] = [];
 
 const messagesSlice = createSlice({
     name: 'messages',
-    initialState: [],
+    initialState,
     reducers: {
-        addChatMessage(state, action) {
-            state.push(action.payload);
+        addChatMessage(state, { payload }: PayloadAction<Message>) {
+            state.push(payload);
         },
-        sendChatMessage() {
+        sendChatMessage(state, { payload }: PayloadAction<string>) {
             // This action should be caught by middleware to pass the message
             // to the Manager
             return;

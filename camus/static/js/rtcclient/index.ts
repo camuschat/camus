@@ -13,3 +13,5 @@ export {
     Signaler,
     MessageHandler
 };
+
+export * from './types';

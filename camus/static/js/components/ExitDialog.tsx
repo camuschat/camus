@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 
-export default class ExitDialog extends Component {
-    constructor(props) {
+interface ExitDialogProps {
+    onClose: Function;
+}
+
+export default class ExitDialog extends Component<ExitDialogProps> {
+    private cancelButton: React.RefObject<HTMLInputElement>;
+    private leaveButton: React.RefObject<HTMLInputElement>;
+
+    constructor(props: ExitDialogProps) {
         super(props);
 
         this.cancelButton = React.createRef();
@@ -13,11 +19,12 @@ export default class ExitDialog extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    render() {
+    render(): React.ReactNode {
         return (<>
             <div className='modal-overlay'></div>
             <div
                 className='dialog fade-in exit-dialog'
+                onKeyPress={this.keyListener}
                 role='dialog'
                 aria-labelledby='exit-dialog-title'
                 aria-modal='true'
@@ -41,47 +48,39 @@ export default class ExitDialog extends Component {
         </>);
     }
 
-    componentDidMount() {
+    componentDidMount(): void {
         if (this.cancelButton.current) {
             this.cancelButton.current.focus();
         }
-
-        window.addEventListener('keydown', this.keyListener);
     }
 
-    componentWillUnmount() {
-        window.removeEventListener('keydown', this.keyListener);
-    }
-
-    keyListener(e) {
+    keyListener(event: React.KeyboardEvent<HTMLDivElement>): void {
         // Close the dialog if ESC is pressed
-        if (e.keyCode === 27) {
-            e.preventDefault();
+        if (event.key === 'Escape') {
+            event.preventDefault();
             this.props.onClose();
         } 
 
         // Trap focus to the dialog's buttons when tabbing
-        if (e.keyCode === 9) {
-            e.preventDefault();
+        if (event.key === 'Tab') {
+            event.preventDefault();
 
-            if (document.activeElement === this.cancelButton.current) {
+            if (document.activeElement === this.cancelButton.current &&
+                this.leaveButton.current
+            ) {
                 this.leaveButton.current.focus();
-            } else {
+            } else if (this.cancelButton.current){
                 this.cancelButton.current.focus();
             }
         }
     }
 
-    handleCancel() {
+    handleCancel(): void {
         this.props.onClose();
     }
 
-    handleSubmit() {
+    handleSubmit(): void {
         // Redirect to homepage
         window.location.href = window.location.origin;
     }
 }
-
-ExitDialog.propTypes = {
-    onClose: PropTypes.func.isRequired
-};

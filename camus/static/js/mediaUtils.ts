@@ -1,3 +1,8 @@
+interface UserMediaTracks {
+    audio: MediaStreamTrack | null;
+    video: MediaStreamTrack | null;
+}
+
 export const RESOLUTIONS = [
     2160,
     1080,
@@ -7,7 +12,7 @@ export const RESOLUTIONS = [
     240
 ];
 
-export async function getCameras() {
+export async function getCameras(): Promise<MediaDeviceInfo[]> {
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         return devices.filter(device => device.kind === 'videoinput');
@@ -17,7 +22,7 @@ export async function getCameras() {
     }
 }
 
-export async function getMics() {
+export async function getMics(): Promise<MediaDeviceInfo[]> {
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         return devices.filter(device => device.kind === 'audioinput');
@@ -27,26 +32,25 @@ export async function getMics() {
     }
 }
 
-export async function hasCamera() {
+export async function hasCamera(): Promise<boolean> {
     const cameras = await getCameras();
     return cameras.length > 0;
 }
 
-export async function hasMic() {
+export async function hasMic(): Promise<boolean> {
     const mics = await getMics();
     return mics.length > 0;
 }
 
-export async function getUserMedia(audio=true, video=true) {
-    const audioConstraints = (typeof audio === 'object' ?
-        audio :
-        audio && await hasMic()
+export async function getUserMedia(constraints?: MediaStreamConstraints): Promise<UserMediaTracks> {
+    constraints = constraints ? constraints : { audio: true, video: true };
+    const audioConstraints = (
+        constraints.audio ? await hasMic() && constraints.audio : false
     );
-    const videoConstraints = (typeof video === 'object' ?
-        video :
-        video && await hasCamera()
+    const videoConstraints = (
+        constraints.video ? await hasMic() && constraints.video : false
     );
-    const constraints = {
+    constraints = {
         audio: audioConstraints,
         video: videoConstraints
     };
@@ -62,28 +66,31 @@ export async function getUserMedia(audio=true, video=true) {
     const videoTrack = stream.getTracks().find(track => track.kind === 'video');
     const audioTrack = stream.getTracks().find(track => track.kind === 'audio');
 
-    return {audio: audioTrack, video: videoTrack}
+    return { audio: audioTrack || null, video: videoTrack || null }
 }
 
-export async function getUserVideo(constraints=null) {
-    const {video} = await getUserMedia(false, constraints ? constraints : true);
+export async function getUserVideo(constraints?: MediaTrackConstraints): Promise<MediaStreamTrack | null> {
+    const newConstraints = constraints ? constraints : true;
+    const { video } = await getUserMedia({ audio: false, video: newConstraints });
     return video;
 }
 
-export async function getUserAudio(constraints=null) {
-    const {audio} = await getUserMedia(constraints ? constraints : true, false);
+export async function getUserAudio(constraints?: MediaTrackConstraints): Promise<MediaStreamTrack | null> {
+    const newConstraints = constraints ? constraints : true;
+    const { audio } = await getUserMedia({ audio: newConstraints, video: false });
     return audio;
 }
 
-export async function getDisplayMedia() {
+export async function getDisplayMedia(): Promise<MediaStreamTrack | null> {
     // TODO: accept constraints
     const constraints = {
         'video': {cursor: 'always'},
         'audio': false
     };
 
-    let stream;
+    let stream: MediaStream;
     try {
+        // @ts-ignore (See https://github.com/microsoft/TypeScript/issues/33232)
         stream = await navigator.mediaDevices.getDisplayMedia(constraints);
     } catch(err) {
         console.error(err);
@@ -91,5 +98,5 @@ export async function getDisplayMedia() {
     }
 
     const videoTrack = stream.getTracks().find(track => track.kind === 'video');
-    return videoTrack;
+    return videoTrack || null;
 }
