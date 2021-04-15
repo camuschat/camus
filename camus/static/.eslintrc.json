@@ -1,28 +1,29 @@
 {
-    "env": {
-        "browser": true,
-        "es2020": true,
-        "cypress/globals": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:cypress/recommended",
-        "plugin:react/recommended"
-    ],
-    "parserOptions": {
-        "ecmaVersion": 11,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true
-        }
-    },
-    "plugins": [
-        "cypress",
-        "react"
-    ],
-    "rules": {
-        "no-promise-executor-return": "error",
-        "require-atomic-updates": "error",
-        "require-await": "error"
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "browser": true,
+    "es2020": true,
+    "cypress/globals": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:cypress/recommended",
+    "plugin:react/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
     }
+  },
+  "plugins": ["@typescript-eslint", "cypress", "react"],
+  "rules": {
+    "no-promise-executor-return": "error",
+    "require-atomic-updates": "error",
+    "require-await": "error"
+  }
 }
