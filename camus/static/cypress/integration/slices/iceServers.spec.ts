@@ -14,8 +14,9 @@ describe('Test iceServers slice of Redux store', () => {
         const server = {
             urls: ['turn:example.com'],
             username: 'Ludwig',
-            password: '1234',
-            kind: 'turn'
+            credential: '1234',
+            kind: 'turn',
+            enabled: true
         };
         store.dispatch(addIceServer(server));
 
@@ -26,7 +27,7 @@ describe('Test iceServers slice of Redux store', () => {
         // Verify result
         expect(storedServer).is.not.undefined;
         expect(storedServer.username).to.equal('Ludwig');
-        expect(storedServer.password).to.equal('1234');
+        expect(storedServer.credential).to.equal('1234');
         expect(storedServer.kind).to.equal('turn');
         expect(storedServer.id).is.not.undefined;
         expect(storedServer.enabled).is.true;
@@ -41,7 +42,7 @@ describe('Test iceServers slice of Redux store', () => {
                 enabled: true,
                 urls: ['turn:example.com'],
                 username: 'Ludwig',
-                password: '1234',
+                credential: '1234',
                 kind: 'turn'
             }]
         );
@@ -51,7 +52,7 @@ describe('Test iceServers slice of Redux store', () => {
             id: 42,
             urls: ['stun:example.com'],
             username: 'Albert',
-            password: '5678',
+            credential: '5678',
             kind: 'stun',
             enabled: false
         };
@@ -64,7 +65,7 @@ describe('Test iceServers slice of Redux store', () => {
         // Verify result
         expect(storedServer).is.not.undefined;
         expect(storedServer.username).to.equal('Albert');
-        expect(storedServer.password).to.equal('5678');
+        expect(storedServer.credential).to.equal('5678');
         expect(storedServer.kind).to.equal('stun');
         expect(storedServer.enabled).is.false;
     });
@@ -78,7 +79,7 @@ describe('Test iceServers slice of Redux store', () => {
                 enabled: true,
                 urls: ['turn:example.com'],
                 username: 'Ludwig',
-                password: '1234',
+                credential: '1234',
                 kind: 'turn'
             }]
         );

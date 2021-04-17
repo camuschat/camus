@@ -1,11 +1,11 @@
-import { MediaPeer } from '../../../js/rtcclient';
+import { Answer, IceCandidate, MediaPeer, Offer, Signaler } from '../../../js/rtcclient';
 
 describe('Test ideoPeer', () => {
     it('can initialize a connection', () => {
-        const signaler = createSignaler();
+        const signaler = new MockSignaler();
         const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
 
-        expect(peer.client_id).to.equal('abc');
+        expect(peer.id).to.equal('abc');
         expect(peer.username).to.equal('Bill');
         expect(peer.polite).to.equal(false);
         expect(peer.connection).to.be.instanceOf(RTCPeerConnection);
@@ -15,14 +15,14 @@ describe('Test ideoPeer', () => {
         defaultCommandTimeout: 10000,
         retries: 2
     }, () => {
-        const signaler = createSignaler();
+        const signaler = new MockSignaler();
         const peer1 = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
         const peer2 = new MediaPeer({id: 'def', username: 'Ted'}, signaler, true);
 
         // Note: the mapping between id and peer appears reversed here since the
-        // client_id refers to the other peer
-        signaler.peers.set(peer2.client_id, peer1);
-        signaler.peers.set(peer1.client_id, peer2);
+        // id refers to the other peer
+        signaler.peers.set(peer2.id, peer1);
+        signaler.peers.set(peer1.id, peer2);
 
         // Begin negotiation
         peer1.connect();
@@ -79,33 +79,39 @@ describe('Test ideoPeer', () => {
     });
 });
 
-function createSignaler() {
-    const signaler =  {
-        peers: new Map(),
-        offer: (receiver, data) => {
-            signaler.peers.get(receiver).onOffer(data).then();
-        },
-        answer: (receiver, data) => {
-            signaler.peers.get(receiver).onAnswer(data).then();
-        },
-        icecandidate: (receiver, data) => {
-            signaler.peers.get(receiver).onIceCandidate(data).then();
-        },
-    };
+class MockSignaler extends Signaler {
+    peers: Map<string, MediaPeer>;
 
-    return signaler;
+    constructor() {
+        super();
+        this.peers = new Map();
+    }
+
+    offer(receiver: string, description: Offer) {
+        this.peers.get(receiver).onOffer(description).then();
+    }
+
+    answer(receiver: string, description: Answer) {
+        this.peers.get(receiver).onAnswer(description).then();
+    }
+
+    icecandidate(receiver: string, candidate: IceCandidate) {
+        this.peers.get(receiver).onIceCandidate(candidate).then();
+    }
+
+
 }
 
-function createVideoTrack() {
+function createVideoTrack(): MediaStreamTrack {
     return new RTCPeerConnection().addTransceiver('video').receiver.track;
 }
 
-function createAudioTrack() {
+function createAudioTrack(): MediaStreamTrack {
     return new RTCPeerConnection().addTransceiver('audio').receiver.track;
 }
 
-function createDummyPeer() {
-    const signaler = createSignaler();
+function createDummyPeer(): MediaPeer {
+    const signaler = new MockSignaler();
     const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
     peer.connection.onnegotiationneeded = () => {};  // Disable negotiation for this test
     peer.connect();  // Trigger setup of transceivers

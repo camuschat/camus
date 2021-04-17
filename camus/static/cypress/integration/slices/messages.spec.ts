@@ -9,7 +9,7 @@ describe('Test messages slice of Redux store', () => {
         // Test
         const chatMessage = {
             from: 'Major Tom',
-            timestamp: '10101010',
+            timestamp: 10101010,
             text: 'Hello world!'
         };
         store.dispatch(addChatMessage(chatMessage));
