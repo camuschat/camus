@@ -7,10 +7,10 @@ class ConnectionInfoBar extends Component<PropsFromRedux> {
     render(): React.ReactNode {
         // Associate each connection with the corresponding username
         const users = this.props.users;
-        const connections = this.props.connections.map(conn => {
-            const user = users.find(user => user.id === conn.id);
+        const connections = this.props.connections.map((conn) => {
+            const user = users.find((user) => user.id === conn.id);
             const username = user ? user.username : 'Major Tom';
-            return Object.assign({}, conn, {username});
+            return Object.assign({}, conn, { username });
         });
 
         if (connections.length === 0) {
@@ -23,22 +23,21 @@ class ConnectionInfoBar extends Component<PropsFromRedux> {
 
         return (
             <ul className='connection-info-bar'>
-                {connections.map((connection) =>
+                {connections.map((connection) => (
                     <ConnectionInfoNode
                         key={connection.id}
                         connection={connection}
                     />
-                )}
+                ))}
             </ul>
         );
-
     }
 }
 
 // Connect ConnectionInfoBar to Redux
 const mapState = (state: RootState) => ({
     users: state.users,
-    connections: state.connections
+    connections: state.connections,
 });
 
 const connector = connect(mapState);
@@ -66,16 +65,20 @@ class ConnectionInfoNode extends Component<ConnectionInfoNodeProps> {
                             Client ID: <span>{connection.id}</span>
                         </li>
                         <li key='connection-state'>
-                            Connection state: <span>{connection.connectionState}</span>
+                            Connection state:{' '}
+                            <span>{connection.connectionState}</span>
                         </li>
                         <li key='ice-connection-state'>
-                            Ice connection state: <span>{connection.iceConnectionState}</span>
+                            Ice connection state:{' '}
+                            <span>{connection.iceConnectionState}</span>
                         </li>
                         <li key='ice-gathering-state'>
-                            Ice gathering state: <span>{connection.iceGatheringState}</span>
+                            Ice gathering state:{' '}
+                            <span>{connection.iceGatheringState}</span>
                         </li>
                         <li key='signaling-state'>
-                            Signaling state: <span>{connection.signalingState}</span>
+                            Signaling state:{' '}
+                            <span>{connection.signalingState}</span>
                         </li>
                     </ul>
                 </details>

@@ -5,10 +5,12 @@ export interface User {
     username: string;
 }
 
-const initialState: User[] = [{
-    id: 'local',
-    username: 'Me'
-}];
+const initialState: User[] = [
+    {
+        id: 'local',
+        username: 'Me',
+    },
+];
 
 const usersSlice = createSlice({
     name: 'users',
@@ -19,20 +21,16 @@ const usersSlice = createSlice({
         },
         updateUser(state, { payload }: PayloadAction<{ id: string }>) {
             const { id } = payload;
-            const user = state.find(user => user.id === id);
+            const user = state.find((user) => user.id === id);
             Object.assign(user, payload);
         },
         setUsername(state, { payload }: PayloadAction<string>) {
             const username = payload;
-            state.find(user => user.id === 'local')!.username = username;
-        }
-    }
+            state.find((user) => user.id === 'local')!.username = username;
+        },
+    },
 });
 
 const { actions, reducer } = usersSlice;
-export const {
-    addUser,
-    updateUser,
-    setUsername
-} = actions;
+export const { addUser, updateUser, setUsername } = actions;
 export default reducer;

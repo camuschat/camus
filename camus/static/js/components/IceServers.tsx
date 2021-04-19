@@ -4,7 +4,7 @@ import {
     addIceServer,
     removeIceServer,
     updateIceServer,
-    IceServer
+    IceServer,
 } from '../slices/iceServers';
 import { RootState } from '../store';
 
@@ -33,35 +33,35 @@ class IceServers extends Component<IceServersProps> {
             iceServers,
             updateIceServer,
             removeIceServer,
-            allowEditing
+            allowEditing,
         } = this.props;
         const title = kind[0].toUpperCase() + kind.slice(1) + ' Servers';
-        const servers = iceServers.filter(server => server.kind === kind);
+        const servers = iceServers.filter((server) => server.kind === kind);
 
         return (
             <section className='ice-servers' aria-label={`${kind} servers`}>
                 <h6>{title}</h6>
                 <ul>
-                    {servers.filter(server =>
-                        server.urls && server.urls.length
-                    ).map(server =>
-                        <IceServerItem
-                            key={server.id}
-                            server={server}
-                            onSave={updateIceServer}
-                            onDelete={removeIceServer}
-                            allowEditing={allowEditing}
-                        />
-                    )}
+                    {servers
+                        .filter((server) => server.urls && server.urls.length)
+                        .map((server) => (
+                            <IceServerItem
+                                key={server.id}
+                                server={server}
+                                onSave={updateIceServer}
+                                onDelete={removeIceServer}
+                                allowEditing={allowEditing}
+                            />
+                        ))}
                 </ul>
-                {allowEditing &&
-                <button
-                    onClick={() => this.newServer(kind)}
-                    aria-label={`Add a ${kind} server`}
-                >
-                    <i className='material-icons'>add</i>
-                </button>
-                }
+                {allowEditing && (
+                    <button
+                        onClick={() => this.newServer(kind)}
+                        aria-label={`Add a ${kind} server`}
+                    >
+                        <i className='material-icons'>add</i>
+                    </button>
+                )}
             </section>
         );
     }
@@ -70,21 +70,21 @@ class IceServers extends Component<IceServersProps> {
         const server = {
             urls: [`${kind}:`],
             enabled: false,
-            kind
-        }
+            kind,
+        };
         this.props.addIceServer(server);
     }
 }
 
 // Connect IceServers to Redux
 const mapState = (state: RootState) => ({
-    iceServers: state.iceServers
+    iceServers: state.iceServers,
 });
 
 const mapDispatch = {
     addIceServer,
     updateIceServer,
-    removeIceServer
+    removeIceServer,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -93,10 +93,9 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 export default connector(IceServers);
 
-
 interface IceServerItemProps {
     server: IceServer;
-    allowEditing: boolean
+    allowEditing: boolean;
     onSave: Function;
     onDelete: Function;
 }
@@ -111,18 +110,14 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
     constructor(props: IceServerItemProps) {
         super(props);
 
-        const {
-            urls,
-            username,
-            credential
-        } = this.props.server;
+        const { urls, username, credential } = this.props.server;
 
         // username and credential may be undefined, so in that case initialize
         // the corresponding properties in our state as empty strings
         this.state = {
             urls: urls.join(','),
             username: username ? username : '',
-            credential: credential ? credential : ''
+            credential: credential ? credential : '',
         };
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -131,18 +126,20 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
     }
 
     render(): React.ReactNode {
-        const {
-            server,
-            allowEditing
-        } = this.props;
+        const { server, allowEditing } = this.props;
 
         // Pattern to validate input for server URLs
         const urlPattern = `${server.kind}:[\\w\\d_./:?=&%-]+`;
-        const urlsPattern = `^${urlPattern}(,${urlPattern})*$`
+        const urlsPattern = `^${urlPattern}(,${urlPattern})*$`;
 
         // Extract the host from a server URL
-        const hostMatch = server.urls[0].match(/(?:stun|turn):(?<host>[\w\d_.-]+)/);
-        const host = hostMatch && hostMatch.groups ? hostMatch.groups.host : 'New server';
+        const hostMatch = server.urls[0].match(
+            /(?:stun|turn):(?<host>[\w\d_.-]+)/
+        );
+        const host =
+            hostMatch && hostMatch.groups
+                ? hostMatch.groups.host
+                : 'New server';
 
         return (
             <li className='ice-server'>
@@ -183,21 +180,23 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
                                 readOnly={!allowEditing}
                             />
                         </label>
-                        {allowEditing && <>
-                            <button
-                                type='button'
-                                onClick={this.handleDelete}
-                                aria-label={`Delete this ${server.kind} server`}
-                            >
-                                <i className='material-icons'>delete</i>
-                            </button>
-                            <button
-                                type='submit'
-                                aria-label={`Save this ${server.kind} server`}
-                            >
-                                <i className='material-icons'>save</i>
-                            </button>
-                        </>}
+                        {allowEditing && (
+                            <>
+                                <button
+                                    type='button'
+                                    onClick={this.handleDelete}
+                                    aria-label={`Delete this ${server.kind} server`}
+                                >
+                                    <i className='material-icons'>delete</i>
+                                </button>
+                                <button
+                                    type='submit'
+                                    aria-label={`Save this ${server.kind} server`}
+                                >
+                                    <i className='material-icons'>save</i>
+                                </button>
+                            </>
+                        )}
                     </form>
                 </details>
             </li>
@@ -210,25 +209,21 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
 
         // @ts-ignore
         this.setState({
-            [name]: value
+            [name]: value,
         });
     }
 
     handleSubmit(event: React.SyntheticEvent<HTMLFormElement>): void {
         event.preventDefault();
 
-        const {
-            urls,
-            username,
-            credential
-        } = this.state;
+        const { urls, username, credential } = this.state;
 
         const server = {
             id: this.props.server.id,
             enabled: true,
             urls: urls.split(','),
             username: username ? username : undefined,
-            credential: credential ? credential : undefined
+            credential: credential ? credential : undefined,
         };
         this.props.onSave(server);
     }

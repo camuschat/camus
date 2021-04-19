@@ -2,22 +2,22 @@ import { Signaler } from '../../../js/rtcclient';
 
 describe('Test Signaler', () => {
     describe('can send standard message types', () => {
-        beforeEach(function() {
+        beforeEach(function () {
             this.signaler = new Signaler();
 
             this.sentData = '';
-            cy.stub(this.signaler.socket, 'send', (data) =>{
+            cy.stub(this.signaler.socket, 'send', (data) => {
                 this.sentData = JSON.parse(data);
             });
         });
 
-        it('text', function() {
+        it('text', function () {
             // Run: send the text message
             this.signaler.text(
-                'Hello there',  // text
-                '1234',  // from
-                '5678',  // receiver
-                '9999',  // time
+                'Hello there', // text
+                '1234', // from
+                '5678', // receiver
+                '9999' // time
             );
 
             // Verify: the sent message has the proper structure
@@ -28,10 +28,10 @@ describe('Test Signaler', () => {
             expect(this.sentData.data.text).to.equal('Hello there');
         });
 
-        it('profile', function() {
+        it('profile', function () {
             // Run: send the profile message
             this.signaler.profile(
-                'Ludwig',  // username
+                'Ludwig' // username
             );
 
             // Verify: the sent message has the proper structure
@@ -40,11 +40,11 @@ describe('Test Signaler', () => {
             expect(this.sentData.data.username).to.equal('Ludwig');
         });
 
-        it('offer', function() {
+        it('offer', function () {
             // Run: send the offer message
             this.signaler.offer(
-                '5678',  // receiver
-                'a description',  // description
+                '5678', // receiver
+                'a description' // description
             );
 
             // Verify: the sent message has the proper structure
@@ -53,11 +53,11 @@ describe('Test Signaler', () => {
             expect(this.sentData.data).to.equal('a description');
         });
 
-        it('answer', function() {
+        it('answer', function () {
             // Run: send the answer message
             this.signaler.answer(
-                '5678',  // receiver
-                'a description',  // description
+                '5678', // receiver
+                'a description' // description
             );
 
             // Verify: the sent message has the proper structure
@@ -66,10 +66,10 @@ describe('Test Signaler', () => {
             expect(this.sentData.data).to.equal('a description');
         });
 
-        it('bye', function() {
+        it('bye', function () {
             // Run: send the bye message
             this.signaler.bye(
-                '5678',  // receiver
+                '5678' // receiver
             );
 
             // Verify: the sent message has the proper structure
@@ -78,11 +78,11 @@ describe('Test Signaler', () => {
             expect(this.sentData.data).to.not.be.undefined;
         });
 
-        it('icecandidate', function() {
+        it('icecandidate', function () {
             // Run: send the icecandidate message
             this.signaler.icecandidate(
-                '5678',  // receiver
-                'a candidate',  // description
+                '5678', // receiver
+                'a candidate' // description
             );
 
             // Verify: the sent message has the proper structure
@@ -91,11 +91,11 @@ describe('Test Signaler', () => {
             expect(this.sentData.data).to.equal('a candidate');
         });
 
-        it('greeting', function() {
+        it('greeting', function () {
             // Run: send the greeting message
             this.signaler.greeting(
-                '5678',  // receiver
-                'Greetings!',  // greeting
+                '5678', // receiver
+                'Greetings!' // greeting
             );
 
             // Verify: the sent message has the proper structure
@@ -105,7 +105,7 @@ describe('Test Signaler', () => {
         });
     });
 
-    it('can be shutdown', function() {
+    it('can be shutdown', function () {
         // Setup
         const signaler = new Signaler();
         const callback = cy.stub();

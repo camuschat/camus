@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { setLocalAudio, setLocalVideo } from '../slices/feeds';
-import { updateAudioDevice, updateVideoDevice, updateDisplayDevice } from '../slices/devices';
+import {
+    updateAudioDevice,
+    updateVideoDevice,
+    updateDisplayDevice,
+} from '../slices/devices';
 import { getUserVideo, getUserAudio, getDisplayMedia } from '../mediaUtils';
 import ExitDialog from './ExitDialog';
-import {RootState} from '../store';
+import { RootState } from '../store';
 
 class MediaControlBar extends Component<PropsFromRedux> {
     constructor(props: PropsFromRedux) {
@@ -13,21 +17,17 @@ class MediaControlBar extends Component<PropsFromRedux> {
     }
 
     render(): React.ReactNode {
-        const {
-            videoDevice,
-            audioDevice,
-            displayDevice
-        } = this.props;
+        const { videoDevice, audioDevice, displayDevice } = this.props;
 
         const resolution = videoDevice.resolution;
         const videoConstraints = {
             deviceId: videoDevice.id,
-            height: {ideal: resolution},
-            width: {ideal: resolution * 4 / 3}
+            height: { ideal: resolution },
+            width: { ideal: (resolution * 4) / 3 },
         };
 
         const audioConstraints = {
-            deviceId: audioDevice.id
+            deviceId: audioDevice.id,
         };
 
         return (
@@ -44,7 +44,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     isOn={videoDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getUserVideo}
-                    icons={{on: 'videocam', off: 'videocam_off'}}
+                    icons={{ on: 'videocam', off: 'videocam_off' }}
                     ariaLabel='Toggle enable camera'
                 />
                 <MediaToggleButton
@@ -53,7 +53,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     isOn={audioDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getUserAudio}
-                    icons={{on: 'mic', off: 'mic_off'}}
+                    icons={{ on: 'mic', off: 'mic_off' }}
                     ariaLabel='Toggle enable microphone'
                 />
                 <MediaToggleButton
@@ -62,7 +62,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     isOn={displayDevice.active}
                     onTrack={this.onTrack}
                     getMedia={getDisplayMedia}
-                    icons={{on: 'screen_share', off: 'stop_screen_share'}}
+                    icons={{ on: 'screen_share', off: 'stop_screen_share' }}
                     ariaLabel='Toggle enable desktop sharing'
                 />
                 <HangUpButton />
@@ -75,30 +75,29 @@ class MediaControlBar extends Component<PropsFromRedux> {
             this.props.setLocalVideo(mediaTrack);
 
             if (mediaTrack) {
-                this.props.updateVideoDevice({active: true});
-                this.props.updateDisplayDevice({active: false});
+                this.props.updateVideoDevice({ active: true });
+                this.props.updateDisplayDevice({ active: false });
             } else {
-                this.props.updateVideoDevice({active: false});
+                this.props.updateVideoDevice({ active: false });
             }
         } else if (kind === 'display') {
             this.props.setLocalVideo(mediaTrack);
 
             if (mediaTrack) {
-                this.props.updateDisplayDevice({active: true});
-                this.props.updateVideoDevice({active: false});
+                this.props.updateDisplayDevice({ active: true });
+                this.props.updateVideoDevice({ active: false });
             } else {
-                this.props.updateDisplayDevice({active: false});
+                this.props.updateDisplayDevice({ active: false });
             }
         } else if (kind === 'mic') {
             this.props.setLocalAudio(mediaTrack);
 
             if (mediaTrack) {
-                this.props.updateAudioDevice({active: true});
+                this.props.updateAudioDevice({ active: true });
             } else {
-                this.props.updateAudioDevice({active: false});
+                this.props.updateAudioDevice({ active: false });
             }
         }
-
     }
 }
 
@@ -106,7 +105,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
 const mapState = (state: RootState) => ({
     audioDevice: state.devices.audio,
     videoDevice: state.devices.video,
-    displayDevice: state.devices.display
+    displayDevice: state.devices.display,
 });
 
 const mapDispatch = {
@@ -114,7 +113,7 @@ const mapDispatch = {
     setLocalVideo,
     updateAudioDevice,
     updateVideoDevice,
-    updateDisplayDevice
+    updateDisplayDevice,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -127,7 +126,7 @@ interface MediaToggleButtonProps {
     kind: string;
     deviceConstraints: object | null;
     isOn: boolean;
-    icons: { on: string, off: string };
+    icons: { on: string; off: string };
     getMedia: Function;
     onTrack: Function;
     ariaLabel: string;
@@ -144,17 +143,22 @@ class MediaToggleButton extends Component<MediaToggleButtonProps> {
     }
 
     mediaIsOn(): boolean {
-        return Boolean(this.mediaTrack && this.mediaTrack.readyState === 'live');
+        return Boolean(
+            this.mediaTrack && this.mediaTrack.readyState === 'live'
+        );
     }
 
     render(): React.ReactNode {
         return (
-            <button onClick={this.onClick}
+            <button
+                onClick={this.onClick}
                 aria-label={this.props.ariaLabel}
                 aria-pressed={this.props.isOn}
             >
                 <i className='material-icons'>
-                    {this.props.isOn ? this.props.icons.on : this.props.icons.off}
+                    {this.props.isOn
+                        ? this.props.icons.on
+                        : this.props.icons.off}
                 </i>
             </button>
         );
@@ -183,10 +187,12 @@ class MediaToggleButton extends Component<MediaToggleButtonProps> {
     }
 
     mediaOn(): void {
-        this.props.getMedia(this.props.deviceConstraints).then((track: MediaStreamTrack) => {
-            this.mediaTrack = track;
-            this.props.onTrack(this.props.kind, track);
-        });
+        this.props
+            .getMedia(this.props.deviceConstraints)
+            .then((track: MediaStreamTrack) => {
+                this.mediaTrack = track;
+                this.props.onTrack(this.props.kind, track);
+            });
     }
 
     mediaOff(): void {
@@ -198,8 +204,7 @@ class MediaToggleButton extends Component<MediaToggleButtonProps> {
     }
 }
 
-interface HangUpButtonProps {
-}
+interface HangUpButtonProps {}
 
 interface HangUpButtonState {
     showExitDialog: boolean;
@@ -218,25 +223,29 @@ class HangUpButton extends Component<HangUpButtonProps, HangUpButtonState> {
     }
 
     render(): React.ReactNode {
-        return (<>
-            { this.state.showExitDialog &&
-            <ExitDialog onClose={this.onCloseExitDialog} />
-            }
-            <button onClick={this.onClick} aria-label='Hang up'>
-                <i className='material-icons' style={{color: '#a00'}}>call_end</i>
-            </button>
-        </>);
+        return (
+            <>
+                {this.state.showExitDialog && (
+                    <ExitDialog onClose={this.onCloseExitDialog} />
+                )}
+                <button onClick={this.onClick} aria-label='Hang up'>
+                    <i className='material-icons' style={{ color: '#a00' }}>
+                        call_end
+                    </i>
+                </button>
+            </>
+        );
     }
 
     onClick(): void {
         this.setState({
-            showExitDialog: true
+            showExitDialog: true,
         });
     }
 
     onCloseExitDialog(): void {
         this.setState({
-            showExitDialog: false
+            showExitDialog: false,
         });
     }
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import { Feed, swapFeeds } from '../slices/feeds';
-import {RootState} from '../store';
+import { RootState } from '../store';
 import VideoControlBar from './VideoControlBar';
 
 interface VideoStageState {
@@ -17,7 +17,7 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
         this.state = {
             videoHeightAspect: 3,
             videoWidthAspect: 4,
-            videoScaleFactor: 1.0
+            videoScaleFactor: 1.0,
         };
 
         this.updateScaleFactor = this.updateScaleFactor.bind(this);
@@ -26,14 +26,18 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
     render(): React.ReactNode {
         // Associate each feed with the corresponding username
         const users = this.props.users;
-        const feeds = this.props.feeds.map(feed => {
-            const user = users.find(user => user.id === feed.id);
+        const feeds = this.props.feeds.map((feed) => {
+            const user = users.find((user) => user.id === feed.id);
             const username = user ? user.username : 'Major Tom';
-            return Object.assign({}, feed, {username});
+            return Object.assign({}, feed, { username });
         });
 
-        const feedHeight = Math.floor(this.state.videoScaleFactor * this.state.videoHeightAspect);
-        const feedWidth = Math.floor(this.state.videoScaleFactor * this.state.videoWidthAspect);
+        const feedHeight = Math.floor(
+            this.state.videoScaleFactor * this.state.videoHeightAspect
+        );
+        const feedWidth = Math.floor(
+            this.state.videoScaleFactor * this.state.videoWidthAspect
+        );
         const videoFeedStyle = {
             height: `${feedHeight}px`,
             width: `${feedWidth}px`,
@@ -48,14 +52,14 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
                 <h1 id='video-stage-title' className='sr-only'>
                     Video feeds
                 </h1>
-                {feeds.map((feed) =>
+                {feeds.map((feed) => (
                     <VideoFeed
                         key={feed.id}
                         feed={feed}
                         style={videoFeedStyle}
                         onDragAndDrop={this.props.swapFeeds}
                     />
-                )}
+                ))}
             </ul>
         );
     }
@@ -63,13 +67,16 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
     componentDidMount(): void {
         // Dynamically update the size of displayed video feeds when the
         // window is resized
-        window.addEventListener('resize', () => this.updateScaleFactor())
+        window.addEventListener('resize', () => this.updateScaleFactor());
         this.updateScaleFactor();
     }
 
     componentDidUpdate(): void {
         const videoScaleFactor = this.calculateScaleFactor(
-            this.props.feeds.length, this.state.videoHeightAspect, this.state.videoWidthAspect);
+            this.props.feeds.length,
+            this.state.videoHeightAspect,
+            this.state.videoWidthAspect
+        );
 
         if (videoScaleFactor !== this.state.videoScaleFactor) {
             this.updateScaleFactor(videoScaleFactor);
@@ -77,21 +84,27 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
     }
 
     updateScaleFactor(scaleFactor?: number): void {
-        this.setState((state, props)  => {
-            const videoScaleFactor = (scaleFactor ?
-                scaleFactor :
-                this.calculateScaleFactor(props.feeds.length, state.videoHeightAspect,
-                                            state.videoWidthAspect)
-            );
-
+        this.setState((state, props) => {
+            const videoScaleFactor = scaleFactor
+                ? scaleFactor
+                : this.calculateScaleFactor(
+                      props.feeds.length,
+                      state.videoHeightAspect,
+                      state.videoWidthAspect
+                  );
 
             return {
-                videoScaleFactor
+                videoScaleFactor,
             };
         });
     }
 
-    calculateScaleFactor(nItems: number, heightAspect: number, widthAspect: number, minWidth = 0): number {
+    calculateScaleFactor(
+        nItems: number,
+        heightAspect: number,
+        widthAspect: number,
+        minWidth = 0
+    ): number {
         const container = document.querySelector('#video-stage') as HTMLElement;
 
         // "Normalize" the height and width of the container relative to the
@@ -99,10 +112,10 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
         const normHeight = container.clientHeight / heightAspect;
         const normWidth = container.clientWidth / widthAspect;
 
-        // The ratio of columns to rows should approximately match the 
+        // The ratio of columns to rows should approximately match the
         // normalized aspect ratio of the container
-        const rows = (Math.sqrt(nItems * (normHeight / normWidth)));
-        const columns = (Math.sqrt(nItems * (normWidth / normHeight)));
+        const rows = Math.sqrt(nItems * (normHeight / normWidth));
+        const columns = Math.sqrt(nItems * (normWidth / normHeight));
 
         // The product of rows and columns should be minimized such that it still
         // fits all the items
@@ -114,7 +127,7 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
             [rowsFloor, columnsFloor],
             [rowsCeiling, columnsFloor],
             [rowsFloor, columnsCeiling],
-            [rowsCeiling, columnsCeiling]
+            [rowsCeiling, columnsCeiling],
         ].filter(([rows, columns]) => rows * columns >= nItems);
 
         // Compute the maximum scaling factor based on the remaining grid options
@@ -122,7 +135,8 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
             // The -4 provides a small amount of slack to account for numerical
             // imprecision. Without this slack, occasionally the items are slightly
             // too wide and pushed into a new row, causing overflow.
-            const xScale = (container.clientWidth - 4) / (columns * widthAspect);
+            const xScale =
+                (container.clientWidth - 4) / (columns * widthAspect);
             const yScale = (container.clientHeight - 4) / (rows * heightAspect);
             return Math.min(xScale, yScale);
         });
@@ -142,11 +156,11 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
 // Connect VideoStage to Redux
 const mapState = (state: RootState) => ({
     users: state.users,
-    feeds: state.feeds
+    feeds: state.feeds,
 });
 
 const mapDispatch = {
-    swapFeeds
+    swapFeeds,
 };
 
 const connector = connect(mapState, mapDispatch, null, { forwardRef: true });
@@ -186,7 +200,8 @@ class VideoFeed extends Component<VideoFeedProps> {
         const feed = this.props.feed;
 
         return (
-            <li className='video-feed'
+            <li
+                className='video-feed'
                 style={this.props.style}
                 draggable={'true'}
                 onDragStart={this.onDragStart}
@@ -199,10 +214,7 @@ class VideoFeed extends Component<VideoFeedProps> {
                     {`Video feed for user ${feed.username}`}
                 </h2>
                 <p className='video-tag'>{feed.username}</p>
-                <div
-                    ref={this.videoContainer}
-                    style={{height: '100%'}}
-                >
+                <div ref={this.videoContainer} style={{ height: '100%' }}>
                     <video
                         ref={this.video}
                         id={feed.id}
@@ -211,10 +223,7 @@ class VideoFeed extends Component<VideoFeedProps> {
                         muted={true}
                     />
                 </div>
-                <audio 
-                    ref={this.audio}
-                    autoPlay={true}
-                />
+                <audio ref={this.audio} autoPlay={true} />
                 <VideoControlBar
                     audioRef={this.audio}
                     videoRef={this.video}
@@ -233,7 +242,7 @@ class VideoFeed extends Component<VideoFeedProps> {
             videoStream,
             audioStream,
             audioMuted,
-            videoEnabled
+            videoEnabled,
         } = this.props.feed;
 
         this.setVideo(videoEnabled ? videoStream : null);
@@ -245,7 +254,7 @@ class VideoFeed extends Component<VideoFeedProps> {
             videoStream,
             audioStream,
             audioMuted,
-            videoEnabled
+            videoEnabled,
         } = this.props.feed;
 
         this.setVideo(videoEnabled ? videoStream : null);
@@ -264,7 +273,7 @@ class VideoFeed extends Component<VideoFeedProps> {
         event.preventDefault();
         const draggedId = event.dataTransfer.getData('id');
         const targetId = this.props.feed.id;
-        this.props.onDragAndDrop({id1: draggedId, id2: targetId});
+        this.props.onDragAndDrop({ id1: draggedId, id2: targetId });
     }
 
     setAudio(stream: MediaStream | null): void {

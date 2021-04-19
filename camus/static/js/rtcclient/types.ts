@@ -6,7 +6,6 @@ export interface Client {
 export interface RoomInfo {
     roomId: string;
     clients: Client[];
-
 }
 
 export interface IceServer {
@@ -26,8 +25,7 @@ export interface Answer {
     spd: string;
 }
 
-export interface IceCandidate extends RTCIceCandidateInit {
-}
+export interface IceCandidate extends RTCIceCandidateInit {}
 
 export interface Text {
     from: string;
@@ -70,7 +68,7 @@ export interface ProfileMessage extends Message {
     type: 'profile';
     data: {
         username: string;
-    }
+    };
 }
 
 export interface GetIceServersMessage extends Message {

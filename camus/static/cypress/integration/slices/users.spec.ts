@@ -2,7 +2,7 @@ import { createStore } from 'redux';
 import reducer, {
     addUser,
     updateUser,
-    setUsername
+    setUsername,
 } from '../../../js/slices/users';
 
 describe('Test users slice of Redux store', () => {
@@ -13,8 +13,8 @@ describe('Test users slice of Redux store', () => {
         // Test
         const user = {
             id: '1234',
-            username: 'Major Tom'
-        }
+            username: 'Major Tom',
+        };
         store.dispatch(addUser(user));
 
         // Get result
@@ -26,24 +26,23 @@ describe('Test users slice of Redux store', () => {
 
     it('can update a user', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: '1234',
-                username: 'Major Tom'
-            }]
-        );
+                username: 'Major Tom',
+            },
+        ]);
 
         // Test
         const updatedUser = {
             id: '1234',
-            username: 'Ludwig'
+            username: 'Ludwig',
         };
         store.dispatch(updateUser(updatedUser));
 
         // Get result
         const state = store.getState();
-        const storedUser = state.find(user => user.id === '1234');
+        const storedUser = state.find((user) => user.id === '1234');
 
         // Verify result
         expect(storedUser).is.not.undefined;
@@ -53,20 +52,19 @@ describe('Test users slice of Redux store', () => {
 
     it('can set the local username', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: 'local',
-                username: 'Major Tom'
-            }]
-        );
+                username: 'Major Tom',
+            },
+        ]);
 
         // Test
         store.dispatch(setUsername('Ludwig'));
 
         // Get result
         const state = store.getState();
-        const storedUser = state.find(user => user.id === 'local');
+        const storedUser = state.find((user) => user.id === 'local');
 
         // Verify result
         expect(storedUser).is.not.undefined;

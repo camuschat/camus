@@ -14,8 +14,7 @@ export interface VideoDevice extends Device {
     maxResolution: number;
 }
 
-export interface DisplayDevice extends Device {
-}
+export interface DisplayDevice extends Device {}
 
 interface DevicesState {
     audio: AudioDevice;
@@ -26,18 +25,18 @@ interface DevicesState {
 const initialState: DevicesState = {
     audio: {
         active: false,
-        id: ''
+        id: '',
     },
     video: {
         active: false,
         id: '',
         resolution: 480,
-        maxResolution: 0
+        maxResolution: 0,
     },
     display: {
-        active: false
-    }
-}
+        active: false,
+    },
+};
 
 const devicesSlice = createSlice({
     name: 'devices',
@@ -54,8 +53,8 @@ const devicesSlice = createSlice({
         },
         setResolution(state, { payload }: PayloadAction<number>) {
             state.video.resolution = payload;
-        }
-    }
+        },
+    },
 });
 
 const { actions, reducer } = devicesSlice;
@@ -63,6 +62,6 @@ export const {
     updateAudioDevice,
     updateVideoDevice,
     updateDisplayDevice,
-    setResolution
+    setResolution,
 } = actions;
 export default reducer;

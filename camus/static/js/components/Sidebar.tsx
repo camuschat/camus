@@ -18,7 +18,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
 
         this.state = {
             currentChild: 0,
-            isCollapsed: true
+            isCollapsed: true,
         };
 
         this.onToggleButtonClick = this.onToggleButtonClick.bind(this);
@@ -26,10 +26,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
     }
 
     render(): React.ReactNode {
-        const {
-            currentChild,
-            isCollapsed
-        } = this.state;
+        const { currentChild, isCollapsed } = this.state;
 
         const label = this.props.buttonAriaLabels[currentChild];
         return (
@@ -41,16 +38,18 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
                     Sidebar
                 </h1>
                 {isCollapsed && this.renderToggleButtons()}
-                {!isCollapsed && <>
-                    <button
-                        className='icon-button'
-                        onClick={this.hide}
-                        aria-label={`Close ${label}`}
-                    >
-                        <i className='material-icons'>close</i>
-                    </button>
-                    {this.props.children[currentChild]}
-                </>}
+                {!isCollapsed && (
+                    <>
+                        <button
+                            className='icon-button'
+                            onClick={this.hide}
+                            aria-label={`Close ${label}`}
+                        >
+                            <i className='material-icons'>close</i>
+                        </button>
+                        {this.props.children[currentChild]}
+                    </>
+                )}
             </section>
         );
     }
@@ -60,7 +59,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
         const labels = this.props.buttonAriaLabels;
         return (
             <ul className='sidebar-toggle-buttons'>
-                {icons.map((icon, idx) =>
+                {icons.map((icon, idx) => (
                     <li key={icon}>
                         <SidebarToggleButton
                             icon={icon}
@@ -68,7 +67,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
                             ariaLabel={`Open ${labels[idx]}`}
                         />
                     </li>
-                )}
+                ))}
             </ul>
         );
     }
@@ -77,7 +76,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
         const childIndex = this.props.buttonIcons.indexOf(icon);
         this.setState({
             currentChild: childIndex,
-            isCollapsed: false
+            isCollapsed: false,
         });
 
         this.props.onToggle('open');
@@ -85,7 +84,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
 
     hide(): void {
         this.setState({
-            isCollapsed: true
+            isCollapsed: true,
         });
 
         this.props.onToggle('close');
@@ -111,9 +110,7 @@ class SidebarToggleButton extends Component<SidebarToggleButtonProps> {
                 onClick={this.onClick}
                 aria-label={this.props.ariaLabel}
             >
-                <i className='material-icons'>
-                    {this.props.icon}
-                </i>
+                <i className='material-icons'>{this.props.icon}</i>
             </button>
         );
     }

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
-interface InviteProps {
-}
+interface InviteProps {}
 
 interface InviteState {
     visible: boolean;
@@ -16,7 +15,7 @@ export default class Invite extends Component<InviteProps, InviteState> {
 
         this.state = {
             visible: true,
-            toggled: false
+            toggled: false,
         };
 
         this.toggleExpandButton = React.createRef();
@@ -56,37 +55,37 @@ export default class Invite extends Component<InviteProps, InviteState> {
                         ref={this.toggleExpandButton}
                     />
                 </div>
-                { this.state.toggled &&
-                <div className='input-line'>
-                    <button
-                        type='button'
-                        onClick={this.handleCopyLink}
-                        aria-label='Copy the room link'
-                    >
-                        <i className='material-icons'>content_copy</i>
-                    </button>
-                    <input
-                        className='invitation-link'
-                        name='invitation-link'
-                        type='text'
-                        value={window.location.href}
-                        readOnly={true}
-                    />
-                </div>
-                }
+                {this.state.toggled && (
+                    <div className='input-line'>
+                        <button
+                            type='button'
+                            onClick={this.handleCopyLink}
+                            aria-label='Copy the room link'
+                        >
+                            <i className='material-icons'>content_copy</i>
+                        </button>
+                        <input
+                            className='invitation-link'
+                            name='invitation-link'
+                            type='text'
+                            value={window.location.href}
+                            readOnly={true}
+                        />
+                    </div>
+                )}
             </div>
         );
     }
 
     handleToggle(): void {
-        this.setState(state  => {
+        this.setState((state) => {
             const toggled = !state.toggled;
             return { toggled };
         });
     }
 
     handleClose(): void {
-        this.setState(state  => {
+        this.setState((state) => {
             const visible = !state.visible;
             return { visible };
         });
@@ -94,7 +93,9 @@ export default class Invite extends Component<InviteProps, InviteState> {
 
     handleCopyLink(): void {
         // Copy the room link to the clipboard
-        const link = document.querySelector('.invitation-link') as HTMLInputElement;
+        const link = document.querySelector(
+            '.invitation-link'
+        ) as HTMLInputElement;
         link.focus();
         link.select();
         document.execCommand('copy');

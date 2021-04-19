@@ -1,9 +1,19 @@
-import { Answer, IceCandidate, MediaPeer, Offer, Signaler } from '../../../js/rtcclient';
+import {
+    Answer,
+    IceCandidate,
+    MediaPeer,
+    Offer,
+    Signaler,
+} from '../../../js/rtcclient';
 
 describe('Test ideoPeer', () => {
     it('can initialize a connection', () => {
         const signaler = new MockSignaler();
-        const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
+        const peer = new MediaPeer(
+            { id: 'abc', username: 'Bill' },
+            signaler,
+            false
+        );
 
         expect(peer.id).to.equal('abc');
         expect(peer.username).to.equal('Bill');
@@ -11,29 +21,57 @@ describe('Test ideoPeer', () => {
         expect(peer.connection).to.be.instanceOf(RTCPeerConnection);
     });
 
-    it('can negotiate a connection', {
-        defaultCommandTimeout: 10000,
-        retries: 2
-    }, () => {
-        const signaler = new MockSignaler();
-        const peer1 = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
-        const peer2 = new MediaPeer({id: 'def', username: 'Ted'}, signaler, true);
+    it(
+        'can negotiate a connection',
+        {
+            defaultCommandTimeout: 10000,
+            retries: 2,
+        },
+        () => {
+            const signaler = new MockSignaler();
+            const peer1 = new MediaPeer(
+                { id: 'abc', username: 'Bill' },
+                signaler,
+                false
+            );
+            const peer2 = new MediaPeer(
+                { id: 'def', username: 'Ted' },
+                signaler,
+                true
+            );
 
-        // Note: the mapping between id and peer appears reversed here since the
-        // id refers to the other peer
-        signaler.peers.set(peer2.id, peer1);
-        signaler.peers.set(peer1.id, peer2);
+            // Note: the mapping between id and peer appears reversed here since the
+            // id refers to the other peer
+            signaler.peers.set(peer2.id, peer1);
+            signaler.peers.set(peer1.id, peer2);
 
-        // Begin negotiation
-        peer1.connect();
-        peer2.connect();
+            // Begin negotiation
+            peer1.connect();
+            peer2.connect();
 
-        // Retry assertions until connection is established (or Cypress times out)
-        cy.wrap(peer1).should('have.property', 'connectionState', 'connected');
-        cy.wrap(peer2).should('have.property', 'connectionState', 'connected');
-        cy.wrap(peer1).should('have.property', 'iceConnectionState', 'connected');
-        cy.wrap(peer2).should('have.property', 'iceConnectionState', 'connected');
-    });
+            // Retry assertions until connection is established (or Cypress times out)
+            cy.wrap(peer1).should(
+                'have.property',
+                'connectionState',
+                'connected'
+            );
+            cy.wrap(peer2).should(
+                'have.property',
+                'connectionState',
+                'connected'
+            );
+            cy.wrap(peer1).should(
+                'have.property',
+                'iceConnectionState',
+                'connected'
+            );
+            cy.wrap(peer2).should(
+                'have.property',
+                'iceConnectionState',
+                'connected'
+            );
+        }
+    );
 
     it('can add multiple audio and video tracks', () => {
         const peer = createDummyPeer();
@@ -98,8 +136,6 @@ class MockSignaler extends Signaler {
     icecandidate(receiver: string, candidate: IceCandidate) {
         this.peers.get(receiver).onIceCandidate(candidate).then();
     }
-
-
 }
 
 function createVideoTrack(): MediaStreamTrack {
@@ -112,8 +148,12 @@ function createAudioTrack(): MediaStreamTrack {
 
 function createDummyPeer(): MediaPeer {
     const signaler = new MockSignaler();
-    const peer = new MediaPeer({id: 'abc', username: 'Bill'}, signaler, false);
-    peer.connection.onnegotiationneeded = () => {};  // Disable negotiation for this test
-    peer.connect();  // Trigger setup of transceivers
+    const peer = new MediaPeer(
+        { id: 'abc', username: 'Bill' },
+        signaler,
+        false
+    );
+    peer.connection.onnegotiationneeded = () => {}; // Disable negotiation for this test
+    peer.connect(); // Trigger setup of transceivers
     return peer;
 }

@@ -63,6 +63,7 @@
   },
   "prettier": {
     "singleQuote": true,
+    "jsxSingleQuote": true,
     "tabWidth": 4,
     "overrides": [
       {

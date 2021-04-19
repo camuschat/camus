@@ -2,7 +2,7 @@ import { createStore } from 'redux';
 import reducer, {
     addIceServer,
     updateIceServer,
-    removeIceServer
+    removeIceServer,
 } from '../../../js/slices/iceServers';
 
 describe('Test iceServers slice of Redux store', () => {
@@ -16,13 +16,15 @@ describe('Test iceServers slice of Redux store', () => {
             username: 'Ludwig',
             credential: '1234',
             kind: 'turn',
-            enabled: true
+            enabled: true,
         };
         store.dispatch(addIceServer(server));
 
         // Get result
         const state = store.getState();
-        const storedServer = state.find(server => server.urls.includes('turn:example.com'));
+        const storedServer = state.find((server) =>
+            server.urls.includes('turn:example.com')
+        );
 
         // Verify result
         expect(storedServer).is.not.undefined;
@@ -35,17 +37,16 @@ describe('Test iceServers slice of Redux store', () => {
 
     it('can update an ICE server', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: 42,
                 enabled: true,
                 urls: ['turn:example.com'],
                 username: 'Ludwig',
                 credential: '1234',
-                kind: 'turn'
-            }]
-        );
+                kind: 'turn',
+            },
+        ]);
 
         // Test
         const updatedServer = {
@@ -54,13 +55,13 @@ describe('Test iceServers slice of Redux store', () => {
             username: 'Albert',
             credential: '5678',
             kind: 'stun',
-            enabled: false
+            enabled: false,
         };
         store.dispatch(updateIceServer(updatedServer));
 
         // Get result
         const state = store.getState();
-        const storedServer = state.find(server => server.id === 42);
+        const storedServer = state.find((server) => server.id === 42);
 
         // Verify result
         expect(storedServer).is.not.undefined;
@@ -72,24 +73,23 @@ describe('Test iceServers slice of Redux store', () => {
 
     it('can remove an ICE server', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: 42,
                 enabled: true,
                 urls: ['turn:example.com'],
                 username: 'Ludwig',
                 credential: '1234',
-                kind: 'turn'
-            }]
-        );
+                kind: 'turn',
+            },
+        ]);
 
         // Test
         store.dispatch(removeIceServer(42));
 
         // Get result
         const state = store.getState();
-        const storedServer = state.find(server => server.id === 42);
+        const storedServer = state.find((server) => server.id === 42);
 
         // Verify result
         expect(storedServer).is.undefined;

@@ -2,11 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import App from './components/App';
-import {
-    manager,
-    sagaMiddleware,
-    store
-} from './store';
+import { manager, sagaMiddleware, store } from './store';
 import rootSaga from './sagas';
 
 window.addEventListener('unhandledrejection', (event) => {
@@ -22,7 +18,7 @@ sagaMiddleware.run(rootSaga);
 ReactDOM.render(
     <React.StrictMode>
         <Provider store={store}>
-            <App manager={manager}/>
+            <App manager={manager} />
         </Provider>
     </React.StrictMode>,
     document.getElementById('react-root')

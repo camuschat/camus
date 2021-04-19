@@ -1,5 +1,13 @@
-import { Answer, IceCandidate, IceServer, Message, Offer, PongMessage, RoomInfo } from './types';
-import EventEmitter from './EventEmitter'
+import {
+    Answer,
+    IceCandidate,
+    IceServer,
+    Message,
+    Offer,
+    PongMessage,
+    RoomInfo,
+} from './types';
+import EventEmitter from './EventEmitter';
 
 export default class Signaler extends EventEmitter {
     socket: WebSocket;
@@ -10,9 +18,8 @@ export default class Signaler extends EventEmitter {
         this.socket = this.connect();
     }
 
-
     connect(): WebSocket {
-        const protocol = (location.protocol.startsWith('https')) ? 'wss' : 'ws';
+        const protocol = location.protocol.startsWith('https') ? 'wss' : 'ws';
         const url = `${protocol}://${location.host}${location.pathname}/ws`;
         const socket = new WebSocket(url);
 
@@ -40,15 +47,15 @@ export default class Signaler extends EventEmitter {
     get connectionState(): string {
         switch (this.socket.readyState) {
             case WebSocket.CONNECTING:
-                return "connecting";
+                return 'connecting';
             case WebSocket.OPEN:
-                return "open";
+                return 'open';
             case WebSocket.CLOSING:
-                return "closing";
+                return 'closing';
             case WebSocket.CLOSED:
-                return "closed";
+                return 'closed';
             default:
-                return "unknown";
+                return 'unknown';
         }
     }
 
@@ -61,7 +68,13 @@ export default class Signaler extends EventEmitter {
         return new Promise((resolve) => {
             function matchResponse(message: Message) {
                 for (const key in responseParams) {
-                    if (!(key in message && (message as any)[key] === (responseParams as any)[key])) {
+                    if (
+                        !(
+                            key in message &&
+                            (message as any)[key] ===
+                                (responseParams as any)[key]
+                        )
+                    ) {
                         return false;
                     }
                 }
@@ -86,12 +99,12 @@ export default class Signaler extends EventEmitter {
         const data = {
             receiver: 'ground control',
             type: 'ping',
-            data: time
+            data: time,
         };
         const responseParams = {
             sender: 'ground control',
             type: 'pong',
-            data: time
+            data: time,
         };
         const response = await this.sendReceive(data, responseParams);
         return response as PongMessage;
@@ -100,11 +113,11 @@ export default class Signaler extends EventEmitter {
     async getRoomInfo(): Promise<RoomInfo> {
         const data = {
             receiver: 'ground control',
-            type: 'get-room-info'
+            type: 'get-room-info',
         };
         const responseParams = {
             sender: 'ground control',
-            type: 'room-info'
+            type: 'room-info',
         };
         const response = await this.sendReceive(data, responseParams);
         return response.data as RoomInfo;
@@ -113,12 +126,12 @@ export default class Signaler extends EventEmitter {
     async fetchIceServers(): Promise<IceServer[]> {
         const data = {
             receiver: 'ground control',
-            type: 'get-ice-servers'
-        }
+            type: 'get-ice-servers',
+        };
         const responseParams = {
             sender: 'ground control',
-            type: 'ice-servers'
-        }
+            type: 'ice-servers',
+        };
         const response = await this.sendReceive(data, responseParams);
         return response.data as IceServer[];
     }
@@ -132,8 +145,8 @@ export default class Signaler extends EventEmitter {
             data: {
                 from,
                 time,
-                text
-            }
+                text,
+            },
         });
     }
 
@@ -141,7 +154,7 @@ export default class Signaler extends EventEmitter {
         this.send({
             receiver: 'ground control',
             type: 'profile',
-            data: { username }
+            data: { username },
         });
     }
 
@@ -149,7 +162,7 @@ export default class Signaler extends EventEmitter {
         this.send({
             receiver,
             type: 'offer',
-            data: description
+            data: description,
         });
     }
 
@@ -157,7 +170,7 @@ export default class Signaler extends EventEmitter {
         this.send({
             receiver,
             type: 'answer',
-            data: description
+            data: description,
         });
     }
 
@@ -165,7 +178,7 @@ export default class Signaler extends EventEmitter {
         this.send({
             receiver,
             type: 'bye',
-            data: new Date().getTime()
+            data: new Date().getTime(),
         });
     }
 
@@ -173,19 +186,20 @@ export default class Signaler extends EventEmitter {
         this.send({
             receiver,
             type: 'icecandidate',
-            data: candidate
+            data: candidate,
         });
     }
 
     greeting(receiver?: string, text?: string): void {
-        receiver = receiver ? receiver: 'ground control';
-        text = text ?  text :
-            "This is Major Tom to Ground Control: I'm stepping through the " +
-            "door. And the stars look very different today.";
+        receiver = receiver ? receiver : 'ground control';
+        text = text
+            ? text
+            : "This is Major Tom to Ground Control: I'm stepping through the " +
+              'door. And the stars look very different today.';
         this.send({
             receiver,
             type: 'greeting',
-            data: text
+            data: text,
         });
     }
 

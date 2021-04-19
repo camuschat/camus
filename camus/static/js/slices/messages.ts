@@ -19,13 +19,10 @@ const messagesSlice = createSlice({
             // This action should be caught by middleware to pass the message
             // to the Manager
             return;
-        }
-    }
+        },
+    },
 });
 
 const { actions, reducer } = messagesSlice;
-export const {
-    addChatMessage,
-    sendChatMessage
-} = actions;
+export const { addChatMessage, sendChatMessage } = actions;
 export default reducer;

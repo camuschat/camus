@@ -14,8 +14,8 @@ export const manager = new Manager();
 // Create Redux Saga middleware, passing it the manager
 export const sagaMiddleware = createSagaMiddleware({
     context: {
-        manager
-    }
+        manager,
+    },
 });
 
 // Set up the Redux store
@@ -26,11 +26,9 @@ export const store = configureStore({
         messages: messagesReducer,
         feeds: feedsReducer,
         iceServers: iceServersReducer,
-        connections: connectionsReducer
+        connections: connectionsReducer,
     },
-    middleware: [
-        sagaMiddleware
-    ]
+    middleware: [sagaMiddleware],
 });
 
 export type RootState = ReturnType<typeof store.getState>;

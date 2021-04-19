@@ -19,25 +19,21 @@ const iceServersSlice = createSlice({
     initialState,
     reducers: {
         addIceServer(state, { payload }: PayloadAction<IceServer>) {
-            const server = Object.assign({id: id++, enabled: true}, payload);
-            state.push(server)
+            const server = Object.assign({ id: id++, enabled: true }, payload);
+            state.push(server);
         },
         removeIceServer(state, { payload }: PayloadAction<number>) {
             const id = payload;
-            return state.filter(server => server.id !== id);
+            return state.filter((server) => server.id !== id);
         },
         updateIceServer(state, { payload }: PayloadAction<{ id: number }>) {
             const { id } = payload;
-            const server = state.find(server => server.id === id);
+            const server = state.find((server) => server.id === id);
             Object.assign(server, payload);
-        }
-    }
+        },
+    },
 });
 
 const { actions, reducer } = iceServersSlice;
-export const {
-    addIceServer,
-    removeIceServer,
-    updateIceServer
-} = actions;
+export const { addIceServer, removeIceServer, updateIceServer } = actions;
 export default reducer;

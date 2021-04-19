@@ -40,7 +40,7 @@ export default class Manager extends EventEmitter {
     set iceServers(iceServers: IceServer[]) {
         this._iceServers = iceServers;
 
-        this.mediaPeers.forEach(peer => {
+        this.mediaPeers.forEach((peer) => {
             peer.iceServers = iceServers;
         });
     }
@@ -116,7 +116,10 @@ export default class Manager extends EventEmitter {
 
     createMediaPeer(client: Client): MediaPeer {
         const peer = new MediaPeer(
-            client, this.signaler, this.id < client.id, this.iceServers,
+            client,
+            this.signaler,
+            this.id < client.id,
+            this.iceServers,
             [...this.mediaTracks.values()]
         );
         this.mediaPeers.set(client.id, peer);
@@ -150,7 +153,9 @@ export default class Manager extends EventEmitter {
         // Remove peers not in room
         const roomClientIds = roomInfo.clients.map(({ id }) => id);
         const peerClientIds = Array.from(this.mediaPeers.keys());
-        const removeIds = peerClientIds.filter(id => !roomClientIds.includes(id));
+        const removeIds = peerClientIds.filter(
+            (id) => !roomClientIds.includes(id)
+        );
 
         removeIds.forEach((id) => {
             this.removeMediaPeer(id);
@@ -165,7 +170,9 @@ export default class Manager extends EventEmitter {
 
         // Update information for each peer
         this.mediaPeers.forEach((peer, peer_id) => {
-            const client = roomInfo.clients.find(client => client.id === peer_id);
+            const client = roomInfo.clients.find(
+                (client) => client.id === peer_id
+            );
             if (client) {
                 peer.username = client.username;
             }
@@ -202,7 +209,9 @@ export default class Manager extends EventEmitter {
 
         // Wait for websocket to open
         while (this.signaler.connectionState != 'open') {
-            await new Promise(r => {setTimeout(r, 100)});
+            await new Promise((r) => {
+                setTimeout(r, 100);
+            });
         }
 
         this.id = await this.getSelfId();

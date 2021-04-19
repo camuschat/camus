@@ -5,11 +5,16 @@ import { addChatMessage } from '../slices/messages';
 import {
     addConnection,
     removeConnection,
-    updateConnection
+    updateConnection,
 } from '../slices/connections';
 import { addFeed, removeFeed, updateFeed } from '../slices/feeds';
 import { addIceServer } from '../slices/iceServers';
-import { IceServersMessage, Manager, MediaPeer, TextMessage } from '../rtcclient';
+import {
+    IceServersMessage,
+    Manager,
+    MediaPeer,
+    TextMessage,
+} from '../rtcclient';
 import ChatMessageBar from './ChatMessageBar';
 import ConnectionInfoBar from './ConnectionInfoBar';
 import IceServers from './IceServers';
@@ -47,10 +52,11 @@ class App extends Component<AppProps, AppState> {
         this.manager = this.props.manager;
         this.state = {
             displayEnterRoomModal: true,
-        }
+        };
 
         this.videoStage = React.createRef();
-        this.canUpdateIceServers = new RTCPeerConnection().setConfiguration !== undefined;
+        this.canUpdateIceServers =
+            new RTCPeerConnection().setConfiguration !== undefined;
 
         this.onSubmitModal = this.onSubmitModal.bind(this);
         this.onReceiveChatMessage = this.onReceiveChatMessage.bind(this);
@@ -64,8 +70,14 @@ class App extends Component<AppProps, AppState> {
     }
 
     componentDidMount(): void {
-        this.manager.addMessageListener({type: 'text'}, this.onReceiveChatMessage);
-        this.manager.addMessageListener({type: 'ice-servers'}, this.onReceiveIceServers);
+        this.manager.addMessageListener(
+            { type: 'text' },
+            this.onReceiveChatMessage
+        );
+        this.manager.addMessageListener(
+            { type: 'ice-servers' },
+            this.onReceiveIceServers
+        );
         this.manager.on('mediapeer', this.onMediaPeer);
         this.manager.on('mediapeerremoved', this.onMediaPeerRemoved);
 
@@ -92,29 +104,33 @@ class App extends Component<AppProps, AppState> {
             );
         }
 
-        return (<>
-            <main>
-                <VideoStage 
-                    ref={this.videoStage}
-                />
-                <MediaControlBar />
-                <Invite />
-            </main>
-            <Sidebar
-                buttonIcons={['message', 'people', 'settings']}
-                buttonAriaLabels={['chat window', 'users window', 'settings window']}
-                onToggle={this.onSidebarToggle}
-            >
-                <ChatMessageBar />
-                <ConnectionInfoBar />
-                <IceServers allowEditing={this.canUpdateIceServers}/>
-            </Sidebar>
-        </>)
+        return (
+            <>
+                <main>
+                    <VideoStage ref={this.videoStage} />
+                    <MediaControlBar />
+                    <Invite />
+                </main>
+                <Sidebar
+                    buttonIcons={['message', 'people', 'settings']}
+                    buttonAriaLabels={[
+                        'chat window',
+                        'users window',
+                        'settings window',
+                    ]}
+                    onToggle={this.onSidebarToggle}
+                >
+                    <ChatMessageBar />
+                    <ConnectionInfoBar />
+                    <IceServers allowEditing={this.canUpdateIceServers} />
+                </Sidebar>
+            </>
+        );
     }
 
     onSubmitModal(): void {
         this.setState({
-            displayEnterRoomModal: false
+            displayEnterRoomModal: false,
         });
     }
 
@@ -122,18 +138,18 @@ class App extends Component<AppProps, AppState> {
         const chatMessage = {
             from: message.data.from,
             timestamp: message.data.time,
-            text: message.data.text
+            text: message.data.text,
         };
         this.props.addChatMessage(chatMessage);
     }
 
     onReceiveIceServers(message: IceServersMessage): void {
         const servers = message.data;
-        servers.forEach(server => {
+        servers.forEach((server) => {
             // The urls field may either be a single string or an array of
             // strings, so convert it to an array if a single string is given
             if (typeof server.urls === 'string') {
-                server.urls = [server.urls]
+                server.urls = [server.urls];
             }
 
             const kind = server.urls[0].match(/^(?<kind>stun|turn):/);
@@ -148,19 +164,19 @@ class App extends Component<AppProps, AppState> {
         });
 
         peer.on('connectionstatechange', (state: string) => {
-            this.onPeerConnectionChange(peer, 'connectionState', state)
+            this.onPeerConnectionChange(peer, 'connectionState', state);
         });
 
         peer.on('iceconnectionstatechange', (state: string) => {
-            this.onPeerConnectionChange(peer, 'iceConnectionState', state)
+            this.onPeerConnectionChange(peer, 'iceConnectionState', state);
         });
 
         peer.on('icegatheringstatechange', (state: string) => {
-            this.onPeerConnectionChange(peer, 'iceGatheringState', state)
+            this.onPeerConnectionChange(peer, 'iceGatheringState', state);
         });
 
         peer.on('signalingstatechange', (state: string) => {
-            this.onPeerConnectionChange(peer, 'signalingState', state)
+            this.onPeerConnectionChange(peer, 'signalingState', state);
         });
 
         peer.on('usernamechange', (username: string) => {
@@ -169,21 +185,21 @@ class App extends Component<AppProps, AppState> {
 
         const user = {
             id: peer.id,
-            username: peer.username
-        }
+            username: peer.username,
+        };
         const feed = {
             id: peer.id,
             videoStream: null,
             audioStream: null,
             videoEnabled: true,
-            audioMuted: false
+            audioMuted: false,
         };
         const connection = {
             id: peer.id,
             connectionState: peer.connectionState,
             iceConnectionState: peer.iceConnectionState,
             iceGatheringState: peer.iceGatheringState,
-            signalingState: peer.signalingState
+            signalingState: peer.signalingState,
         };
 
         this.props.addUser(user);
@@ -201,35 +217,41 @@ class App extends Component<AppProps, AppState> {
 
         track.addEventListener('unmute', () => {
             console.log('Track unmuted', track, stream);
-            const fieldName = track.kind == 'video' ? 'videoStream' : 'audioStream';
+            const fieldName =
+                track.kind == 'video' ? 'videoStream' : 'audioStream';
             const feed = {
                 id: peer.id,
-                [fieldName]: stream
-            }
+                [fieldName]: stream,
+            };
             this.props.updateFeed(feed);
         });
 
         track.addEventListener('mute', () => {
             console.log('Track muted', track);
-            const fieldName = track.kind == 'video' ? 'videoStream' : 'audioStream';
+            const fieldName =
+                track.kind == 'video' ? 'videoStream' : 'audioStream';
             const feed = {
                 id: peer.id,
-                [fieldName]: null
-            }
+                [fieldName]: null,
+            };
             this.props.updateFeed(feed);
         });
     }
 
-    onPeerConnectionChange(peer: MediaPeer, kind: string, status: string): void {
+    onPeerConnectionChange(
+        peer: MediaPeer,
+        kind: string,
+        status: string
+    ): void {
         const connection = {
             id: peer.id,
-            [kind]: status
+            [kind]: status,
         };
         this.props.updateConnection(connection);
     }
 
     onPeerUsernameChange(peer: MediaPeer, username: string): void {
-        const user = {id: peer.id, username};
+        const user = { id: peer.id, username };
         this.props.updateUser(user);
     }
 
@@ -244,18 +266,15 @@ class App extends Component<AppProps, AppState> {
     }
 }
 
-export default connect(
-    null,
-    {
-        addUser,
-        updateUser,
-        addChatMessage,
-        addConnection,
-        removeConnection,
-        updateConnection,
-        addFeed,
-        removeFeed,
-        updateFeed,
-        addIceServer
-    }
-)(App);
+export default connect(null, {
+    addUser,
+    updateUser,
+    addChatMessage,
+    addConnection,
+    removeConnection,
+    updateConnection,
+    addFeed,
+    removeFeed,
+    updateFeed,
+    addIceServer,
+})(App);

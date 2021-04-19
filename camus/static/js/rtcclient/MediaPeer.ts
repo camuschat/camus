@@ -1,5 +1,5 @@
 import { Answer, Client, IceCandidate, IceServer, Offer } from './types';
-import EventEmitter from './EventEmitter'
+import EventEmitter from './EventEmitter';
 import Signaler from './Signaler';
 
 export default class MediaPeer extends EventEmitter {
@@ -11,7 +11,13 @@ export default class MediaPeer extends EventEmitter {
     private _username: string;
     private _iceServers: IceServer[];
 
-    constructor(client: Client, signaler: Signaler, polite: boolean, iceServers: IceServer[]=[], tracks: MediaStreamTrack[]=[]) {
+    constructor(
+        client: Client,
+        signaler: Signaler,
+        polite: boolean,
+        iceServers: IceServer[] = [],
+        tracks: MediaStreamTrack[] = []
+    ) {
         super();
         this.id = client.id;
         this._username = client.username;
@@ -39,10 +45,12 @@ export default class MediaPeer extends EventEmitter {
         this._iceServers = iceServers;
         try {
             this.connection.setConfiguration({
-                iceServers
+                iceServers,
             });
-            console.log(`[${this.id}] Updated connection configuration: `,
-                this.connection.getConfiguration());
+            console.log(
+                `[${this.id}] Updated connection configuration: `,
+                this.connection.getConfiguration()
+            );
 
             this.restartIce();
         } catch (err) {
@@ -62,33 +70,46 @@ export default class MediaPeer extends EventEmitter {
         const connection = new RTCPeerConnection(config);
 
         // Handle incoming tracks from the peer
-        connection.ontrack = ({track, streams}) => {
-            console.log(`[${this.id}] ${track.kind} track ${track.id} received`);
+        connection.ontrack = ({ track, streams }) => {
+            console.log(
+                `[${this.id}] ${track.kind} track ${track.id} received`
+            );
             this.emit('track', track, streams);
         };
 
         connection.onconnectionstatechange = () => {
-            console.log(`[${this.id}] Connection state: ${connection.connectionState}`);
+            console.log(
+                `[${this.id}] Connection state: ${connection.connectionState}`
+            );
             this.emit('connectionstatechange', connection.connectionState);
         };
 
         // Handle failed ICE connections
         connection.oniceconnectionstatechange = () => {
-            console.log(`[${this.id}] Ice connection state: ${connection.iceConnectionState}`);
-            if (connection.iceConnectionState === "failed") {
+            console.log(
+                `[${this.id}] Ice connection state: ${connection.iceConnectionState}`
+            );
+            if (connection.iceConnectionState === 'failed') {
                 this.restartIce();
             }
 
-            this.emit('iceconnectionstatechange', connection.iceConnectionState);
+            this.emit(
+                'iceconnectionstatechange',
+                connection.iceConnectionState
+            );
         };
 
         connection.onsignalingstatechange = () => {
-            console.log(`[${this.id}] Signaling state: ${connection.signalingState}`);
+            console.log(
+                `[${this.id}] Signaling state: ${connection.signalingState}`
+            );
             this.emit('signalingstatechange', connection.signalingState);
         };
 
         connection.onicegatheringstatechange = () => {
-            console.log(`[${this.id}] Ice gathering state: ${connection.iceGatheringState}`);
+            console.log(
+                `[${this.id}] Ice gathering state: ${connection.iceGatheringState}`
+            );
             this.emit('icegatheringstatechange', connection.iceGatheringState);
         };
 
@@ -107,12 +128,16 @@ export default class MediaPeer extends EventEmitter {
                     console.log(`[${this.id}] onnegotiationneeded: send offer`);
                     this.signaler.offer(this.id, description);
                 } else if (description.type === 'answer') {
-                    console.log(`[${this.id}] onnegotiationneeded: send answer`);
+                    console.log(
+                        `[${this.id}] onnegotiationneeded: send answer`
+                    );
                     this.signaler.answer(this.id, description);
                 } else {
-                    console.error('onnegotiationneeded: unknown description type');
+                    console.error(
+                        'onnegotiationneeded: unknown description type'
+                    );
                 }
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
             } finally {
                 this.makingOffer = false;
@@ -120,7 +145,7 @@ export default class MediaPeer extends EventEmitter {
         };
 
         // Send ICE candidates as they are gathered
-        connection.onicecandidate = ({candidate}) => {
+        connection.onicecandidate = ({ candidate }) => {
             if (candidate) {
                 this.signaler.icecandidate(this.id, candidate.toJSON());
             }
@@ -166,7 +191,8 @@ export default class MediaPeer extends EventEmitter {
         }
 
         try {
-            const offerCollision = this.makingOffer || this.connection.signalingState !== 'stable';
+            const offerCollision =
+                this.makingOffer || this.connection.signalingState !== 'stable';
 
             if (offerCollision) {
                 if (!this.polite) {
@@ -175,10 +201,9 @@ export default class MediaPeer extends EventEmitter {
 
                 // Polite peer rolls back local description and accepts remote offer
                 await Promise.all([
-                    this.connection.setLocalDescription({type: "rollback"}),
-                    this.connection.setRemoteDescription(offer)
+                    this.connection.setLocalDescription({ type: 'rollback' }),
+                    this.connection.setRemoteDescription(offer),
                 ]);
-
             } else {
                 // No collision, so accept the remote offer
                 await this.connection.setRemoteDescription(offer);
@@ -190,7 +215,7 @@ export default class MediaPeer extends EventEmitter {
 
             const description = this.connection.localDescription!.toJSON();
             this.signaler.answer(this.id, description);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     }
@@ -198,7 +223,7 @@ export default class MediaPeer extends EventEmitter {
     async onAnswer(answer: Answer): Promise<void> {
         try {
             await this.connection.setRemoteDescription(answer);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     }
@@ -206,7 +231,7 @@ export default class MediaPeer extends EventEmitter {
     async onIceCandidate(candidate: IceCandidate): Promise<void> {
         try {
             await this.connection.addIceCandidate(candidate);
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     }
@@ -216,14 +241,16 @@ export default class MediaPeer extends EventEmitter {
     }
 
     getTracks(): MediaStreamTrack[] {
-        return this.connection.getSenders()
-            .map(sender => sender.track)
-            .filter(track => track !== null) as MediaStreamTrack[];
+        return this.connection
+            .getSenders()
+            .map((sender) => sender.track)
+            .filter((track) => track !== null) as MediaStreamTrack[];
     }
 
     async replaceTrack(id: string, track: MediaStreamTrack): Promise<void> {
-        const trackSender = this.connection.getSenders().find(sender =>
-            sender.track && sender.track.id === id);
+        const trackSender = this.connection
+            .getSenders()
+            .find((sender) => sender.track && sender.track.id === id);
 
         if (trackSender) {
             console.log('Replacing track on sender ', trackSender);
@@ -234,8 +261,9 @@ export default class MediaPeer extends EventEmitter {
     }
 
     removeTrack(id: string): void {
-        const trackSender = this.connection.getSenders().find(sender =>
-            sender.track && sender.track.id === id);
+        const trackSender = this.connection
+            .getSenders()
+            .find((sender) => sender.track && sender.track.id === id);
 
         if (trackSender) {
             console.log('Removing track');
@@ -246,9 +274,12 @@ export default class MediaPeer extends EventEmitter {
     }
 
     disableRemoteTrack(id: string): void {
-        const transceiver = this.connection.getTransceivers().find(t =>
-            t.receiver && t.receiver.track && t.receiver.track.id === id
-        );
+        const transceiver = this.connection
+            .getTransceivers()
+            .find(
+                (t) =>
+                    t.receiver && t.receiver.track && t.receiver.track.id === id
+            );
 
         if (transceiver) {
             console.log('Disable remote track');
@@ -259,9 +290,12 @@ export default class MediaPeer extends EventEmitter {
     }
 
     enableRemoteTrack(id: string): void {
-        const transceiver = this.connection.getTransceivers().find(t =>
-            t.receiver && t.receiver.track && t.receiver.track.id === id
-        );
+        const transceiver = this.connection
+            .getTransceivers()
+            .find(
+                (t) =>
+                    t.receiver && t.receiver.track && t.receiver.track.id === id
+            );
 
         if (transceiver) {
             console.log('Enable remote track');
@@ -272,19 +306,27 @@ export default class MediaPeer extends EventEmitter {
     }
 
     disableRemoteVideo(): void {
-        this.connection.getTransceivers().filter(t =>
-            t.receiver && t.receiver.track && t.receiver.track.kind === 'video'
-        ).forEach(t =>
-            t.direction = 'sendonly'
-        );
+        this.connection
+            .getTransceivers()
+            .filter(
+                (t) =>
+                    t.receiver &&
+                    t.receiver.track &&
+                    t.receiver.track.kind === 'video'
+            )
+            .forEach((t) => (t.direction = 'sendonly'));
     }
 
     enableRemoteVideo(): void {
-        this.connection.getTransceivers().filter(t =>
-            t.receiver && t.receiver.track && t.receiver.track.kind === 'video'
-        ).forEach(t =>
-            t.direction = 'sendrecv'
-        );
+        this.connection
+            .getTransceivers()
+            .filter(
+                (t) =>
+                    t.receiver &&
+                    t.receiver.track &&
+                    t.receiver.track.kind === 'video'
+            )
+            .forEach((t) => (t.direction = 'sendrecv'));
     }
 
     restartIce(): void {
@@ -297,8 +339,8 @@ export default class MediaPeer extends EventEmitter {
     shutdown(): void {
         // Clean up RTCPeerConnection
         if (this.connection !== null) {
-            this.connection.getReceivers().forEach(receiver => {
-                if(receiver.track) receiver.track.stop();
+            this.connection.getReceivers().forEach((receiver) => {
+                if (receiver.track) receiver.track.stop();
             });
 
             this.connection.close();

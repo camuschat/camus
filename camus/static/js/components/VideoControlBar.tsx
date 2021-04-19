@@ -4,7 +4,7 @@ import { connect, ConnectedProps } from 'react-redux';
 import { setResolution } from '../slices/devices';
 import { disableRemoteVideo, enableRemoteVideo, Feed } from '../slices/feeds';
 import { RESOLUTIONS } from '../mediaUtils';
-import {RootState} from '../store';
+import { RootState } from '../store';
 
 interface VideoControlBarProps extends PropsFromRedux {
     audioRef: React.RefObject<HTMLAudioElement>;
@@ -22,15 +22,18 @@ interface VideoControlBarState {
     showSettings: boolean;
 }
 
-class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarState> {
+class VideoControlBar extends Component<
+    VideoControlBarProps,
+    VideoControlBarState
+> {
     constructor(props: VideoControlBarProps) {
         super(props);
 
         this.state = {
             volume: 1.0,
             volumeMuted: false,
-            showSettings: false
-        }
+            showSettings: false,
+        };
 
         this.toggleAudioMute = this.toggleAudioMute.bind(this);
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
@@ -41,11 +44,7 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
     }
 
     render(): React.ReactNode {
-        const {
-            volume,
-            volumeMuted,
-            showSettings
-        } = this.state;
+        const { volume, volumeMuted, showSettings } = this.state;
 
         const {
             videoRef,
@@ -53,79 +52,92 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
             showVisibilityControls,
             showAudioControls,
             showResolutionControls,
-            videoDevice
+            videoDevice,
         } = this.props;
 
-        const volumeIcon = (
-            volumeMuted || volume == 0 ?  'volume_off' :
-            volume < 0.6 ?  'volume_down' : 'volume_up'
-        );
+        const volumeIcon =
+            volumeMuted || volume == 0
+                ? 'volume_off'
+                : volume < 0.6
+                ? 'volume_down'
+                : 'volume_up';
 
         // We should only render the picture-in-picture and fullscreen toggle
         // buttons if the browser supports these features
         const video = videoRef.current;
-        const pipSupported = ('pictureInPictureEnabled' in document ||
-            video && 'webkitSetPresentationMode' in video);
+        const pipSupported =
+            'pictureInPictureEnabled' in document ||
+            (video && 'webkitSetPresentationMode' in video);
 
         return (
             <div className='video-control-bar'>
-                {showVisibilityControls &&
-                <button
-                    className='toggle-visibility'
-                    onClick={this.toggleVisibility}
-                    aria-label={`Toggle mute video for feed ${feed.username}`}
-                    aria-pressed={!feed.videoEnabled}
-                >
-                    <i className='material-icons'>{feed.videoEnabled ? 'visibility' : 'visibility_off'}</i>
-                </button>
-                }
-                {showAudioControls && <>
-                <button
-                    className='toggle-audio'
-                    onClick={this.toggleAudioMute}
-                    aria-label={`Toggle mute audio for feed ${feed.username}`}
-                    aria-pressed={this.state.volumeMuted}
-                >
-                    <i className='material-icons'>{volumeIcon}</i>
-                </button>
-                <input
-                    className='volume-slider'
-                    type='range'
-                    min='0' max='1' step='0.1'
-                    value={volumeMuted ? 0 : volume}
-                    onChange={this.handleVolumeChange}
-                    aria-label={`Audio volume slider for feed ${feed.username}`}
-                />
-                </>}
-                {showResolutionControls && videoDevice.active &&
-                <button
-                    className='toggle-settings'
-                    onClick={this.toggleSettings}
-                    aria-label='Toggle video settings menu for your camera'
-                >
-                    <i className='material-icons'>settings</i>
-                </button>
-                }
-                {showResolutionControls && videoDevice.active &&
-                    showSettings && this.renderSettings()}
-                {pipSupported &&
-                <button
-                    className='toggle-pip'
-                    onClick={this.togglePictureInPicture}
-                    aria-label={`Toggle picture-in-picture video for feed ${feed.username}`}
-                >
-                    <i className='material-icons'>picture_in_picture</i>
-                </button>
-                }
-                {fscreen.fullscreenEnabled &&
-                <button
-                    className='toggle-fullscreen'
-                    onClick={this.toggleFullscreen}
-                    aria-label={`Toggle fullscreen video for feed ${feed.username}`}
-                >
-                    <i className='material-icons'>fullscreen</i>
-                </button>
-                }
+                {showVisibilityControls && (
+                    <button
+                        className='toggle-visibility'
+                        onClick={this.toggleVisibility}
+                        aria-label={`Toggle mute video for feed ${feed.username}`}
+                        aria-pressed={!feed.videoEnabled}
+                    >
+                        <i className='material-icons'>
+                            {feed.videoEnabled
+                                ? 'visibility'
+                                : 'visibility_off'}
+                        </i>
+                    </button>
+                )}
+                {showAudioControls && (
+                    <>
+                        <button
+                            className='toggle-audio'
+                            onClick={this.toggleAudioMute}
+                            aria-label={`Toggle mute audio for feed ${feed.username}`}
+                            aria-pressed={this.state.volumeMuted}
+                        >
+                            <i className='material-icons'>{volumeIcon}</i>
+                        </button>
+                        <input
+                            className='volume-slider'
+                            type='range'
+                            min='0'
+                            max='1'
+                            step='0.1'
+                            value={volumeMuted ? 0 : volume}
+                            onChange={this.handleVolumeChange}
+                            aria-label={`Audio volume slider for feed ${feed.username}`}
+                        />
+                    </>
+                )}
+                {showResolutionControls && videoDevice.active && (
+                    <button
+                        className='toggle-settings'
+                        onClick={this.toggleSettings}
+                        aria-label='Toggle video settings menu for your camera'
+                    >
+                        <i className='material-icons'>settings</i>
+                    </button>
+                )}
+                {showResolutionControls &&
+                    videoDevice.active &&
+                    showSettings &&
+                    this.renderSettings()}
+                {pipSupported && (
+                    <button
+                        className='toggle-pip'
+                        onClick={this.togglePictureInPicture}
+                        aria-label={`Toggle picture-in-picture video for feed ${feed.username}`}
+                    >
+                        <i className='material-icons'>picture_in_picture</i>
+                    </button>
+                )}
+                {fscreen.fullscreenEnabled && (
+                    <button
+                        className='toggle-fullscreen'
+                        onClick={this.toggleFullscreen}
+                        aria-label={`Toggle fullscreen video for feed ${feed.username}`}
+                    >
+                        <i className='material-icons'>fullscreen</i>
+                    </button>
+                )}
             </div>
         );
     }
@@ -134,22 +146,27 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
         const videoDevice = this.props.videoDevice;
         const selectedResolution = `${videoDevice.resolution}p`;
 
-        const options = RESOLUTIONS.filter(res =>
-            res <= videoDevice.maxResolution
-        ).map(res => 
-            `${res}p`
-        );
+        const options = RESOLUTIONS.filter(
+            (res) => res <= videoDevice.maxResolution
+        ).map((res) => `${res}p`);
 
         return (
             <div className='video-settings'>
                 <p>Video quality</p>
-                {options.map(option =>
-                    <button key={option} onClick={() => this.setQuality(option)}>
-                        <span className={option === selectedResolution ? 'selected' : ''}>
+                {options.map((option) => (
+                    <button
+                        key={option}
+                        onClick={() => this.setQuality(option)}
+                    >
+                        <span
+                            className={
+                                option === selectedResolution ? 'selected' : ''
+                            }
+                        >
                             {option}
                         </span>
                     </button>
-                )}
+                ))}
             </div>
         );
     }
@@ -163,7 +180,7 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
     }
 
     toggleAudioMute(): void {
-        this.setState(state  => {
+        this.setState((state) => {
             const volumeMuted = !state.volumeMuted;
             return { volumeMuted };
         });
@@ -176,7 +193,7 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
     }
 
     toggleSettings(): void {
-        this.setState(state => {
+        this.setState((state) => {
             const showSettings = !state.showSettings;
             return { showSettings };
         });
@@ -194,8 +211,8 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
         if (video && 'webkitSetPresentationMode' in video) {
             (video as any).webkitSetPresentationMode(
                 (video as any).webkitPresentationMode === 'picture-in-picture'
-                ? 'inline'
-                : 'picture-in-picture'
+                    ? 'inline'
+                    : 'picture-in-picture'
             );
         } else if ((document as any).pictureInPictureElement) {
             (document as any).exitPictureInPicture().catch((error: any) => {
@@ -230,13 +247,13 @@ class VideoControlBar extends Component<VideoControlBarProps, VideoControlBarSta
 
 // Connect VideoControlBar to Redux
 const mapState = (state: RootState) => ({
-    videoDevice: state.devices.video
+    videoDevice: state.devices.video,
 });
 
 const mapDispatch = {
     setResolution,
     disableRemoteVideo,
-    enableRemoteVideo
+    enableRemoteVideo,
 };
 
 const connector = connect(mapState, mapDispatch);

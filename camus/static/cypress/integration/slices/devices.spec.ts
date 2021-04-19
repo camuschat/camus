@@ -3,7 +3,7 @@ import reducer, {
     updateAudioDevice,
     updateVideoDevice,
     updateDisplayDevice,
-    setResolution
+    setResolution,
 } from '../../../js/slices/devices';
 
 describe('Test devices slice of Redux store', () => {
@@ -14,7 +14,7 @@ describe('Test devices slice of Redux store', () => {
         // Test
         const audioDevice = {
             active: true,
-            id: '1234'
+            id: '1234',
         };
         store.dispatch(updateAudioDevice(audioDevice));
 
@@ -34,7 +34,7 @@ describe('Test devices slice of Redux store', () => {
         const videoDevice = {
             active: true,
             id: '5678',
-            maxResolution: 1080
+            maxResolution: 1080,
         };
         store.dispatch(updateVideoDevice(videoDevice));
 
@@ -53,7 +53,7 @@ describe('Test devices slice of Redux store', () => {
 
         // Test
         const displayDevice = {
-            active: true
+            active: true,
         };
         store.dispatch(updateDisplayDevice(displayDevice));
 

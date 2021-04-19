@@ -28,9 +28,10 @@ export default class EventEmitter {
     emit(event: string, ...args: any[]): void {
         if (this.events.has(event)) {
             const callbacks = this.events.get(event);
-            callbacks && callbacks.forEach((callback) => {
-                callback(...args);
-            });
+            callbacks &&
+                callbacks.forEach((callback) => {
+                    callback(...args);
+                });
         }
     }
 }

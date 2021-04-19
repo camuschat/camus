@@ -17,7 +17,10 @@ interface EnterRoomModalState {
     cameras: MediaDeviceInfo[];
 }
 
-class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState> {
+class EnterRoomModal extends Component<
+    EnterRoomModalProps,
+    EnterRoomModalState
+> {
     private videoPreview: React.RefObject<HTMLVideoElement>;
 
     constructor(props: EnterRoomModalProps) {
@@ -28,7 +31,7 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
             audioDeviceId: '',
             videoDeviceId: '',
             mics: [],
-            cameras: []
+            cameras: [],
         };
 
         this.videoPreview = React.createRef();
@@ -43,60 +46,62 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
             return null;
         }
 
-        return (<>
-            <div className='modal-overlay'></div>
-            <div className='enter-room-modal dialog fade-in'>
-                <form onSubmit={this.handleSubmit}>
-                    <label>
-                        Nickname
-                        <input
-                            type='text'
-                            name='nickname'
-                            value={this.state.nickname}
-                            onChange={this.handleChange}
-                            required
+        return (
+            <>
+                <div className='modal-overlay'></div>
+                <div className='enter-room-modal dialog fade-in'>
+                    <form onSubmit={this.handleSubmit}>
+                        <label>
+                            Nickname
+                            <input
+                                type='text'
+                                name='nickname'
+                                value={this.state.nickname}
+                                onChange={this.handleChange}
+                                required
+                            />
+                        </label>
+                        <DeviceSelect
+                            label='Microphone'
+                            devices={this.state.mics}
+                            onSelectDevice={this.onSelectDevice}
                         />
-                    </label>
-                    <DeviceSelect
-                        label='Microphone'
-                        devices={this.state.mics}
-                        onSelectDevice={this.onSelectDevice}
-                    />
-                    <DeviceSelect
-                        label='Camera'
-                        devices={this.state.cameras}
-                        onSelectDevice={this.onSelectDevice}
-                    />
-                    <input type='submit' value='Enter room' />
-                </form>
-                <div className='video-container'>
-                    <video
-                        ref={this.videoPreview}
-                        autoPlay={true}
-                        playsInline={true}
-                    />
+                        <DeviceSelect
+                            label='Camera'
+                            devices={this.state.cameras}
+                            onSelectDevice={this.onSelectDevice}
+                        />
+                        <input type='submit' value='Enter room' />
+                    </form>
+                    <div className='video-container'>
+                        <video
+                            ref={this.videoPreview}
+                            autoPlay={true}
+                            playsInline={true}
+                        />
+                    </div>
                 </div>
-            </div>
-        </>);
+            </>
+        );
     }
 
     componentDidMount(): void {
         // Prompt the user for camera/microphone permission, then get a list of
         // available microphones and cameras
-        getUserMedia().then(({audio, video}) => {
-            if (audio) audio.stop();
-            if (video) video.stop();
-        }).then(() => {
-            return Promise.all([
-                getMics(),
-                getCameras()
-            ]);
-        }).then(([mics, cameras]) => {
-            this.setState({
-                mics,
-                cameras
+        getUserMedia()
+            .then(({ audio, video }) => {
+                if (audio) audio.stop();
+                if (video) video.stop();
+            })
+            .then(() => {
+                return Promise.all([getMics(), getCameras()]);
+            })
+            .then(([mics, cameras]) => {
+                this.setState({
+                    mics,
+                    cameras,
+                });
             });
-        });
     }
 
     componentWillUnmount(): void {
@@ -110,30 +115,33 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
             if (deviceId) {
                 // Determine the maximum camera resolution, then set the
                 // preview stream
-                this.getMaxCameraResolution(deviceId).then(maxResolution => {
-                    this.props.updateVideoDevice({
-                        maxResolution
+                this.getMaxCameraResolution(deviceId)
+                    .then((maxResolution) => {
+                        this.props.updateVideoDevice({
+                            maxResolution,
+                        });
+                    })
+                    .then(() => {
+                        return getUserVideo({ deviceId });
+                    })
+                    .then((track) => {
+                        if (track && this.videoPreview.current) {
+                            const stream = new MediaStream([track]);
+                            this.videoPreview.current.srcObject = stream;
+                        }
                     });
-                }).then(() => {
-                    return getUserVideo({deviceId});
-                }).then(track => {
-                    if (track  && this.videoPreview.current) {
-                        const stream = new MediaStream([track]);
-                        this.videoPreview.current.srcObject = stream;
-                    }
-                });
             }
 
             this.props.updateVideoDevice({
-                id: deviceId
+                id: deviceId,
             });
 
             this.setState({
-                videoDeviceId: deviceId
+                videoDeviceId: deviceId,
             });
         } else if (kind === 'Microphone') {
             this.setState({
-                audioDeviceId: deviceId
+                audioDeviceId: deviceId,
             });
         }
     }
@@ -141,25 +149,21 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
     handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const nickname = event.target.value;
         this.setState({
-            nickname: nickname
+            nickname: nickname,
         });
     }
 
     handleSubmit(event: React.SyntheticEvent<HTMLFormElement>): void {
         event.preventDefault();
 
-        const {
-            nickname,
-            audioDeviceId,
-            videoDeviceId
-        } = this.state;
+        const { nickname, audioDeviceId, videoDeviceId } = this.state;
 
         // If no camera was selected, determine the maximum resolution of the
         // default camera
         if (!videoDeviceId) {
-            this.getMaxCameraResolution(videoDeviceId).then(maxResolution => {
+            this.getMaxCameraResolution(videoDeviceId).then((maxResolution) => {
                 this.props.updateVideoDevice({
-                    maxResolution
+                    maxResolution,
                 });
             });
         }
@@ -167,11 +171,11 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
         this.props.setUsername(nickname);
         this.props.updateVideoDevice({
             id: videoDeviceId,
-            active: videoDeviceId ? true : false
+            active: videoDeviceId ? true : false,
         });
         this.props.updateAudioDevice({
             id: audioDeviceId,
-            active: audioDeviceId ? true : false
+            active: audioDeviceId ? true : false,
         });
         this.props.onSubmit();
     }
@@ -184,10 +188,10 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
         this.stopPreviewStream();
         const videoConstraints = {
             deviceId,
-            height: {ideal: 2160}
+            height: { ideal: 2160 },
         };
 
-        return getUserVideo(videoConstraints).then(track => {
+        return getUserVideo(videoConstraints).then((track) => {
             let resolution = 0;
             if (track) {
                 resolution = track.getSettings().height!;
@@ -201,7 +205,7 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
         if (this.videoPreview.current) {
             const stream = this.videoPreview.current.srcObject as MediaStream;
             if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach((track) => track.stop());
             }
             this.videoPreview.current.srcObject = null;
         }
@@ -212,7 +216,7 @@ class EnterRoomModal extends Component<EnterRoomModalProps, EnterRoomModalState>
 const mapDispatch = {
     setUsername,
     updateAudioDevice,
-    updateVideoDevice
+    updateVideoDevice,
 };
 
 const connector = connect(null, mapDispatch);
@@ -239,11 +243,11 @@ class DeviceSelect extends Component<DeviceSelectProps> {
                 {this.props.label}
                 <select name={this.props.label} onChange={this.handleChange}>
                     <option value=''>None</option>
-                    {this.props.devices.map(device =>
+                    {this.props.devices.map((device) => (
                         <option key={device.deviceId} value={device.deviceId}>
                             {device.label}
                         </option>
-                    )}
+                    ))}
                 </select>
             </label>
         );

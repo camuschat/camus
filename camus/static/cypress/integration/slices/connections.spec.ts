@@ -2,7 +2,7 @@ import { createStore } from 'redux';
 import reducer, {
     addConnection,
     removeConnection,
-    updateConnection
+    updateConnection,
 } from '../../../js/slices/connections';
 
 describe('Test connections slice of Redux store', () => {
@@ -16,13 +16,13 @@ describe('Test connections slice of Redux store', () => {
             connectionState: 'connected',
             iceConnectionState: 'connected',
             iceGatheringState: 'complete',
-            signalingState: 'stable'
+            signalingState: 'stable',
         };
         store.dispatch(addConnection(connection));
 
         // Get result
         const state = store.getState();
-        const storedConnection = state.find(conn => conn.id === '1234');
+        const storedConnection = state.find((conn) => conn.id === '1234');
 
         // Verify result
         expect(storedConnection).is.not.undefined;
@@ -35,23 +35,22 @@ describe('Test connections slice of Redux store', () => {
 
     it('can remove a connection', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: '1234',
                 connectionState: 'connected',
                 iceConnectionState: 'connected',
                 iceGatheringState: 'complete',
-                signalingState: 'stable'
-            }]
-        );
+                signalingState: 'stable',
+            },
+        ]);
 
         // Test
         store.dispatch(removeConnection('1234'));
 
         // Get result
         const state = store.getState();
-        const storedConnection = state.find(conn => conn.id === '1234');
+        const storedConnection = state.find((conn) => conn.id === '1234');
 
         // Verify result
         expect(storedConnection).is.undefined;
@@ -59,27 +58,26 @@ describe('Test connections slice of Redux store', () => {
 
     it('can update a connection', () => {
         // Setup
-        const store = createStore(
-            reducer,
-            [{
+        const store = createStore(reducer, [
+            {
                 id: '1234',
                 connectionState: 'connected',
                 iceConnectionState: 'connected',
                 iceGatheringState: 'complete',
-                signalingState: 'stable'
-            }]
-        );
+                signalingState: 'stable',
+            },
+        ]);
 
         // Test
         const updatedConnection = {
             id: '1234',
-            connectionState: 'failed'
+            connectionState: 'failed',
         };
         store.dispatch(updateConnection(updatedConnection));
 
         // Get result
         const state = store.getState();
-        const storedConnection = state.find(conn => conn.id === '1234');
+        const storedConnection = state.find((conn) => conn.id === '1234');
 
         // Verify result
         expect(storedConnection).is.not.undefined;

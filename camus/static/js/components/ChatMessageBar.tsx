@@ -11,7 +11,7 @@ class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
     constructor(props: PropsFromRedux) {
         super(props);
         this.state = {
-            value: ''
+            value: '',
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -19,7 +19,7 @@ class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
 
     handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
         const value = event.target.value;
-        this.setState({value: value});
+        this.setState({ value: value });
     }
 
     handleSubmit(event: React.SyntheticEvent<HTMLButtonElement>): void {
@@ -28,7 +28,7 @@ class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
         const trimmed = this.state.value.trim();
         if (trimmed) {
             this.props.sendChatMessage(trimmed);
-            this.setState({value: ''});
+            this.setState({ value: '' });
         }
     }
 
@@ -58,11 +58,11 @@ class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
 // Connect ChatMessageBar to Redux
 const mapState = (state: RootState) => ({
     users: state.users,
-    messages: state.messages
+    messages: state.messages,
 });
 
 const mapDispatch = {
-    sendChatMessage
+    sendChatMessage,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -79,7 +79,7 @@ class ChatMessageLog extends Component<ChatMessageLogProps> {
     render(): React.ReactNode {
         return (
             <ul className='chat-message-log'>
-                {this.props.messages.map((message) =>
+                {this.props.messages.map((message) => (
                     <li key={message.timestamp}>
                         <ChatMessage
                             from={message.from}
@@ -87,7 +87,7 @@ class ChatMessageLog extends Component<ChatMessageLogProps> {
                             text={message.text}
                         />
                     </li>
-                )}
+                ))}
             </ul>
         );
     }
@@ -103,15 +103,11 @@ class ChatMessage extends Component<ChatMessageProps> {
     render(): React.ReactNode {
         return (
             <div className='chat-message'>
-                <p className='chat-message-from'>
-                    {this.props.from}
-                </p>
+                <p className='chat-message-from'>{this.props.from}</p>
                 <p className='chat-message-time'>
                     {new Date(this.props.timestamp).toLocaleTimeString('en-US')}
                 </p>
-                <p className='chat-message-text'>
-                    {this.props.text}
-                </p>
+                <p className='chat-message-text'>{this.props.text}</p>
             </div>
         );
     }

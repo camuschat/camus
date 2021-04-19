@@ -6,26 +6,26 @@ export default class MessageHandler {
     manager: Manager;
     signaler: Signaler;
     messageListeners: [object, Function][];
-    handlers: { [key: string]: Function; };
+    handlers: { [key: string]: Function };
 
     constructor(manager: Manager, signaler: Signaler) {
         this.manager = manager;
         this.signaler = signaler;
         this.messageListeners = [];
         this.handlers = {
-            'ping': this.ping,
-            'pong': this.pong,
-            'text': this.text,
+            ping: this.ping,
+            pong: this.pong,
+            text: this.text,
             'get-room-info': this.getRoomInfo,
             'room-info': this.roomInfo,
             'get-ice-servers': this.getIceServers,
             'ice-servers': this.iceServers,
-            'profile': this.profile,
-            'offer': this.offer,
-            'answer': this.answer,
-            'icecandidate': this.iceCandidate,
-            'greeting': this.greeting,
-            'bye': this.bye
+            profile: this.profile,
+            offer: this.offer,
+            answer: this.answer,
+            icecandidate: this.iceCandidate,
+            greeting: this.greeting,
+            bye: this.bye,
         };
     }
 
@@ -44,7 +44,6 @@ export default class MessageHandler {
             if (this.match(message, messageParams)) {
                 listener(message);
             }
-
         });
     }
 
@@ -94,7 +93,7 @@ export default class MessageHandler {
         if (message.sender) {
             const peer = this.manager.getOrCreateMediaPeer({
                 id: message.sender,
-                username: 'Major Tom'
+                username: 'Major Tom',
             });
             await peer.onOffer(message.data);
         }
@@ -104,7 +103,7 @@ export default class MessageHandler {
         if (message.sender) {
             const peer = this.manager.getOrCreateMediaPeer({
                 id: message.sender,
-                username: 'Major Tom'
+                username: 'Major Tom',
             });
             await peer.onAnswer(message.data);
         }
@@ -114,7 +113,7 @@ export default class MessageHandler {
         if (message.sender) {
             const peer = this.manager.getOrCreateMediaPeer({
                 id: message.sender,
-                username: 'Major Tom'
+                username: 'Major Tom',
             });
             const iceCandidate = new RTCIceCandidate(message.data);
             await peer.onIceCandidate(iceCandidate);
@@ -138,13 +137,18 @@ export default class MessageHandler {
             sender: '',
             receiver: '',
             type: '',
-            data: ''
+            data: '',
         };
     }
 
     match(message: Message, params: object): boolean {
         for (const key in params) {
-            if (!(key in message && (message as any)[key] === (params as any)[key])) {
+            if (
+                !(
+                    key in message &&
+                    (message as any)[key] === (params as any)[key]
+                )
+            ) {
                 return false;
             }
         }
