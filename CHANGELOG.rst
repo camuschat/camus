@@ -1,3 +1,10 @@
+Version 0.3.1
+-------------
+
+Released 2021-04-20
+
+- Add TypeScript to the frontend
+
 Version 0.3.0
 -------------
 

@@ -24,7 +24,7 @@ Good news, you don't have to be a programmer to contribute!
 - You can show people how you're using Camus by writing a blog post, making a
   video, or telling your friends
 
-Do you know JavaScript, React, or CSS?
+Do you know TypeScript, React, or CSS?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The frontend could use improvements, including:
@@ -98,8 +98,8 @@ Next, read the documentation on `architecture`_ and `development`_.
 When implementing your changes:
 
 - Ensure that the style and formatting of your code conforms to the existing
-  code. Use a linter (`ESLint`_ for JavaScript or `Pylint`_ for Python) to
-  catch common issues.
+  code. Use a linter (`ESLint`_ for TypeScript or `Pylint`_ for Python) to
+  catch common issues and use `Prettier`_ to format TypeScript code.
 - Add or update tests as needed
 - Run the tests and make sure that they pass
 - Add or update documentation as needed
@@ -137,3 +137,4 @@ with respect, together we can make progress and build something useful.
 .. _development: https://docs.camus.chat/en/latest/development.html
 .. _ESLint: https://eslint.org/
 .. _Pylint: https://pylint.org/
+.. _Prettier: https://prettier.io/

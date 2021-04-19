@@ -35,9 +35,9 @@ Enter the directory and install dependencies using ``npm``:
 Building static assets
 ----------------------
 
-Camus uses `Babel`_ and `Webpack`_ for transpiling and packaging JavaScript
+Camus uses `Babel`_ and `Webpack`_ for transpiling and packaging TypeScript
 files. These tools are installed via ``npm`` in the Prerequisites step above.
-Whenever JavaScript files located in ``camus/static/js`` are changed, they
+Whenever TypeScript files located in ``camus/static/js`` are changed, they
 must be re-packaged, which produces an output file in ``camus/static/dist``.
 Fortunately, this can be done with a single command from the
 ``camus/static`` directory:
@@ -117,7 +117,7 @@ Testing
 
 There are two different sets of tests: server tests, which are written in
 Python and use `pytest`_; and end-to-end tests, which are written in
-JavaScript and run using `Cypress`_. Each set of tests uses a different Docker
+TypeScript and run using `Cypress`_. Each set of tests uses a different Docker
 image and can be run separately with ``make test-server`` or
 ``make test-client``, or all together by simply running ``make test``.
 
