@@ -2,7 +2,7 @@ Architecture
 ============
 
 Camus consists of a server implemented with Python+Quart and a client
-implemented with JavaScript+React. The client and server exchange information
+implemented with TypeScript+React. The client and server exchange information
 over a websocket using a JSON-based `messaging protocol`_, which facilitates
 `signaling`_ and allows clients to establish peer-to-peer WebRTC connections.
 
@@ -20,7 +20,7 @@ information about rooms and available ICE servers.
 Client
 ------
 
-The client is implemented in JavaScript. It relies heavily on the `WebRTC API`_
+The client is implemented in TypeScript. It relies heavily on the `WebRTC API`_
 to establish direct peer-to-peer connections and `React`_ for the user
 interface. Client-side application state is stored with `Redux`_.
 

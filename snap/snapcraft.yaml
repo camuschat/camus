@@ -1,6 +1,6 @@
 name: camus
 base: core20
-version: '0.3.0'
+version: '0.3.1'
 summary: Peer-to-peer group video chat using WebRTC.
 description: |
   Camus is a group video chat server that uses WebRTC for direct peer-to-peer
