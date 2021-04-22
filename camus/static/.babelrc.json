@@ -1,6 +1,10 @@
 {
   "presets": [
-      ["@babel/preset-env", {"targets": "> 0.5%, Firefox ESR, not IE 11"}],
-      "@babel/preset-react"
+    ["@babel/preset-env", { "targets": "> 0.5%, Firefox ESR, not IE 11" }],
+    "@babel/preset-react",
+    "@lingui/babel-preset-react"
+  ],
+  "plugins": [
+     "macros"
   ]
 }

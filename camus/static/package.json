@@ -9,7 +9,9 @@
   },
   "scripts": {
     "build": "webpack --mode production --config webpack.config.js",
-    "watch": "webpack --mode development --config webpack.config.js --progress --devtool eval --watch"
+    "watch": "webpack --mode development --config webpack.config.js --progress --devtool eval --watch",
+    "extract": "lingui extract",
+    "compile": "lingui compile"
   },
   "repository": {
     "type": "git",
@@ -28,11 +30,17 @@
   "homepage": "https://github.com/mrgnr/camus#readme",
   "devDependencies": {
     "@babel/cli": "^7.13.10",
-    "@babel/core": "^7.13.10",
+    "@babel/core": "^7.13.16",
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-react": "^7.12.13",
+    "@lingui/babel-preset-react": "^2.9.2",
+    "@lingui/cli": "^3.8.10",
+    "@lingui/loader": "^3.8.10",
+    "@lingui/macro": "^3.8.10",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
+    "babel-plugin-macros": "^3.0.1",
+    "babel-runtime": "^6.26.0",
     "cypress": "^6.6.0",
     "eslint": "^7.21.0",
     "eslint-plugin-cypress": "^2.11.2",
@@ -45,6 +53,7 @@
     "webpack-cli": "^4.5.0"
   },
   "dependencies": {
+    "@lingui/react": "^3.8.10",
     "@reduxjs/toolkit": "^1.5.0",
     "@types/fscreen": "^1.0.1",
     "@types/react": "^17.0.3",
@@ -67,7 +76,9 @@
     "tabWidth": 4,
     "overrides": [
       {
-        "files": ["*.json"],
+        "files": [
+          "*.json"
+        ],
         "options": {
           "tabWidth": 2
         }
