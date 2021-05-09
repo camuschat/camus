@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { t, Trans } from '@lingui/macro';
 import {
     addIceServer,
     removeIceServer,
@@ -35,12 +36,12 @@ class IceServers extends Component<IceServersProps> {
             removeIceServer,
             allowEditing,
         } = this.props;
-        const title = kind[0].toUpperCase() + kind.slice(1) + ' Servers';
+        const kindUppercased = kind.toUpperCase();
         const servers = iceServers.filter((server) => server.kind === kind);
 
         return (
-            <section className='ice-servers' aria-label={`${kind} servers`}>
-                <h6>{title}</h6>
+            <section className='ice-servers' aria-label={t`${kind} servers`}>
+                <h6>{kindUppercased} Servers</h6>
                 <ul>
                     {servers
                         .filter((server) => server.urls && server.urls.length)
@@ -147,7 +148,7 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
                     <summary>{host}</summary>
                     <form onSubmit={this.handleSubmit}>
                         <label>
-                            URLs
+                            <Trans>URLs</Trans>
                             <input
                                 name='urls'
                                 type='text'
@@ -159,7 +160,7 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
                             />
                         </label>
                         <label>
-                            Username
+                            <Trans>Username</Trans>
                             <input
                                 name='username'
                                 type='text'
@@ -170,7 +171,7 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
                             />
                         </label>
                         <label>
-                            Password
+                            <Trans>Password</Trans>
                             <input
                                 name='credential'
                                 type='password'
@@ -185,13 +186,13 @@ class IceServerItem extends Component<IceServerItemProps, IceServerItemState> {
                                 <button
                                     type='button'
                                     onClick={this.handleDelete}
-                                    aria-label={`Delete this ${server.kind} server`}
+                                    aria-label={t`Delete this ${server.kind} server`}
                                 >
                                     <i className='material-icons'>delete</i>
                                 </button>
                                 <button
                                     type='submit'
-                                    aria-label={`Save this ${server.kind} server`}
+                                    aria-label={t`Save this ${server.kind} server`}
                                 >
                                     <i className='material-icons'>save</i>
                                 </button>

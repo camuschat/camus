@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { t, Trans } from '@lingui/macro';
 
 interface InviteProps {}
 
@@ -37,20 +38,20 @@ export default class Invite extends Component<InviteProps, InviteState> {
                 aria-labelledby='share-link-title'
             >
                 <h1 id='share-link-title' className='sr-only'>
-                    Share the link to invite others
+                    <Trans>Share the link to invite others</Trans>
                 </h1>
                 <div className='input-line'>
                     <button
                         className='icon-button'
                         onClick={this.handleClose}
-                        aria-label='Close dialog'
+                        aria-label={t`Close dialog`}
                     >
                         <i className='material-icons'>close</i>
                     </button>
                     <input
                         onClick={this.handleToggle}
                         type='button'
-                        value='Share the link to invite others'
+                        value={t`Share the link to invite others`}
                         readOnly={true}
                         ref={this.toggleExpandButton}
                     />
@@ -60,7 +61,7 @@ export default class Invite extends Component<InviteProps, InviteState> {
                         <button
                             type='button'
                             onClick={this.handleCopyLink}
-                            aria-label='Copy the room link'
+                            aria-label={t`Copy the room link`}
                         >
                             <i className='material-icons'>content_copy</i>
                         </button>

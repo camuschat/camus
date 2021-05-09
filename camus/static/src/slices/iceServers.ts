@@ -6,7 +6,7 @@ let id = 0;
 export interface IceServer {
     id?: number;
     urls: string[];
-    enabled: boolean;
+    enabled?: boolean;
     kind: string;
     username?: string;
     credential?: string;

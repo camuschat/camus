@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import createSagaMiddleware from 'redux-saga';
 import { Manager } from './rtcclient';
+import appReducer from './slices/app';
 import connectionsReducer from './slices/connections';
 import devicesReducer from './slices/devices';
 import feedsReducer from './slices/feeds';
@@ -21,6 +22,7 @@ export const sagaMiddleware = createSagaMiddleware({
 // Set up the Redux store
 export const store = configureStore({
     reducer: {
+        app: appReducer,
         devices: devicesReducer,
         users: usersReducer,
         messages: messagesReducer,

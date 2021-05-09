@@ -1,0 +1,163 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2021-04-21 11:43+0200\n"
+"Mime-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/VideoControlBar.tsx:48
+msgid "Audio volume slider for feed {0}"
+msgstr "Audio volume slider for feed {0}"
+
+#: src/components/EnterRoomModal.tsx:35
+msgid "Camera"
+msgstr "Camera"
+
+#: src/components/ExitDialog.tsx:19
+msgid "Cancel"
+msgstr "Cancel"
+
+#: src/components/Invite.tsx:24
+msgid "Close dialog"
+msgstr "Close dialog"
+
+#: src/components/ConnectionInfoBar.tsx:49
+msgid "Connection state"
+msgstr "Connection state"
+
+#: src/components/Invite.tsx:30
+msgid "Copy the room link"
+msgstr "Copy the room link"
+
+#: src/components/IceServers.tsx:94
+msgid "Delete this {0} server"
+msgstr "Delete this {0} server"
+
+#: src/components/ExitDialog.tsx:17
+msgid "Do you want to leave the room?"
+msgstr "Do you want to leave the room?"
+
+#: src/components/EnterRoomModal.tsx:36
+msgid "Enter room"
+msgstr "Enter room"
+
+#: src/components/ConnectionInfoBar.tsx:53
+msgid "ICE connection state"
+msgstr "ICE connection state"
+
+#: src/components/ConnectionInfoBar.tsx:57
+msgid "ICE gathering state"
+msgstr "ICE gathering state"
+
+#: src/components/ExitDialog.tsx:20
+msgid "Leave"
+msgstr "Leave"
+
+#: src/components/MediaControlBar.tsx:26
+msgid "Media controls"
+msgstr "Media controls"
+
+#: src/components/EnterRoomModal.tsx:34
+msgid "Microphone"
+msgstr "Microphone"
+
+#: src/components/EnterRoomModal.tsx:31
+msgid "Nickname"
+msgstr "Nickname"
+
+#: src/components/Sidebar.tsx:34
+msgid "Open {0}"
+msgstr "Open {0}"
+
+#: src/components/IceServers.tsx:90
+msgid "Password"
+msgstr "Password"
+
+#: src/components/IceServers.tsx:97
+msgid "Save this {0} server"
+msgstr "Save this {0} server"
+
+#: src/components/ChatMessageBar.tsx:30
+msgid "Send a group chat message"
+msgstr "Send a group chat message"
+
+#: src/components/ChatMessageBar.tsx:31
+msgid "Send chat message"
+msgstr "Send chat message"
+
+#: src/components/Invite.tsx:21
+msgid "Share the link to invite others"
+msgstr "Share the link to invite others"
+
+#: src/components/ConnectionInfoBar.tsx:61
+msgid "Signaling state"
+msgstr "Signaling state"
+
+#: src/components/ConnectionInfoBar.tsx:16
+msgid "There are currently no other users in the room."
+msgstr "There are currently no other users in the room."
+
+#: src/components/MediaControlBar.tsx:28
+msgid "Toggle enable camera"
+msgstr "Toggle enable camera"
+
+#: src/components/MediaControlBar.tsx:30
+msgid "Toggle enable desktop sharing"
+msgstr "Toggle enable desktop sharing"
+
+#: src/components/MediaControlBar.tsx:29
+msgid "Toggle enable microphone"
+msgstr "Toggle enable microphone"
+
+#: src/components/VideoControlBar.tsx:60
+msgid "Toggle fullscreen video for feed {0}"
+msgstr "Toggle fullscreen video for feed {0}"
+
+#: src/components/VideoControlBar.tsx:45
+msgid "Toggle mute audio for feed {0}"
+msgstr "Toggle mute audio for feed {0}"
+
+#: src/components/VideoControlBar.tsx:37
+msgid "Toggle mute video for feed {0}"
+msgstr "Toggle mute video for feed {0}"
+
+#: src/components/VideoControlBar.tsx:57
+msgid "Toggle picture-in-picture video for feed {0}"
+msgstr "Toggle picture-in-picture video for feed {0}"
+
+#: src/components/VideoControlBar.tsx:50
+msgid "Toggle video settings menu for your camera"
+msgstr "Toggle video settings menu for your camera"
+
+#: src/components/IceServers.tsx:82
+msgid "URLs"
+msgstr "URLs"
+
+#: src/components/ConnectionInfoBar.tsx:42
+#: src/components/IceServers.tsx:86
+msgid "Username"
+msgstr "Username"
+
+#: src/components/App.tsx:72
+msgid "chat window"
+msgstr "chat window"
+
+#: src/components/App.tsx:74
+msgid "settings window"
+msgstr "settings window"
+
+#: src/components/App.tsx:73
+msgid "users window"
+msgstr "users window"
+
+#: src/components/IceServers.tsx:20
+msgid "{kind} servers"
+msgstr "{kind} servers"

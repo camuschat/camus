@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { t } from '@lingui/macro';
 import fscreen from 'fscreen';
 import { connect, ConnectedProps } from 'react-redux';
 import { setResolution } from '../slices/devices';
@@ -75,7 +76,7 @@ class VideoControlBar extends Component<
                     <button
                         className='toggle-visibility'
                         onClick={this.toggleVisibility}
-                        aria-label={`Toggle mute video for feed ${feed.username}`}
+                        aria-label={t`Toggle mute video for feed ${feed.username}`}
                         aria-pressed={!feed.videoEnabled}
                     >
                         <i className='material-icons'>
@@ -90,7 +91,7 @@ class VideoControlBar extends Component<
                         <button
                             className='toggle-audio'
                             onClick={this.toggleAudioMute}
-                            aria-label={`Toggle mute audio for feed ${feed.username}`}
+                            aria-label={t`Toggle mute audio for feed ${feed.username}`}
                             aria-pressed={this.state.volumeMuted}
                         >
                             <i className='material-icons'>{volumeIcon}</i>
@@ -103,7 +104,7 @@ class VideoControlBar extends Component<
                             step='0.1'
                             value={volumeMuted ? 0 : volume}
                             onChange={this.handleVolumeChange}
-                            aria-label={`Audio volume slider for feed ${feed.username}`}
+                            aria-label={t`Audio volume slider for feed ${feed.username}`}
                         />
                     </>
                 )}
@@ -111,7 +112,7 @@ class VideoControlBar extends Component<
                     <button
                         className='toggle-settings'
                         onClick={this.toggleSettings}
-                        aria-label='Toggle video settings menu for your camera'
+                        aria-label={t`Toggle video settings menu for your camera`}
                     >
                         <i className='material-icons'>settings</i>
                     </button>
@@ -124,7 +125,7 @@ class VideoControlBar extends Component<
                     <button
                         className='toggle-pip'
                         onClick={this.togglePictureInPicture}
-                        aria-label={`Toggle picture-in-picture video for feed ${feed.username}`}
+                        aria-label={t`Toggle picture-in-picture video for feed ${feed.username}`}
                     >
                         <i className='material-icons'>picture_in_picture</i>
                     </button>
@@ -133,7 +134,7 @@ class VideoControlBar extends Component<
                     <button
                         className='toggle-fullscreen'
                         onClick={this.toggleFullscreen}
-                        aria-label={`Toggle fullscreen video for feed ${feed.username}`}
+                        aria-label={t`Toggle fullscreen video for feed ${feed.username}`}
                     >
                         <i className='material-icons'>fullscreen</i>
                     </button>

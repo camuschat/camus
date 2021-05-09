@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { t, Trans } from '@lingui/macro';
 import { setUsername } from '../slices/users';
 import { updateAudioDevice, updateVideoDevice } from '../slices/devices';
 import { getCameras, getMics, getUserMedia, getUserVideo } from '../mediaUtils';
@@ -52,7 +53,7 @@ class EnterRoomModal extends Component<
                 <div className='enter-room-modal dialog fade-in'>
                     <form onSubmit={this.handleSubmit}>
                         <label>
-                            Nickname
+                            <Trans>Nickname</Trans>
                             <input
                                 type='text'
                                 name='nickname'
@@ -62,16 +63,16 @@ class EnterRoomModal extends Component<
                             />
                         </label>
                         <DeviceSelect
-                            label='Microphone'
+                            label={t`Microphone`}
                             devices={this.state.mics}
                             onSelectDevice={this.onSelectDevice}
                         />
                         <DeviceSelect
-                            label='Camera'
+                            label={t`Camera`}
                             devices={this.state.cameras}
                             onSelectDevice={this.onSelectDevice}
                         />
-                        <input type='submit' value='Enter room' />
+                        <input type='submit' value={t`Enter room`} />
                     </form>
                     <div className='video-container'>
                         <video

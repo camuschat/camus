@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
+import { t } from '@lingui/macro';
+import { enterRoom, setLocale } from '../slices/app';
 import { addUser, updateUser } from '../slices/users';
 import { addChatMessage } from '../slices/messages';
 import {
@@ -9,6 +11,8 @@ import {
 } from '../slices/connections';
 import { addFeed, removeFeed, updateFeed } from '../slices/feeds';
 import { addIceServer } from '../slices/iceServers';
+import { RootState } from '../store';
+import { setLanguage } from '../i18n';
 import {
     IceServersMessage,
     Manager,
@@ -20,29 +24,16 @@ import ConnectionInfoBar from './ConnectionInfoBar';
 import IceServers from './IceServers';
 import Invite from './Invite';
 import EnterRoomModal from './EnterRoomModal';
+import LanguageSelector from './LanguageSelect';
 import MediaControlBar from './MediaControlBar';
 import Sidebar from './Sidebar';
 import VideoStage from './VideoStage';
 
-interface AppProps {
+interface AppProps extends PropsFromRedux {
     manager: Manager;
-    addUser: Function;
-    updateUser: Function;
-    addChatMessage: Function;
-    addConnection: Function;
-    removeConnection: Function;
-    updateConnection: Function;
-    addFeed: Function;
-    removeFeed: Function;
-    updateFeed: Function;
-    addIceServer: Function;
 }
 
-interface AppState {
-    displayEnterRoomModal: boolean;
-}
-
-class App extends Component<AppProps, AppState> {
+class App extends Component<AppProps> {
     private manager: Manager;
     private videoStage: React.RefObject<any>;
     private canUpdateIceServers: boolean;
@@ -50,10 +41,6 @@ class App extends Component<AppProps, AppState> {
     constructor(props: AppProps) {
         super(props);
         this.manager = this.props.manager;
-        this.state = {
-            displayEnterRoomModal: true,
-        };
-
         this.videoStage = React.createRef();
         this.canUpdateIceServers =
             new RTCPeerConnection().setConfiguration !== undefined;
@@ -67,6 +54,9 @@ class App extends Component<AppProps, AppState> {
         this.onPeerConnectionChange = this.onPeerConnectionChange.bind(this);
         this.onPeerUsernameChange = this.onPeerUsernameChange.bind(this);
         this.onSidebarToggle = this.onSidebarToggle.bind(this);
+        this.onSelectLanguage = this.onSelectLanguage.bind(this);
+
+        console.log('!App constructor');
     }
 
     componentDidMount(): void {
@@ -88,17 +78,20 @@ class App extends Component<AppProps, AppState> {
         window.addEventListener('load', async () => {
             await this.manager.start();
         });
+
+        console.log('!App did mount');
     }
 
     componentWillUnmount(): void {
-        this.manager.shutdown();
+        //this.manager.shutdown();
+        console.log('!App will unmount');
     }
 
     render(): React.ReactNode {
-        if (this.state.displayEnterRoomModal) {
+        if (this.props.didEnterRoom) {
             return (
                 <EnterRoomModal
-                    isVisible={this.state.displayEnterRoomModal}
+                    isVisible={this.props.didEnterRoom}
                     onSubmit={this.onSubmitModal}
                 />
             );
@@ -106,6 +99,11 @@ class App extends Component<AppProps, AppState> {
 
         return (
             <>
+                <header>
+                    <LanguageSelector
+                        onSelectLanguage={this.onSelectLanguage}
+                    />
+                </header>
                 <main>
                     <VideoStage ref={this.videoStage} />
                     <MediaControlBar />
@@ -114,9 +112,9 @@ class App extends Component<AppProps, AppState> {
                 <Sidebar
                     buttonIcons={['message', 'people', 'settings']}
                     buttonAriaLabels={[
-                        'chat window',
-                        'users window',
-                        'settings window',
+                        t`chat window`,
+                        t`users window`,
+                        t`settings window`,
                     ]}
                     onToggle={this.onSidebarToggle}
                 >
@@ -129,9 +127,7 @@ class App extends Component<AppProps, AppState> {
     }
 
     onSubmitModal(): void {
-        this.setState({
-            displayEnterRoomModal: false,
-        });
+        enterRoom();
     }
 
     onReceiveChatMessage(message: TextMessage): void {
@@ -264,9 +260,22 @@ class App extends Component<AppProps, AppState> {
             this.videoStage.current.forceUpdate();
         }
     }
+
+    onSelectLanguage(locale: string): void {
+        setLocale(locale);
+        setLanguage(locale);
+        //this.forceUpdate();
+        console.log('!onSelectLanguage');
+    }
 }
 
-export default connect(null, {
+const mapState = (state: RootState) => ({
+    didEnterRoom: state.app.didEnterRoom,
+});
+
+const mapDispatch = {
+    enterRoom,
+    setLocale,
     addUser,
     updateUser,
     addChatMessage,
@@ -277,4 +286,10 @@ export default connect(null, {
     removeFeed,
     updateFeed,
     addIceServer,
-})(App);
+};
+
+const connector = connect(mapState, mapDispatch);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(App);

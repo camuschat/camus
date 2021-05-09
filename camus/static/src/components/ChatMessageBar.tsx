@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { t } from '@lingui/macro';
 import { Message, sendChatMessage } from '../slices/messages';
 import { RootState } from '../store';
 
@@ -39,13 +40,13 @@ class ChatMessageBar extends Component<PropsFromRedux, ChatMessageBarState> {
                 <form>
                     <input
                         type='text'
-                        placeholder='Send a group chat message'
+                        placeholder={t`Send a group chat message`}
                         value={this.state.value}
                         onChange={this.handleChange}
                     />
                     <button
                         onClick={this.handleSubmit}
-                        aria-label='Send chat message'
+                        aria-label={t`Send chat message`}
                     >
                         <i className='material-icons'>send</i>
                     </button>

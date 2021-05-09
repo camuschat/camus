@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { Trans } from '@lingui/macro';
 import { Feed, swapFeeds } from '../slices/feeds';
 import { RootState } from '../store';
 import VideoControlBar from './VideoControlBar';
@@ -50,7 +51,7 @@ class VideoStage extends Component<PropsFromRedux, VideoStageState> {
                 aria-labelledby='video-stage-title'
             >
                 <h1 id='video-stage-title' className='sr-only'>
-                    Video feeds
+                    <Trans>Video feeds</Trans>
                 </h1>
                 {feeds.map((feed) => (
                     <VideoFeed
@@ -211,7 +212,7 @@ class VideoFeed extends Component<VideoFeedProps> {
                 aria-labelledby={`video-feed-${feed.id}`}
             >
                 <h2 id={`video-feed-${feed.id}`} className='sr-only'>
-                    {`Video feed for user ${feed.username}`}
+                    <Trans>{`Video feed for user ${feed.username}`}</Trans>
                 </h2>
                 <p className='video-tag'>{feed.username}</p>
                 <div ref={this.videoContainer} style={{ height: '100%' }}>

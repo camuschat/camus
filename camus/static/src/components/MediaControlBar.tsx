@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { t, Trans } from '@lingui/macro';
 import { connect, ConnectedProps } from 'react-redux';
 import { setLocalAudio, setLocalVideo } from '../slices/feeds';
 import {
@@ -36,7 +37,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                 aria-labelledby='media-controls-title'
             >
                 <h1 id='media-controls-title' className='sr-only'>
-                    Media controls
+                    <Trans>Media controls</Trans>
                 </h1>
                 <MediaToggleButton
                     kind={'camera'}
@@ -45,7 +46,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     onTrack={this.onTrack}
                     getMedia={getUserVideo}
                     icons={{ on: 'videocam', off: 'videocam_off' }}
-                    ariaLabel='Toggle enable camera'
+                    ariaLabel={t`Toggle enable camera`}
                 />
                 <MediaToggleButton
                     kind={'mic'}
@@ -54,7 +55,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     onTrack={this.onTrack}
                     getMedia={getUserAudio}
                     icons={{ on: 'mic', off: 'mic_off' }}
-                    ariaLabel='Toggle enable microphone'
+                    ariaLabel={t`Toggle enable microphone`}
                 />
                 <MediaToggleButton
                     kind={'display'}
@@ -63,7 +64,7 @@ class MediaControlBar extends Component<PropsFromRedux> {
                     onTrack={this.onTrack}
                     getMedia={getDisplayMedia}
                     icons={{ on: 'screen_share', off: 'stop_screen_share' }}
-                    ariaLabel='Toggle enable desktop sharing'
+                    ariaLabel={t`Toggle enable desktop sharing`}
                 />
                 <HangUpButton />
             </section>

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { t, Trans } from '@lingui/macro';
 
 interface SidebarProps {
     buttonIcons: string[];
@@ -35,7 +36,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
                 aria-labelledby='sidebar-title'
             >
                 <h1 id='sidebar-title' className='sr-only'>
-                    Sidebar
+                    <Trans>Sidebar</Trans>
                 </h1>
                 {isCollapsed && this.renderToggleButtons()}
                 {!isCollapsed && (
@@ -64,7 +65,7 @@ export default class Sidebar extends Component<SidebarProps, SidebarState> {
                         <SidebarToggleButton
                             icon={icon}
                             onClick={this.onToggleButtonClick}
-                            ariaLabel={`Open ${labels[idx]}`}
+                            ariaLabel={t`Open ${labels[idx]}`}
                         />
                     </li>
                 ))}

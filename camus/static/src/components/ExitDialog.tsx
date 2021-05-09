@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { t, Trans } from '@lingui/macro';
 
 interface ExitDialogProps {
     onClose: Function;
@@ -30,19 +31,21 @@ export default class ExitDialog extends Component<ExitDialogProps> {
                     aria-labelledby='exit-dialog-title'
                     aria-modal='true'
                 >
-                    <p id='exit-dialog-title'>Do you want to leave the room?</p>
+                    <p id='exit-dialog-title'>
+                        <Trans>Do you want to leave the room?</Trans>
+                    </p>
                     <input
                         onClick={this.handleCancel}
                         className='btn btn-secondary btn-cancel'
                         type='button'
-                        value='Cancel'
+                        value={t`Cancel`}
                         ref={this.cancelButton}
                     />
                     <input
                         onClick={this.handleSubmit}
                         className='btn btn-secondary'
                         type='submit'
-                        value='Leave'
+                        value={t`Leave`}
                         ref={this.leaveButton}
                     />
                 </div>

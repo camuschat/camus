@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
+import { Trans } from '@lingui/macro';
 import { Connection } from '../slices/connections';
 import { RootState } from '../store';
 
@@ -16,7 +17,11 @@ class ConnectionInfoBar extends Component<PropsFromRedux> {
         if (connections.length === 0) {
             return (
                 <p className='connection-info-node'>
-                    <i>There are currently no other users in the room.</i>
+                    <i>
+                        <Trans>
+                            There are currently no other users in the room.
+                        </Trans>
+                    </i>
                 </p>
             );
         }
@@ -59,25 +64,26 @@ class ConnectionInfoNode extends Component<ConnectionInfoNodeProps> {
                     <summary>{connection.username}</summary>
                     <ul>
                         <li key='username'>
-                            Username: <span>{connection.username}</span>
+                            <Trans>Username</Trans>:{' '}
+                            <span>{connection.username}</span>
                         </li>
                         <li key='id'>
                             Client ID: <span>{connection.id}</span>
                         </li>
                         <li key='connection-state'>
-                            Connection state:{' '}
+                            <Trans>Connection state</Trans>:{' '}
                             <span>{connection.connectionState}</span>
                         </li>
                         <li key='ice-connection-state'>
-                            Ice connection state:{' '}
+                            <Trans>ICE connection state</Trans>:{' '}
                             <span>{connection.iceConnectionState}</span>
                         </li>
                         <li key='ice-gathering-state'>
-                            Ice gathering state:{' '}
+                            <Trans>ICE gathering state</Trans>:{' '}
                             <span>{connection.iceGatheringState}</span>
                         </li>
                         <li key='signaling-state'>
-                            Signaling state:{' '}
+                            <Trans>Signaling state</Trans>:{' '}
                             <span>{connection.signalingState}</span>
                         </li>
                     </ul>
