@@ -8,6 +8,7 @@ from quart import (Blueprint, copy_current_websocket_context, flash, redirect,
 from camus import db, message_handler
 from camus.forms import CreateRoomForm, JoinRoomForm
 from camus.models import Client, Room
+from camus.util import commit_database
 
 bp = Blueprint('main', __name__)
 
@@ -33,7 +34,7 @@ async def index():
             if password:
                 room.set_password(password)
             db.session.add(room)
-            db.session.commit()
+            commit_database(reraise=True)
 
             return redirect('/room/{}'.format(room.slug), code=307)
         except sqlalchemy.exc.IntegrityError:
@@ -62,7 +63,7 @@ async def room(room_id):
     client = room.authenticate()
     if client:
         db.session.add(client)
-        db.session.commit()
+        commit_database(reraise=True)
         session['id'] = client.uuid
 
         return await render_template(
@@ -77,7 +78,7 @@ async def room(room_id):
         client = room.authenticate(password)
         if client:
             db.session.add(client)
-            db.session.commit()
+            commit_database(reraise=True)
             session['id'] = client.uuid
 
             return await render_template(

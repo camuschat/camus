@@ -1,3 +1,10 @@
+Version 0.3.2
+-------------
+
+Released 2021-05-16
+
+- Fix bugs around database transactions
+
 Version 0.3.1
 -------------
 
