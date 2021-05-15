@@ -120,19 +120,19 @@ things as tools, languages, and code evolve. So long as we treat one another
 with respect, together we can make progress and build something useful.
 
 
-.. _open an issue: https://github.com/mrgnr/camus/issues
+.. _open an issue: https://github.com/camuschat/camus/issues
 .. _accessibility: https://developer.mozilla.org/en-US/docs/Web/Accessibility
 .. _internationalization: https://developer.mozilla.org/en-US/docs/Glossary/Internationalization_and_localization
 .. _localization: https://developer.mozilla.org/en-US/docs/Glossary/Localization
 .. _Arch: https://wiki.archlinux.org/index.php/Arch_package_guidelines
 .. _Homebrew: https://brew.sh/
 .. _Flatpak: https://www.flatpak.org/
-.. _Terraform Camus: https://github.com/mrgnr/terraform-camus
+.. _Terraform Camus: https://github.com/camuschat/terraform-camus
 .. _tutorial: https://docs.camus.chat/en/latest/tutorials/index.html
-.. _Discussions: https://github.com/mrgnr/camus/discussions
+.. _Discussions: https://github.com/camuschat/camus/discussions
 .. _reported: mailto:mrgnr@pm.me
-.. _existing issues: https://github.com/mrgnr/camus/issues?q=is%3Aissue
-.. _pull request: https://github.com/mrgnr/camus/pulls
+.. _existing issues: https://github.com/camuschat/camus/issues?q=is%3Aissue
+.. _pull request: https://github.com/camuschat/camus/pulls
 .. _architecture: https://docs.camus.chat/en/latest/architecture.html
 .. _development: https://docs.camus.chat/en/latest/development.html
 .. _ESLint: https://eslint.org/

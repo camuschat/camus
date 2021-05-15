@@ -1,10 +1,10 @@
 {
     "name": "Camus",
     "description": "Peer-to-peer group video chat using WebRTC",
-    "repository": "https://github.com/mrgnr/camus",
+    "repository": "https://github.com/camuschat/camus",
     "website": "https://camus.chat/",
     "keywords": ["video chat", "WebRTC", "p2p"],
-    "logo": "https://raw.githubusercontent.com/mrgnr/camus/master/images/logo.png",
+    "logo": "https://raw.githubusercontent.com/camuschat/camus/master/images/logo.png",
     "success_url": "/",
     "env": {
         "SECRET_KEY": {
