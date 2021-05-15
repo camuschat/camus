@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mrgnr/camus.git"
+    "url": "git+https://github.com/camuschat/camus.git"
   },
   "keywords": [
     "video",
@@ -23,9 +23,9 @@
   "author": "Morgan Robertson",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/mrgnr/camus/issues"
+    "url": "https://github.com/camuschat/camus/issues"
   },
-  "homepage": "https://github.com/mrgnr/camus#readme",
+  "homepage": "https://github.com/camuschat/camus#readme",
   "devDependencies": {
     "@babel/cli": "^7.13.10",
     "@babel/core": "^7.13.10",

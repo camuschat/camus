@@ -11,7 +11,7 @@ Next, clone the project repo:
 
 ::
 
-   $ git clone https://github.com/mrgnr/camus.git
+   $ git clone https://github.com/camuschat/camus.git
 
 For Python development, it is best to set up a `virtual environment`_.
 
@@ -162,6 +162,6 @@ respectively.
 .. _Webpack: https://webpack.js.org/
 .. _Cypress: https://docs.cypress.io/
 .. _pytest: https://docs.pytest.org/en/latest/
-.. _Makefile: https://github.com/mrgnr/camus/blob/master/Makefile
+.. _Makefile: https://github.com/camuschat/camus/blob/master/Makefile
 .. _add your user: https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
 .. _rootless mode: https://docs.docker.com/engine/security/rootless/

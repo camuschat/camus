@@ -46,7 +46,7 @@ command to pull the image and run a container:
 
 ::
 
-   $ docker run -d -p 5000:5000 mrgnr/camus
+   $ docker run -d -p 5000:5000 camuschat/camus
 
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
@@ -57,4 +57,4 @@ same room in multiple tabs and each tab will act as a separate client.
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _virtual environment: https://docs.python.org/3/tutorial/venv.html
-.. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
+.. _pre-built Docker image: https://hub.docker.com/r/camuschat/camus

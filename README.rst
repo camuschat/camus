@@ -20,7 +20,7 @@ Features
 - Configure custom STUN and TURN servers
 - Responsive user interface that works on large or small screens
 
-.. image:: https://raw.githubusercontent.com/mrgnr/camus/master/screenshots/0.2.0.png
+.. image:: https://raw.githubusercontent.com/camuschat/camus/master/screenshots/0.2.0.png
 
 Installation
 ------------
@@ -70,7 +70,8 @@ command to pull the image and run a container:
 
 ::
 
-   $ docker run -d -p 5000:5000 mrgnr/camus
+   $ docker pull camuschat/camus
+   $ docker run -d -p 5000:5000 camuschat/camus
 
 Go to ``localhost:5000`` in your browser. For local testing, you can visit the
 same room in multiple tabs and each tab will act as a separate client.
@@ -97,18 +98,18 @@ Contributing
 If you want to make a contribution, please read the `Contributing`_ guidelines
 first.
 
-.. |Build Status| image:: https://travis-ci.com/mrgnr/camus.svg?branch=master
-   :target: https://travis-ci.com/mrgnr/camus
+.. |Build Status| image:: https://travis-ci.com/camuschat/camus.svg?branch=master
+   :target: https://travis-ci.com/camuschat/camus
 .. |docs| image:: https://img.shields.io/readthedocs/camus/latest
    :target: https://docs.camus.chat
 .. |PyPI| image:: https://img.shields.io/pypi/v/camus-chat?color=blue
    :target: https://pypi.org/project/camus-chat
-.. |Docker Hub| image:: https://img.shields.io/docker/pulls/mrgnr/camus
-   :target: https://hub.docker.com/r/mrgnr/camus
-.. |License| image:: https://img.shields.io/github/license/mrgnr/camus?color=green
-   :target: https://github.com/mrgnr/camus/blob/master/LICENSE
+.. |Docker Hub| image:: https://img.shields.io/docker/pulls/camuschat/camus
+   :target: https://hub.docker.com/r/camuschat/camus
+.. |License| image:: https://img.shields.io/github/license/camuschat/camus?color=green
+   :target: https://github.com/camuschat/camus/blob/master/LICENSE
 .. |Deploy to Heroku| image:: https://www.herokucdn.com/deploy/button.svg
-   :target: https://heroku.com/deploy?template=https://github.com/mrgnr/camus
+   :target: https://heroku.com/deploy?template=https://github.com/camuschat/camus
 
 .. _WebRTC: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API
 .. _Snap: https://docs.camus.chat/en/latest/installation.html#snap
@@ -121,18 +122,9 @@ first.
 .. _Python 3.7: https://docs.python.org/3.7/whatsnew/3.7.html
 .. _Quart: https://gitlab.com/pgjones/quart
 .. _virtual environment: https://docs.python.org/3/tutorial/venv.html
-.. _pre-built Docker image: https://hub.docker.com/r/mrgnr/camus
+.. _pre-built Docker image: https://hub.docker.com/r/camuschat/camus
 .. _deployment documentation: https://docs.camus.chat/en/latest/deployment.html
 .. _technical overview: https://docs.camus.chat/en/latest/technical-overview.html
 .. _development documentation: https://docs.camus.chat/en/latest/development.html
-.. _Babel: https://github.com/babel/babel
-.. _Adapter: https://github.com/webrtcHacks/adapter
 .. _TURN: https://webrtc.org/getting-started/turn-server
-.. _React: https://github.com/facebook/react
-.. _#3: https://github.com/mrgnr/camus/pull/3
-.. _#4: https://github.com/mrgnr/camus/pull/4
-.. _#5: https://github.com/mrgnr/camus/pull/5
-.. _#6: https://github.com/mrgnr/camus/pull/6
-.. _#7: https://github.com/mrgnr/camus/pull/7
-.. _SFU: https://webrtcglossary.com/sfu
-.. _Contributing: https://github.com/mrgnr/camus/blob/master/CONTRIBUTING.rst
+.. _Contributing: https://github.com/camuschat/camus/blob/master/CONTRIBUTING.rst

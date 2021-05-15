@@ -28,9 +28,9 @@ html_theme_options = {
     'show_powered_by': False,
     'extra_nav_links': {
         'Demo': 'https://camus.chat',
-        'Source code': 'https://github.com/mrgnr/camus',
-        'Issue tracker': 'https://github.com/mrgnr/camus/issues',
-        'Discussions': 'https://github.com/mrgnr/camus/discussions',
+        'Source code': 'https://github.com/camuschat/camus',
+        'Issue tracker': 'https://github.com/camuschat/camus/issues',
+        'Discussions': 'https://github.com/camuschat/camus/discussions',
         'Donate': 'https://liberapay.com/mrgnr',
     },
 }

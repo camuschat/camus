@@ -9,8 +9,8 @@ setup(
     url='https://camus.chat/',
     download_url='https://pypi.org/project/camus-chat/',
     project_urls={
-        'Code': 'https://github.com/mrgnr/camus',
-        'Issue tracker': 'https://github.com/mrgnr/camus/issues',
+        'Code': 'https://github.com/camuschat/camus',
+        'Issue tracker': 'https://github.com/camuschat/camus/issues',
         'Documentation': 'https://docs.camus.chat/',
     },
     author='Morgan Robertson',

@@ -14,7 +14,7 @@ Heroku project:
 
 ::
 
-   $ git clone https://github.com/mrgnr/camus.git && cd camus
+   $ git clone https://github.com/camuschat/camus.git && cd camus
    $ heroku login -i
    $ heroku create
 
@@ -68,13 +68,13 @@ You can deploy Camus on a `DigitalOcean`_ droplet using `Terraform Camus`_. See 
 `documentation`_ there for instructions.
 
 .. _Heroku: https://www.heroku.com/
-.. _app.json: https://github.com/mrgnr/camus/blob/master/app.json
-.. _Procfile: https://github.com/mrgnr/camus/blob/master/Procfile
-.. _runtime.txt: https://github.com/mrgnr/camus/blob/master/runtime.txt
+.. _app.json: https://github.com/camuschat/camus/blob/master/app.json
+.. _Procfile: https://github.com/camuschat/camus/blob/master/Procfile
+.. _runtime.txt: https://github.com/camuschat/camus/blob/master/runtime.txt
 .. _install the Heroku CLI tool: https://devcenter.heroku.com/articles/heroku-cli#download-and-install
 .. _configure: configuration.html
 .. _configuration documentation: https://devcenter.heroku.com/articles/config-vars
 .. _Coturn: https://github.com/coturn/coturn
 .. _DigitalOcean: https://www.digitalocean.com/
-.. _Terraform Camus: https://github.com/mrgnr/terraform-camus
-.. _documentation: https://github.com/mrgnr/terraform-camus/blob/main/README.md
+.. _Terraform Camus: https://github.com/camuschat/terraform-camus
+.. _documentation: https://github.com/camuschat/terraform-camus/blob/main/README.md

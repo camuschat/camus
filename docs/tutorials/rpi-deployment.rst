@@ -322,7 +322,7 @@ Other resources
 .. _HTTPS for webcam and microphone access: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security
 .. _OpenSSL Certificate Authority: https://jamielinux.com/docs/openssl-certificate-authority/
 .. _OpenSSL PKI Tutorial: https://pki-tutorial.readthedocs.io
-.. _Camus Discussions: https://github.com/mrgnr/camus/discussions
+.. _Camus Discussions: https://github.com/camuschat/camus/discussions
 .. _OpenSSL Essentials: https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs
 .. _Configuring HTTPS Servers: https://nginx.org/en/docs/http/configuring_https_servers.html
 .. _Server Side TLS: https://wiki.mozilla.org/Security/Server_Side_TLS
