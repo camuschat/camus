@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from camus import db
 from camus.models import Client
-from camus.util import get_ice_servers
+from camus.util import commit_database, get_ice_servers
 
 
 class MessageHandler:
@@ -56,7 +56,7 @@ class MessageHandler:
                 # Update seen & active timestamps for client and room
                 client = Client.query.filter_by(uuid=client_uuid).first()
                 client.seen = client.room.active = datetime.datetime.utcnow()
-                db.session.commit()
+                commit_database()
 
                 # Message intended for the server
                 if message.receiver == self._address:
@@ -72,7 +72,7 @@ class MessageHandler:
                     self.send(message)
 
             except Exception as e:
-                print('Error processing inbox: {}'.format(e))
+                logging.exception('Error processing inbox')
 
     def _handle_local_message(self, message):
         """Handle a message according to its type."""
@@ -97,7 +97,7 @@ class MessageHandler:
             username = message.data.get('username')
             if username:
                 client.name = username
-                db.session.commit()
+                commit_database()
 
             reply.type = 'room-info'
             reply.data = self._room_info(client.room)
@@ -123,17 +123,19 @@ class MessageHandler:
         elif message.type == 'bye':
             logging.info('got bye')
 
-            # Delete client object from db
             client = Client.query.filter_by(uuid=message.sender).first()
+            room = client.room
+
+            # Delete client object from db
             db.session.delete(client)
-            db.session.commit()
+            commit_database()
 
             # Remove message queues associated with the client
             self.outbox.pop(client.uuid, None)
 
             # Broadcast updated room info to remaining clients
             reply.type = 'room-info'
-            reply.data = self._room_info(client.room)
+            reply.data = self._room_info(room)
             self.broadcast(client.room, reply)
             reply = None
 

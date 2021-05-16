@@ -10,6 +10,7 @@ from twilio.rest import Client as TwilioClient
 from twilio.base.exceptions import TwilioException, TwilioRestException
 
 from quart import current_app
+from sqlalchemy.exc import SQLAlchemyError
 
 from camus import db
 from camus.models import Client, Room
@@ -34,11 +35,30 @@ class LoopTimer:
             try:
                 await self._callback(**self._kwargs)
             except Exception as e:
-                logging.error(traceback.format_exc())
+                logging.exception(
+                    "Exception during excecution of LoopTimer callback function"
+                )
 
     def cancel(self):
         """Cancel the running task."""
         self._task.cancel()
+
+
+def commit_database(log_error=True, rollback=True, reraise=False):
+    try:
+        db.session.commit()
+        return True
+    except SQLAlchemyError:
+        if log_error:
+            logging.exception('Exception during database commit.')
+
+        if rollback:
+            db.session.rollback()
+
+        if reraise:
+            raise
+
+        return False
 
 
 async def ping_clients(message_handler):
@@ -65,7 +85,7 @@ async def reap_clients(message_handler):
         room = client.room
         message_handler.send_bye(client.uuid)
         db.session.delete(client)
-        db.session.commit()
+        commit_database()
         message_handler.broadcast_room_info(room)
 
 
@@ -78,7 +98,7 @@ async def reap_rooms():
 
     for room in rooms:
         db.session.delete(room)
-        db.session.commit()
+        commit_database()
 
 
 def get_ice_servers(username):
